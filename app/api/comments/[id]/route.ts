@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Comment from '@/models/Comment';
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     await dbConnect();
-    const comment = await Comment.findByIdAndDelete(params.id);
+    const comment = await Comment.findByIdAndDelete(resolvedParams.id);
     
     if (!comment) {
       return NextResponse.json({ error: 'Comment not found' }, { status: 404 });

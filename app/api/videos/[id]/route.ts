@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Video from '@/models/Video';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     await dbConnect();
     const video = await Video.findByIdAndUpdate(
-      params.id,
+      resolvedParams.id,
       { $inc: { views: 1 } },
       { new: true }
     );
@@ -20,10 +21,11 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     await dbConnect();
-    const video = await Video.findByIdAndDelete(params.id);
+    const video = await Video.findByIdAndDelete(resolvedParams.id);
     if (!video) return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     return NextResponse.json({ message: 'Video deleted successfully' });
   } catch (error) {

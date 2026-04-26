@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Post from '@/models/Post';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     await dbConnect();
     
     // Attempt to match by id or slug
-    const query = params.id.match(/^[0-9a-fA-F]{24}$/) ? { _id: params.id } : { slug: params.id };
+    const query = resolvedParams.id.match(/^[0-9a-fA-F]{24}$/) ? { _id: resolvedParams.id } : { slug: resolvedParams.id };
     
     const post = await Post.findOneAndUpdate(
       query,
@@ -25,15 +26,16 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     await dbConnect();
     const body = await request.json();
     
     // Do not allow slug to be freely updated by client
     delete body.slug; 
 
-    const post = await Post.findByIdAndUpdate(params.id, body, {
+    const post = await Post.findByIdAndUpdate(resolvedParams.id, body, {
       new: true,
       runValidators: true,
     });
@@ -48,10 +50,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     await dbConnect();
-    const post = await Post.findByIdAndDelete(params.id);
+    const post = await Post.findByIdAndDelete(resolvedParams.id);
 
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });

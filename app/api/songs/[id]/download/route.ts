@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Song from '@/models/Song';
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     await dbConnect();
     
     const song = await Song.findByIdAndUpdate(
-      params.id,
+      resolvedParams.id,
       { $inc: { downloads: 1 } },
       { new: true }
     );

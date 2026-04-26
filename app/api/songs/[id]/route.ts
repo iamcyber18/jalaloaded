@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Song from '@/models/Song';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     await dbConnect();
     
     const song = await Song.findByIdAndUpdate(
-      params.id,
+      resolvedParams.id,
       { $inc: { plays: 1 } },
       { new: true }
     );
@@ -22,12 +23,13 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     await dbConnect();
     const body = await request.json();
 
-    const song = await Song.findByIdAndUpdate(params.id, body, {
+    const song = await Song.findByIdAndUpdate(resolvedParams.id, body, {
       new: true,
       runValidators: true,
     });
@@ -42,10 +44,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     await dbConnect();
-    const song = await Song.findByIdAndDelete(params.id);
+    const song = await Song.findByIdAndDelete(resolvedParams.id);
 
     if (!song) {
       return NextResponse.json({ error: 'Song not found' }, { status: 404 });
