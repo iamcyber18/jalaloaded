@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     // For audio and video, Cloudinary uses 'video' resource_type
     const resourceType = type === 'image' ? 'image' : 'video';
 
-    return new Promise((resolve, reject) => {
+    return new Promise<NextResponse>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           resource_type: resourceType,
