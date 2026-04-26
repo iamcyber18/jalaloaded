@@ -105,8 +105,8 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  blockquote: ({node, ...props}) => <div className="pull-quote"><p {...props} /></div>,
-                  p: ({node, ...props}) => <p {...props} />
+                  blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>,
+                  p: ({children}) => <p>{children}</p>
                 }}
               >
                 {post.body}

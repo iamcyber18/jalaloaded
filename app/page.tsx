@@ -55,7 +55,7 @@ export default async function Home() {
             <Link href={`/blog/${heroPost.slug}`} className="hero block" style={{ textDecoration: 'none' }}>
               <div 
                 className="hero-img-bg" 
-                style={heroPost.media?.find((m: any) => m.type === 'photo')?.url ? { background: `url(${heroPost.media.find((m: any) => m.type === 'photo').url}) center/cover no-repeat` } : {}}
+                style={heroPost.media?.find((m: any) => m.type === 'photo')?.url ? { background: `url(${heroPost.media?.find((m: any) => m.type === 'photo')?.url}) center/cover no-repeat` } : {}}
               >
                 <div className="hero-pattern"></div>
               </div>
