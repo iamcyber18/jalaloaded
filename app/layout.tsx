@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   description: 'Your go-to spot for the freshest updates, music drops, and street vibes from Jalal and Co-friend.',
 }
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
+
 export default function RootLayout({
   children,
 }: {
