@@ -49,7 +49,7 @@ const PostSchema = new Schema<IPost>(
     introduction: { type: String },
     mainContent: { type: String },
     conclusion: { type: String },
-    author: { type: String, enum: ['jalal', 'co-friend'], required: true },
+    author: { type: String, required: true },
     category: {
       type: String,
       enum: ['General', 'Music', 'Sports', 'Fashion', 'Lifestyle', 'News', 'Opinion', 'Events', 'Politics', 'Entertainment'],

@@ -12,7 +12,7 @@ export default function AdminPage() {
     introduction: '',
     mainContent: '',
     conclusion: '',
-    author: 'jalal',
+    author: process.env.NEXT_PUBLIC_ADMIN_USERNAME || 'admin',
     category: 'General',
     tags: '',
     allowComments: true,
@@ -94,7 +94,7 @@ export default function AdminPage() {
       if (res.ok) {
         const data = await res.json();
         toast.success(`Post ${status === 'published' ? 'published' : 'saved as draft'}!`);
-        setForm({ title: '', introduction: '', mainContent: '', conclusion: '', author: 'jalal', category: 'General', tags: '', allowComments: true, featured: false });
+        setForm({ title: '', introduction: '', mainContent: '', conclusion: '', author: process.env.NEXT_PUBLIC_ADMIN_USERNAME || 'admin', category: 'General', tags: '', allowComments: true, featured: false });
         setMedia([]);
         setTagPills([]);
         window.open(`/blog/${data.slug}`, '_blank');
