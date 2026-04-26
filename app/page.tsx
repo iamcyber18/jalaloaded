@@ -53,11 +53,15 @@ export default async function Home() {
           {/* HERO */}
           {heroPost && (
             <Link href={`/blog/${heroPost.slug}`} className="hero block" style={{ textDecoration: 'none' }}>
-              <div 
-                className="hero-img-bg" 
-                style={heroPost.media?.find((m: any) => m.type === 'photo')?.url ? { background: `url(${heroPost.media?.find((m: any) => m.type === 'photo')?.url}) center/cover no-repeat` } : {}}
-              >
+              <div className="hero-img-bg">
                 <div className="hero-pattern"></div>
+                {heroPost.media?.find((m: any) => m.type === 'photo')?.url && (
+                  <img
+                    src={heroPost.media?.find((m: any) => m.type === 'photo')?.url}
+                    alt={heroPost.title}
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.75 }}
+                  />
+                )}
               </div>
               <div className="hero-overlay"></div>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.06 }}>

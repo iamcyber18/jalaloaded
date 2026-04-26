@@ -15,8 +15,14 @@ export default function PostCard({ post }: { post: any }) {
 
   return (
     <Link href={`/blog/${post.slug}`} className="post-card" style={{ display: 'block', textDecoration: 'none' }}>
-      <div className="post-thumb" style={thumbUrl ? { background: `url(${thumbUrl}) center/cover no-repeat` } : {}}>
-        {!thumbUrl && (
+      <div className="post-thumb">
+        {thumbUrl ? (
+          <img
+            src={thumbUrl}
+            alt={post.title}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
           <div style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '50px', color: 'rgba(255,107,0,0.08)', letterSpacing: '2px' }}>
             JL
           </div>
