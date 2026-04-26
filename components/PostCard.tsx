@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { timeAgo } from '@/lib/utils';
 
 // Convert stored author key to a display name
 function getAuthorDisplay(author: string): { name: string; initials: string } {
@@ -37,7 +38,7 @@ export default function PostCard({ post }: { post: any }) {
       </div>
       <div className="post-body">
         <div className="post-title">{post.title}</div>
-        <div className="post-time">{new Date(post.createdAt || Date.now()).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+        <div className="post-time">{timeAgo(post.createdAt || Date.now())}</div>
         <div className="post-footer" style={{ marginTop: '8px' }}>
           <div className="post-author">
             <div className="post-av" style={{ background: '#FF6B00', color: '#fff' }}>{getAuthorDisplay(post.author || 'jalal').initials}</div>

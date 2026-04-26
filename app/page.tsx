@@ -8,6 +8,7 @@ import LiveScoresTicker from '@/components/LiveScoresTicker';
 import PostCard from '@/components/PostCard';
 import MusicCard from '@/components/MusicCard';
 import VideoCard from '@/components/VideoCard';
+import { timeAgo } from '@/lib/utils';
 
 // Helper to fetch data directly in server component
 async function getHomepageData() {
@@ -75,7 +76,7 @@ export default async function Home() {
                 <div className="hero-meta">
                   <div className="hero-av">JA</div>
                   <span className="hero-author">By {heroPost.author === 'co-friend' ? 'Co-friend' : heroPost.author.charAt(0).toUpperCase() + heroPost.author.slice(1)}</span>
-                  <span className="hero-date">{new Date(heroPost.createdAt || Date.now()).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })} &bull; 5 min read</span>
+                  <span className="hero-date">{timeAgo(heroPost.createdAt || Date.now())} &bull; 5 min read</span>
                 </div>
                 <div className="hero-actions">
                   <button className="hero-btn hero-btn-primary">Read Full Post</button>
