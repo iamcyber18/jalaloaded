@@ -70,7 +70,7 @@ export default async function Home() {
                 <div className="hero-title">{heroPost.title}</div>
                 <div className="hero-meta">
                   <div className="hero-av">JA</div>
-                  <span className="hero-author">By Jalal</span>
+                  <span className="hero-author">By {heroPost.author === 'co-friend' ? 'Co-friend' : heroPost.author.charAt(0).toUpperCase() + heroPost.author.slice(1)}</span>
                   <span className="hero-date">{new Date(heroPost.createdAt || Date.now()).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })} &bull; 5 min read</span>
                 </div>
                 <div className="hero-actions">

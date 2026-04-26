@@ -3,6 +3,13 @@ import Post from '@/models/Post';
 import MediaBlock from '@/components/MediaBlock';
 import CommentSection from '@/components/CommentSection';
 import Link from 'next/link';
+
+// Convert stored author key to a proper display name
+function getAuthorDisplay(author: string): { name: string; initials: string } {
+  if (author === 'co-friend') return { name: 'Co-friend', initials: 'CO' };
+  const name = author.charAt(0).toUpperCase() + author.slice(1);
+  return { name, initials: name.slice(0, 2).toUpperCase() };
+}
 import { timeAgo, calculateReadTime, formatNumber } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
@@ -63,9 +70,9 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
               <div className="post-title">{post.title}</div>
               <div className="post-meta">
                 <div className="author-chip">
-                  <div className="av" style={{ background: 'var(--orange)' }}>{post.author.slice(0, 2).toUpperCase()}</div>
+                  <div className="av" style={{ background: 'var(--orange)' }}>{getAuthorDisplay(post.author).initials}</div>
                   <div className="av-info">
-                    <div className="av-name capitalize">{post.author}</div>
+                    <div className="av-name">{getAuthorDisplay(post.author).name}</div>
                     <div className="av-role">Writer &bull; Jalaloaded</div>
                   </div>
                 </div>
@@ -138,7 +145,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
             <div className="author-bio">
               <div className="bio-av">{post.author.slice(0, 2).toUpperCase()}</div>
               <div>
-                <div className="bio-name capitalize">{post.author} — Writer at Jalaloaded</div>
+                <div className="bio-name">{getAuthorDisplay(post.author).name} — Writer at Jalaloaded</div>
                 <div className="bio-text">Passionately covering music, culture, street life, and everything in between.</div>
                 <button className="bio-follow">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '5px' }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
