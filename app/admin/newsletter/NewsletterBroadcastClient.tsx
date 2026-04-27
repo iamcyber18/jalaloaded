@@ -23,10 +23,12 @@ export default function NewsletterBroadcastClient({ initialCount }: { initialCou
     // Convert newlines to <br/> and add basic inline styles for email client compatibility
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #FF6B00; margin-bottom: 20px;">Jalaloaded Updates</h2>
+        <div style="text-align: center; margin-bottom: 30px;">
+          <img src="https://jalaloaded.vercel.app/images/jalaloadedlogo.png" alt="Jalaloaded Logo" style="height: 60px; width: auto; max-width: 100%;" />
+        </div>
         ${body.replace(/\n/g, '<br/>')}
         <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0 20px;" />
-        <p style="font-size: 11px; color: #888;">
+        <p style="font-size: 11px; color: #888; text-align: center;">
           You are receiving this because you subscribed to the Jalaloaded newsletter.
         </p>
       </div>
@@ -165,7 +167,10 @@ export default function NewsletterBroadcastClient({ initialCount }: { initialCou
           </div>
 
           <div style={{ minHeight: '300px' }}>
-            <h2 style={{ color: '#FF6B00', marginBottom: '20px', fontFamily: 'Arial, sans-serif' }}>Jalaloaded Updates</h2>
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/jalaloadedlogo.png" alt="Jalaloaded Logo" style={{ height: '60px', width: 'auto', maxWidth: '100%' }} />
+            </div>
             
             <div 
               style={{ fontFamily: 'Arial, sans-serif', fontSize: '14px', lineHeight: '1.6', color: '#333' }}
@@ -173,7 +178,7 @@ export default function NewsletterBroadcastClient({ initialCount }: { initialCou
             />
             
             <hr style={{ border: 'none', borderTop: '1px solid #eaeaea', margin: '30px 0 20px' }} />
-            <p style={{ fontSize: '11px', color: '#888', fontFamily: 'Arial, sans-serif' }}>
+            <p style={{ fontSize: '11px', color: '#888', fontFamily: 'Arial, sans-serif', textAlign: 'center' }}>
               You are receiving this because you subscribed to the Jalaloaded newsletter.
             </p>
           </div>
