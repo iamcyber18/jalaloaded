@@ -209,41 +209,6 @@ export default async function Home() {
           <div className="s-card">
             <div className="s-title">
               <div className="s-line"></div>
-              Reader Poll
-            </div>
-            <div
-              style={{
-                fontSize: '12px',
-                fontWeight: 600,
-                fontFamily: '"Syne", sans-serif',
-                marginBottom: '10px',
-                lineHeight: 1.4,
-              }}
-            >
-              Who is the best African footballer right now?
-            </div>
-            <div>
-              {[
-                { label: 'Victor Osimhen', votes: 1240 },
-                { label: 'Sadio Mane', votes: 820 },
-                { label: 'Mohamed Salah', votes: 620 },
-                { label: 'Achraf Hakimi', votes: 167 },
-              ].map((option, index) => (
-                <div key={index} className="poll-opt">
-                  <div className="poll-label">
-                    <span>{option.label}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginTop: '8px' }}>
-              Click to vote &bull; 2,847 votes
-            </div>
-          </div>
-
-          <div className="s-card">
-            <div className="s-title">
-              <div className="s-line"></div>
               Popular Tags
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
