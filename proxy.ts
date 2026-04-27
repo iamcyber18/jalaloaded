@@ -5,6 +5,9 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'jalaloaded-super-secret-key-change-me-2025'
 );
 
+const SUB_ADMIN_DEFAULT_ROUTE = '/admin/dashboard';
+const SUPER_ADMIN_ONLY_PATHS = ['/admin/adverts', '/admin/users'];
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -17,7 +20,15 @@ export async function proxy(request: NextRequest) {
     }
 
     try {
-      await jwtVerify(token, JWT_SECRET);
+      const { payload } = await jwtVerify(token, JWT_SECRET);
+
+      if (
+        payload.role === 'sub-admin' &&
+        SUPER_ADMIN_ONLY_PATHS.some((path) => pathname.startsWith(path))
+      ) {
+        return NextResponse.redirect(new URL(SUB_ADMIN_DEFAULT_ROUTE, request.url));
+      }
+
       return NextResponse.next();
     } catch {
       // Invalid/expired token — redirect to login
@@ -32,8 +43,9 @@ export async function proxy(request: NextRequest) {
     const token = request.cookies.get('admin_token')?.value;
     if (token) {
       try {
-        await jwtVerify(token, JWT_SECRET);
-        return NextResponse.redirect(new URL('/admin', request.url));
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        const redirectPath = payload.role === 'sub-admin' ? SUB_ADMIN_DEFAULT_ROUTE : '/admin';
+        return NextResponse.redirect(new URL(redirectPath, request.url));
       } catch {
         // Token invalid, let them see login page
       }

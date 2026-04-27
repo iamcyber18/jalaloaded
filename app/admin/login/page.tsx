@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push('/admin');
+        router.push(data.redirectTo || '/admin');
         router.refresh();
       } else {
         setError(data.error || 'Login failed');

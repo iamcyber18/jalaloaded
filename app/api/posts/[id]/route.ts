@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Post from '@/models/Post';
-import { isAdminAuthenticated } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -29,16 +29,35 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    if (!(await isAdminAuthenticated())) {
+    const session = await getSession();
+
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const resolvedParams = await params;
     await dbConnect();
     const body = await request.json();
+    const existingPost = await Post.findById(resolvedParams.id);
+
+    if (!existingPost) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+
+    if (session.role === 'sub-admin' && existingPost.createdByUsername !== session.username) {
+      return NextResponse.json({ error: 'You can only edit your own posts.' }, { status: 403 });
+    }
     
     // Do not allow slug to be freely updated by client
     delete body.slug; 
+    delete body.createdByUsername;
+    delete body.createdByRole;
+
+    if (session.role === 'sub-admin') {
+      body.author = session.displayName || session.username;
+      body.createdByUsername = session.username;
+      body.createdByRole = session.role;
+    }
 
     const post = await Post.findByIdAndUpdate(resolvedParams.id, body, {
       new: true,
@@ -64,17 +83,25 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    if (!(await isAdminAuthenticated())) {
+    const session = await getSession();
+
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const resolvedParams = await params;
     await dbConnect();
-    const post = await Post.findByIdAndDelete(resolvedParams.id);
+    const post = await Post.findById(resolvedParams.id);
 
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
+
+    if (session.role === 'sub-admin' && post.createdByUsername !== session.username) {
+      return NextResponse.json({ error: 'You can only delete your own posts.' }, { status: 403 });
+    }
+
+    await Post.findByIdAndDelete(resolvedParams.id);
 
     return NextResponse.json({ message: 'Post deleted successfully' });
   } catch (error) {

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Post from '@/models/Post';
 import { slugify } from '@/lib/utils';
-import { isAdminAuthenticated } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
@@ -14,9 +14,10 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const page = parseInt(searchParams.get('page') || '1');
     const skip = (page - 1) * limit;
+    const session = requestedStatus !== 'published' ? await getSession() : null;
 
     const requiresAdmin = requestedStatus !== 'published';
-    if (requiresAdmin && !(await isAdminAuthenticated())) {
+    if (requiresAdmin && !session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -29,6 +30,10 @@ export async function GET(request: Request) {
 
     if (category && category !== 'All') {
       query.category = category;
+    }
+
+    if (session?.role === 'sub-admin') {
+      query.createdByUsername = session.username;
     }
 
     if (queryText) {
@@ -65,7 +70,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    if (!(await isAdminAuthenticated())) {
+    const session = await getSession();
+
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -83,7 +90,18 @@ export async function POST(request: Request) {
       counter++;
     }
 
-    const newPost = new Post({ ...body, slug });
+    const postAuthor =
+      session.role === 'sub-admin'
+        ? (session.displayName || session.username)
+        : (body.author || 'jalal');
+
+    const newPost = new Post({
+      ...body,
+      slug,
+      author: postAuthor,
+      createdByUsername: session.username,
+      createdByRole: session.role,
+    });
     await newPost.save();
 
     if (body.featured) {

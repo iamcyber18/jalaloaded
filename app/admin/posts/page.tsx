@@ -5,12 +5,13 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import AdminSidebar from '@/components/AdminSidebar';
 import PostMediaUploader from '@/components/PostMediaUploader';
+import { useAdminSession } from '@/components/useAdminSession';
 import { IMediaItem } from '@/models/Post';
 import { formatNumber, timeAgo } from '@/lib/utils';
 
 type PostStatusFilter = 'all' | 'published' | 'draft';
 type PostStatus = 'published' | 'draft';
-type PostAuthor = 'jalal' | 'co-friend';
+type PostAuthor = string;
 
 type AdminPost = {
   _id: string;
@@ -125,6 +126,7 @@ function createEditorState(post: AdminPost) {
 }
 
 export default function AdminPostsPage() {
+  const { session } = useAdminSession();
   const [posts, setPosts] = useState<AdminPost[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editor, setEditor] = useState<EditorState>(emptyEditor);
@@ -337,16 +339,21 @@ export default function AdminPostsPage() {
 
   const publishedCount = posts.filter((post) => post.status === 'published').length;
   const draftCount = posts.filter((post) => post.status === 'draft').length;
+  const isSubAdmin = session?.role === 'sub-admin';
 
   return (
     <div className="jl">
-      <AdminSidebar currentAuthor={selectedPost ? editor.author : undefined} />
+      <AdminSidebar />
 
       <div className="main">
         <div className="topbar">
           <div>
-            <div className="page-title">All Posts</div>
-            <div className="admin-subtitle">Review drafts, update stories, and remove posts you no longer need.</div>
+            <div className="page-title">{isSubAdmin ? 'My Posts' : 'All Posts'}</div>
+            <div className="admin-subtitle">
+              {isSubAdmin
+                ? 'Review, update, and remove only the stories you have posted.'
+                : 'Review drafts, update stories, and remove posts you no longer need.'}
+            </div>
           </div>
 
           <div className="topbar-actions">
@@ -433,7 +440,7 @@ export default function AdminPostsPage() {
 
                       <div className="post-row-meta">
                         <span>{post.category}</span>
-                        <span>{post.author === 'co-friend' ? 'Co-friend' : 'Jalal'}</span>
+                        <span>{post.author || 'Unknown author'}</span>
                         <span>{timeAgo(post.updatedAt || post.createdAt)}</span>
                       </div>
 
@@ -610,32 +617,6 @@ export default function AdminPostsPage() {
                             {category}
                           </div>
                         ))}
-                      </div>
-                    </div>
-
-                    <div className="side-card">
-                      <div className="side-title">Author</div>
-                      <div className="author-select">
-                        <div
-                          className={`author-opt ${editor.author === 'jalal' ? 'sel' : ''}`}
-                          onClick={() => setEditor((current) => ({ ...current, author: 'jalal' }))}
-                        >
-                          <div className="av" style={{ width: '28px', height: '28px', fontSize: '10px', background: '#FF6B00', flexShrink: 0 }}>JA</div>
-                          <div>
-                            <div style={{ fontSize: '12px', fontWeight: 500 }}>Jalal</div>
-                            <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Owner</div>
-                          </div>
-                        </div>
-                        <div
-                          className={`author-opt ${editor.author === 'co-friend' ? 'sel' : ''}`}
-                          onClick={() => setEditor((current) => ({ ...current, author: 'co-friend' }))}
-                        >
-                          <div className="av" style={{ width: '28px', height: '28px', fontSize: '10px', background: 'rgba(255,107,0,0.2)', color: '#FF6B00', border: '1px solid rgba(255,107,0,0.3)', flexShrink: 0 }}>CO</div>
-                          <div>
-                            <div style={{ fontSize: '12px', fontWeight: 500 }}>Co-friend</div>
-                            <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Co-author</div>
-                          </div>
-                        </div>
                       </div>
                     </div>
 

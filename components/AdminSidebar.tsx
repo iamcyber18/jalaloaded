@@ -2,28 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-
-type AdminSidebarProps = {
-  currentAuthor?: string;
-};
-
-function getProfile(author?: string) {
-  if (author === 'jalal') {
-    return { initials: 'JA', name: 'Jalal', role: 'Author' };
-  }
-
-  if (author === 'co-friend') {
-    return { initials: 'CO', name: 'Co-friend', role: 'Author' };
-  }
-
-  const fallbackName = (process.env.NEXT_PUBLIC_ADMIN_USERNAME || author || 'Admin').trim();
-
-  return {
-    initials: fallbackName.slice(0, 2).toUpperCase(),
-    name: fallbackName,
-    role: 'Administrator',
-  };
-}
+import { useAdminSession } from '@/components/useAdminSession';
 
 function NavLink({ href, label, active }: { href: string; label: string; active: boolean }) {
   return (
@@ -34,10 +13,15 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
   );
 }
 
-export default function AdminSidebar({ currentAuthor }: AdminSidebarProps) {
+export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const profile = getProfile(currentAuthor);
+  const { session, loading } = useAdminSession();
+
+  const profileName = session?.displayName || 'Admin';
+  const profileInitials = profileName.slice(0, 2).toUpperCase();
+  const isSubAdmin = session?.role === 'sub-admin';
+  const postsLabel = loading ? 'Posts' : isSubAdmin ? 'My Posts' : 'All Posts';
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -53,23 +37,21 @@ export default function AdminSidebar({ currentAuthor }: AdminSidebarProps) {
       </div>
 
       <div className="nav-section">Content</div>
+      {isSubAdmin && <NavLink href="/admin/dashboard" label="Dashboard" active={pathname === '/admin/dashboard'} />}
       <NavLink href="/admin" label="New Post" active={pathname === '/admin'} />
-      <NavLink href="/admin/posts" label="All Posts" active={pathname === '/admin/posts'} />
-      <div className="nav-item admin-nav-muted"><div className="nav-dot"></div>Music</div>
-      <div className="nav-item admin-nav-muted"><div className="nav-dot"></div>Videos</div>
+      <NavLink href="/admin/posts" label={postsLabel} active={pathname === '/admin/posts'} />
 
       <div className="nav-section">Manage</div>
-      <div className="nav-item admin-nav-muted"><div className="nav-dot"></div>Media Library</div>
-      <div className="nav-item admin-nav-muted"><div className="nav-dot"></div>Comments</div>
-      <NavLink href="/admin/adverts" label="Adverts" active={pathname === '/admin/adverts'} />
-      <div className="nav-item admin-nav-muted"><div className="nav-dot"></div>Settings</div>
+      {session?.role === 'admin' && <NavLink href="/admin/users" label="Sub Admins" active={pathname === '/admin/users'} />}
+      {session?.role === 'admin' && <NavLink href="/admin/adverts" label="Adverts" active={pathname === '/admin/adverts'} />}
+      {isSubAdmin && <NavLink href="/admin/account" label="Change Password" active={pathname === '/admin/account'} />}
 
       <div className="author-area">
         <div className="author-row">
-          <div className="av">{profile.initials}</div>
+          <div className="av">{profileInitials}</div>
           <div>
-            <div className="av-name">{profile.name}</div>
-            <div className="av-role">{profile.role}</div>
+            <div className="av-name">{profileName}</div>
+            <div className="av-role">{isSubAdmin ? 'Sub-admin' : 'Administrator'}</div>
           </div>
         </div>
         <button className="logout-btn" onClick={handleLogout}>

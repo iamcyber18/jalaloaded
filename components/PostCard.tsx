@@ -1,18 +1,12 @@
 import Link from 'next/link';
+import { getAuthorDisplay } from '@/lib/authors';
 import { timeAgo } from '@/lib/utils';
-
-// Convert stored author key to a display name
-function getAuthorDisplay(author: string): { name: string; initials: string } {
-  if (author === 'co-friend') return { name: 'Co-friend', initials: 'CO' };
-  // Capitalize whatever name is stored (jalal → Jalal, or custom username)
-  const name = author.charAt(0).toUpperCase() + author.slice(1);
-  return { name, initials: name.slice(0, 2).toUpperCase() };
-}
 
 export default function PostCard({ post }: { post: any }) {
   const photoMedia = post.media?.find((m: any) => m.type === 'photo');
   const thumbUrl = photoMedia?.url || '';
   const photoCount = post.media?.filter((m: any) => m.type === 'photo').length || 0;
+  const author = getAuthorDisplay(post.author || 'jalal');
 
   return (
     <Link href={`/blog/${post.slug}`} className="post-card" style={{ display: 'block', textDecoration: 'none' }}>
@@ -41,8 +35,8 @@ export default function PostCard({ post }: { post: any }) {
         <div className="post-time">{timeAgo(post.createdAt || Date.now())}</div>
         <div className="post-footer" style={{ marginTop: '8px' }}>
           <div className="post-author">
-            <div className="post-av" style={{ background: '#FF6B00', color: '#fff' }}>{getAuthorDisplay(post.author || 'jalal').initials}</div>
-            <span className="post-av-name">{getAuthorDisplay(post.author || 'jalal').name}</span>
+            <div className="post-av" style={{ background: '#FF6B00', color: '#fff' }}>{author.initials}</div>
+            <span className="post-av-name">{author.name}</span>
           </div>
           <div className="post-stats">
             <div className="post-stat">

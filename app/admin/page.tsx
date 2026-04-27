@@ -4,6 +4,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import AdminSidebar from '@/components/AdminSidebar';
 import PostMediaUploader from '@/components/PostMediaUploader';
+import { useAdminSession } from '@/components/useAdminSession';
 import { IMediaItem } from '@/models/Post';
 
 export default function AdminPage() {
@@ -22,6 +23,8 @@ export default function AdminPage() {
   const [media, setMedia] = useState<IMediaItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tagPills, setTagPills] = useState<string[]>([]);
+  const { session } = useAdminSession();
+  const activeAuthor = session?.role === 'sub-admin' ? (session.displayName || session.username) : form.author;
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === ',' || e.key === 'Enter') {
@@ -75,7 +78,7 @@ export default function AdminPage() {
           introduction: form.introduction,
           mainContent: form.mainContent,
           conclusion: form.conclusion,
-          author: form.author,
+          author: activeAuthor,
           category: form.category,
           allowComments: form.allowComments,
           featured: form.featured,
@@ -88,7 +91,17 @@ export default function AdminPage() {
       if (res.ok) {
         const data = await res.json();
         toast.success(`Post ${status === 'published' ? 'published' : 'saved as draft'}!`);
-        setForm({ title: '', introduction: '', mainContent: '', conclusion: '', author: 'jalal', category: 'General', tags: '', allowComments: true, featured: false });
+        setForm({
+          title: '',
+          introduction: '',
+          mainContent: '',
+          conclusion: '',
+          author: session?.role === 'sub-admin' ? (session.displayName || session.username) : 'jalal',
+          category: 'General',
+          tags: '',
+          allowComments: true,
+          featured: false,
+        });
         setMedia([]);
         setTagPills([]);
         window.open(`/blog/${data.slug}`, '_blank');
@@ -102,11 +115,11 @@ export default function AdminPage() {
     }
   };
 
-  const categories = ['General', 'Music', 'Sports', 'Lifestyle', 'Politics', 'Entertainment', 'Fashion', 'News', 'Opinion', 'Events', 'Events'];
+  const categories = ['General', 'Music', 'Sports', 'Lifestyle', 'Politics', 'Entertainment', 'Fashion', 'News', 'Opinion', 'Events'];
 
   return (
     <div className="jl">
-      <AdminSidebar currentAuthor={form.author} />
+      <AdminSidebar />
 
       {/* MAIN */}
       <div className="main">
@@ -259,39 +272,6 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Author */}
-            <div className="side-card">
-              <div className="side-title">Author</div>
-              <div className="author-select">
-                <div
-                  className={`author-opt ${form.author === 'jalal' ? 'sel' : ''}`}
-                  onClick={() => setForm({ ...form, author: 'jalal' })}
-                >
-                  <div className="av" style={{ width: '28px', height: '28px', fontSize: '10px', background: '#FF6B00', flexShrink: 0 }}>JA</div>
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: 500 }}>Jalal</div>
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Owner</div>
-                  </div>
-                  {form.author === 'jalal' && (
-                    <svg style={{ marginLeft: 'auto' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B00" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                  )}
-                </div>
-                <div
-                  className={`author-opt ${form.author === 'co-friend' ? 'sel' : ''}`}
-                  onClick={() => setForm({ ...form, author: 'co-friend' })}
-                >
-                  <div className="av" style={{ width: '28px', height: '28px', fontSize: '10px', background: 'rgba(255,107,0,0.2)', color: '#FF6B00', border: '1px solid rgba(255,107,0,0.3)', flexShrink: 0 }}>CO</div>
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: 500 }}>Co-friend</div>
-                    <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Co-author</div>
-                  </div>
-                  {form.author === 'co-friend' && (
-                    <svg style={{ marginLeft: 'auto' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B00" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                  )}
-                </div>
-              </div>
-            </div>
-
             {/* Tags */}
             <div className="side-card">
               <div className="side-title">Tags</div>
@@ -333,7 +313,7 @@ export default function AdminPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                   <span className="cat-chip sel" style={{ fontSize: '9px', padding: '2px 8px', cursor: 'default' }}>{form.category}</span>
-                  <span>by {form.author === 'jalal' ? 'Jalal' : 'Co-friend'}</span>
+                  <span>by {activeAuthor || 'Unknown author'}</span>
                 </div>
                 <div style={{ opacity: 0.6 }}>
                   {form.introduction ? form.introduction.slice(0, 120) + (form.introduction.length > 120 ? '...' : '') : 'No introduction yet...'}

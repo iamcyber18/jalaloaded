@@ -7,13 +7,7 @@ import LikeButton from '@/components/LikeButton';
 import ShareButton from '@/components/ShareButton';
 import AdBanner from '@/components/AdBanner';
 import Link from 'next/link';
-
-// Convert stored author key to a proper display name
-function getAuthorDisplay(author: string): { name: string; initials: string } {
-  if (author === 'co-friend') return { name: 'Co-friend', initials: 'CO' };
-  const name = author.charAt(0).toUpperCase() + author.slice(1);
-  return { name, initials: name.slice(0, 2).toUpperCase() };
-}
+import { getAuthorDisplay } from '@/lib/authors';
 import { timeAgo, calculateReadTime, formatNumber } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
@@ -70,6 +64,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
   }
 
   const { post, related, adverts } = data;
+  const author = getAuthorDisplay(post.author);
   
   const ad1 = adverts && adverts.length > 0 ? adverts[0] : null;
   const ad2 = adverts && adverts.length > 1 ? adverts[1] : null;
@@ -95,9 +90,9 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
               <div className="post-title">{post.title}</div>
               <div className="post-meta">
                 <div className="author-chip">
-                  <div className="av" style={{ background: 'var(--orange)' }}>{getAuthorDisplay(post.author).initials}</div>
+                  <div className="av" style={{ background: 'var(--orange)' }}>{author.initials}</div>
                   <div className="av-info">
-                    <div className="av-name">{getAuthorDisplay(post.author).name}</div>
+                    <div className="av-name">{author.name}</div>
                     <div className="av-role">Writer &bull; Jalaloaded</div>
                   </div>
                 </div>
@@ -219,13 +214,13 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
 
             {/* AUTHOR BIO */}
             <div className="author-bio">
-              <div className="bio-av">{post.author.slice(0, 2).toUpperCase()}</div>
+              <div className="bio-av">{author.initials}</div>
               <div>
                 <div className="bio-name">{getAuthorDisplay(post.author).name} — Writer at Jalaloaded</div>
                 <div className="bio-text">Passionately covering music, culture, street life, and everything in between.</div>
                 <button className="bio-follow">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '5px' }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  Follow {post.author}
+                  Follow {author.name}
                 </button>
               </div>
             </div>

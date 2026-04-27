@@ -8,6 +8,7 @@ import LiveScoresTicker from '@/components/LiveScoresTicker';
 import PostCard from '@/components/PostCard';
 import MusicCard from '@/components/MusicCard';
 import VideoCard from '@/components/VideoCard';
+import { getAuthorDisplay } from '@/lib/authors';
 import { timeAgo } from '@/lib/utils';
 
 // Helper to fetch data directly in server component
@@ -30,6 +31,7 @@ export default async function Home() {
   const hasFeaturedPost = Boolean(featuredPost);
   const breakingNews = latestPosts.slice(0, 3);
   const heroPost = featuredPost || latestPosts[0];
+  const heroAuthor = heroPost ? getAuthorDisplay(heroPost.author) : null;
   const gridPosts = latestPosts
     .filter((post: any) => post._id.toString() !== heroPost?._id?.toString())
     .slice(0, 6);
@@ -78,8 +80,8 @@ export default async function Home() {
                 <div className="hero-badge">{hasFeaturedPost ? 'FEATURED POST' : 'LATEST POST'}</div>
                 <div className="hero-title">{heroPost.title}</div>
                 <div className="hero-meta">
-                  <div className="hero-av">JA</div>
-                  <span className="hero-author">By {heroPost.author === 'co-friend' ? 'Co-friend' : heroPost.author.charAt(0).toUpperCase() + heroPost.author.slice(1)}</span>
+                  <div className="hero-av">{heroAuthor?.initials || 'JA'}</div>
+                  <span className="hero-author">By {heroAuthor?.name || 'Jalal'}</span>
                   <span className="hero-date">{timeAgo(heroPost.createdAt || Date.now())} &bull; 5 min read</span>
                 </div>
                 <div className="hero-actions">

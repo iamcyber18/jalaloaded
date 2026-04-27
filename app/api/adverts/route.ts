@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getSession, isSuperAdmin } from '@/lib/auth';
 import dbConnect from '@/lib/mongodb';
 import Advert from '@/models/Advert';
 
@@ -9,6 +10,11 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const placement = searchParams.get('placement');
     const activeOnly = searchParams.get('active') !== 'false';
+    const session = activeOnly ? null : await getSession();
+
+    if (!activeOnly && !isSuperAdmin(session)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const query: any = {};
     if (placement) query.placement = placement;
@@ -34,6 +40,12 @@ export async function GET(request: Request) {
 // POST - create a new advert
 export async function POST(request: Request) {
   try {
+    const session = await getSession();
+
+    if (!isSuperAdmin(session)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     await dbConnect();
     const body = await request.json();
 

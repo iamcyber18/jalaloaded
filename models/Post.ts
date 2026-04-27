@@ -17,11 +17,13 @@ export interface IPost extends Document {
   introduction?: string;
   mainContent?: string;
   conclusion?: string;
-  author: 'jalal' | 'co-friend';
+  author: string;
   category: 'General' | 'Music' | 'Sports' | 'Fashion' | 'Lifestyle' | 'News' | 'Opinion' | 'Events' | 'Politics' | 'Entertainment';
   tags: string[];
   media: IMediaItem[];
   status: 'draft' | 'published';
+  createdByUsername?: string;
+  createdByRole?: 'admin' | 'sub-admin';
   views: number;
   likes: number;
   allowComments: boolean;
@@ -50,6 +52,8 @@ const PostSchema = new Schema<IPost>(
     mainContent: { type: String },
     conclusion: { type: String },
     author: { type: String, required: true },
+    createdByUsername: { type: String },
+    createdByRole: { type: String, enum: ['admin', 'sub-admin'] },
     category: {
       type: String,
       enum: ['General', 'Music', 'Sports', 'Fashion', 'Lifestyle', 'News', 'Opinion', 'Events', 'Politics', 'Entertainment'],

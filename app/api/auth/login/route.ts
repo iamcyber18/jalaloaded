@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createToken, validateCredentials } from '@/lib/auth';
+import { authenticateUser, createToken } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -9,13 +9,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Username and password are required' }, { status: 400 });
     }
 
-    if (!validateCredentials(username, password)) {
+    const session = await authenticateUser(username, password);
+
+    if (!session) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const token = await createToken(username);
+    const token = await createToken(session);
 
-    const response = NextResponse.json({ success: true, username });
+    const response = NextResponse.json({
+      success: true,
+      username: session.username,
+      role: session.role,
+      displayName: session.displayName,
+      redirectTo: session.role === 'sub-admin' ? '/admin/dashboard' : '/admin',
+    });
 
     response.cookies.set('admin_token', token, {
       httpOnly: true,
