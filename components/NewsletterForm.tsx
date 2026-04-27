@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function NewsletterForm() {
+export default function NewsletterForm({ isSidebar = false }: { isSidebar?: boolean }) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -39,8 +39,8 @@ export default function NewsletterForm() {
   };
 
   return (
-    <form className="nl-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '6px' }}>
+      <div style={{ display: 'flex', flexDirection: isSidebar ? 'column' : 'row', gap: '8px', width: '100%' }}>
         <input
           type="email"
           className="nl-input"
@@ -52,17 +52,19 @@ export default function NewsletterForm() {
           }}
           disabled={status === 'loading' || status === 'success'}
           required
+          style={{ flex: 1, width: isSidebar ? '100%' : 'auto', marginBottom: 0 }}
         />
         <button 
           type="submit" 
           className="nl-btn"
           disabled={status === 'loading' || status === 'success'}
+          style={{ width: isSidebar ? '100%' : 'auto', padding: '9px 16px', whiteSpace: 'nowrap' }}
         >
           {status === 'loading' ? 'Subscribing...' : status === 'success' ? 'Subscribed ✓' : 'Subscribe'}
         </button>
       </div>
-      {status === 'error' && <div style={{ fontSize: '12px', color: '#ff4d4d', marginTop: '4px' }}>{message}</div>}
-      {status === 'success' && <div style={{ fontSize: '12px', color: '#4ade80', marginTop: '4px' }}>{message}</div>}
+      {status === 'error' && <div style={{ fontSize: '12px', color: '#ff4d4d', marginTop: '4px', textAlign: 'left' }}>{message}</div>}
+      {status === 'success' && <div style={{ fontSize: '12px', color: '#4ade80', marginTop: '4px', textAlign: 'left' }}>{message}</div>}
     </form>
   );
 }

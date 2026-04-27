@@ -289,7 +289,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
           <div className="nl-box">
             <div className="nl-title">Stay <span>Loaded</span></div>
             <div className="nl-sub">Fresh posts, music drops & vibes — straight to your inbox.</div>
-            <NewsletterForm />
+            <NewsletterForm isSidebar={true} />
           </div>
 
           <div className="s-card">
