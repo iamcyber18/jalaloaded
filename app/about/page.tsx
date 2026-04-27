@@ -65,7 +65,7 @@ export default async function AboutPage() {
                 <div className="hero-av" style={{ width: '48px', height: '48px', fontSize: '16px', flexShrink: 0 }}>VG</div>
                 <div>
                    <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text-primary)' }}>Victor Galadima <span style={{ fontSize: '14px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>(Cyber)</span></div>
-                   <div style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Founder & Lead Tech Writer</div>
+                   <div style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Founder, Developer & Lead Tech Writer</div>
                 </div>
              </div>
              <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
