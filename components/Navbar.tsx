@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
@@ -74,7 +75,9 @@ export default function Navbar() {
   return (
     <>
       <nav className="nav">
-        <Link href="/" className="nav-logo">JALALOADED</Link>
+        <Link href="/" className="nav-logo">
+          <Image src="/images/jalaloadedlogo.png" alt="Jalaloaded" width={140} height={40} style={{ objectFit: 'contain', height: '36px', width: 'auto' }} priority />
+        </Link>
 
         {/* Desktop links */}
         <div className="nav-links">

@@ -2,7 +2,7 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div>
-        <div className="footer-logo">JALALOADED</div>
+        <img src="/images/jalaloadedlogo.png" alt="Jalaloaded" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
         <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '2px' }}>
           © {new Date().getFullYear()} Jalaloaded. All rights reserved.
         </div>

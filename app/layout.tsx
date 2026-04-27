@@ -6,6 +6,15 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Jalaloaded — Latest Posts, Music, Videos & Live Scores',
   description: 'Your go-to spot for the freshest updates, music drops, and street vibes from Jalal and Co-friend.',
+  icons: {
+    icon: '/images/jalaloadedlogo.png',
+    apple: '/images/jalaloadedlogo.png',
+  },
+  openGraph: {
+    title: 'Jalaloaded — Latest Posts, Music, Videos & Live Scores',
+    description: 'Your go-to spot for the freshest updates, music drops, and street vibes.',
+    images: ['/images/jalaloadedlogo.png'],
+  },
 }
 
 export const viewport = {
