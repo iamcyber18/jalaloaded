@@ -115,12 +115,7 @@ export async function POST(request: Request) {
     });
     await newPost.save();
 
-    if (body.featured) {
-      await Post.updateMany(
-        { _id: { $ne: newPost._id } },
-        { $set: { featured: false } }
-      );
-    }
+    // Removed the logic that unfeatures all other posts so multiple posts can be featured
 
     return NextResponse.json(newPost, { status: 201 });
   } catch (error) {

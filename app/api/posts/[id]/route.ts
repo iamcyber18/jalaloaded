@@ -75,12 +75,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    if (body.featured) {
-      await Post.updateMany(
-        { _id: { $ne: post._id } },
-        { $set: { featured: false } }
-      );
-    }
+    // Multiple posts can be featured simultaneously for the carousel
 
     return NextResponse.json(post);
   } catch (error) {

@@ -64,18 +64,20 @@ async function getHomepageData() {
   const [featuredPosts, recentPosts, songs, videos] = await Promise.all([
     Post.find({ status: 'published', featured: true })
       .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1, _id: -1 })
-      .limit(1)
+      .limit(4)
       .lean<HomePost[]>(),
     Post.find({ status: 'published' }).sort({ publishedAt: -1, createdAt: -1, _id: -1 }).limit(10).lean<HomePost[]>(),
     Song.find().sort({ createdAt: -1, _id: -1 }).limit(10).lean<HomeSong[]>(),
     Video.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeVideo[]>(),
   ]);
 
-  const carouselPosts = dedupePosts([...featuredPosts, ...recentPosts]).slice(0, 4);
+  // Carousel ONLY shows posts explicitly marked as "featured" by admin.
+  // If no posts are featured, show the single most recent post as a fallback hero.
+  const carouselPosts = featuredPosts.length > 0
+    ? dedupePosts(featuredPosts).slice(0, 4)
+    : dedupePosts(recentPosts).slice(0, 1);
   
-  // Just show the 6 most recent posts in the grid below the hero. 
-  // We used to filter out all carousel posts, which caused confusion when new posts 
-  // "disappeared" into the carousel and weren't visible in the main feed.
+  // Always show the 6 most recent posts in the grid below the hero.
   const latestPosts = recentPosts.slice(0, 6);
 
   return {
