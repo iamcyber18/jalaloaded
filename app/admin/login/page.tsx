@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
 
       <div className="login-card">
         {/* Logo */}
-        <img src="/images/jalaloadedlogo.png" alt="Jalaloaded" style={{ height: '50px', width: 'auto', objectFit: 'contain', margin: '0 auto', display: 'block' }} />
+        <img src="/images/jalaloadedlogo.png" alt="Jalaloaded" style={{ height: '80px', width: 'auto', objectFit: 'contain', margin: '0 auto', display: 'block' }} />
         <div className="login-subtitle">Admin Panel</div>
 
         {/* Divider */}

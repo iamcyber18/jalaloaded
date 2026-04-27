@@ -32,7 +32,7 @@ export default function AdminSidebar() {
   return (
     <div className="admin-sidebar">
       <div className="logo-area">
-        <img src="/images/jalaloadedlogo.png" alt="Jalaloaded" style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
+        <img src="/images/jalaloadedlogo.png" alt="Jalaloaded" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
         <div className="logo-sub">Admin Panel</div>
       </div>
 

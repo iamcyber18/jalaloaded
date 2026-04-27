@@ -75,8 +75,8 @@ export default function Navbar() {
   return (
     <>
       <nav className="nav">
-        <Link href="/" className="nav-logo">
-          <Image src="/images/jalaloadedlogo.png" alt="Jalaloaded" width={140} height={40} style={{ objectFit: 'contain', height: '36px', width: 'auto' }} priority />
+        <Link href="/" className="nav-logo" style={{ display: 'flex', alignItems: 'center' }}>
+          <Image src="/images/jalaloadedlogo.png" alt="Jalaloaded" width={200} height={64} style={{ objectFit: 'contain', height: '64px', width: 'auto' }} priority />
         </Link>
 
         {/* Desktop links */}
