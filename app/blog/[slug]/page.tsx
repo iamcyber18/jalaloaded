@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/mongodb';
 import Post from '@/models/Post';
+import Advert from '@/models/Advert';
 import MediaBlock from '@/components/MediaBlock';
 import CommentSection from '@/components/CommentSection';
 import LikeButton from '@/components/LikeButton';
@@ -36,9 +37,27 @@ async function getPost(slug: string) {
     status: 'published'
   }).sort({ createdAt: -1 }).limit(3).lean();
 
+  // Get random active inline ads
+  const now = new Date();
+  const allAds = await Advert.find({
+    placement: 'blog-inline',
+    isActive: true,
+    $or: [
+      { startDate: { $exists: false }, endDate: { $exists: false } },
+      { startDate: { $lte: now }, endDate: { $gte: now } },
+      { startDate: { $lte: now }, endDate: { $exists: false } },
+      { startDate: { $exists: false }, endDate: { $gte: now } },
+    ]
+  }).lean();
+
+  // Shuffle and pick up to 2
+  const shuffledAds = allAds.sort(() => 0.5 - Math.random());
+  const selectedAds = shuffledAds.slice(0, 2);
+
   return { 
     post: JSON.parse(JSON.stringify(post)), 
-    related: JSON.parse(JSON.stringify(related)) 
+    related: JSON.parse(JSON.stringify(related)),
+    adverts: JSON.parse(JSON.stringify(selectedAds))
   };
 }
 
@@ -50,7 +69,10 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
     notFound();
   }
 
-  const { post, related } = data;
+  const { post, related, adverts } = data;
+  
+  const ad1 = adverts && adverts.length > 0 ? adverts[0] : null;
+  const ad2 = adverts && adverts.length > 1 ? adverts[1] : null;
 
   return (
     <div className="jlh min-h-screen">
@@ -117,12 +139,19 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                       <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
                         {parts[0]}
                       </ReactMarkdown>
-                      <div style={{ margin: '32px 0' }}>
-                        <AdBanner placement="blog-inline" />
-                      </div>
+                      {ad1 && (
+                        <div style={{ margin: '32px 0' }}>
+                          <AdBanner ad={ad1} />
+                        </div>
+                      )}
                       <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
                         {parts.slice(1).join('\n---\n')}
                       </ReactMarkdown>
+                      {ad2 && (
+                        <div style={{ margin: '32px 0' }}>
+                          <AdBanner ad={ad2} />
+                        </div>
+                      )}
                     </>
                   );
                 }
@@ -136,12 +165,19 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                       <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
                         {blocks.slice(0, mid).join('\n\n')}
                       </ReactMarkdown>
-                      <div style={{ margin: '32px 0' }}>
-                        <AdBanner placement="blog-inline" />
-                      </div>
+                      {ad1 && (
+                        <div style={{ margin: '32px 0' }}>
+                          <AdBanner ad={ad1} />
+                        </div>
+                      )}
                       <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
                         {blocks.slice(mid).join('\n\n')}
                       </ReactMarkdown>
+                      {ad2 && (
+                        <div style={{ margin: '32px 0' }}>
+                          <AdBanner ad={ad2} />
+                        </div>
+                      )}
                     </>
                   );
                 }
@@ -152,9 +188,11 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                     <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
                       {content}
                     </ReactMarkdown>
-                    <div style={{ margin: '32px 0' }}>
-                      <AdBanner placement="blog-inline" />
-                    </div>
+                    {ad1 && (
+                      <div style={{ margin: '32px 0' }}>
+                        <AdBanner ad={ad1} />
+                      </div>
+                    )}
                   </>
                 );
               })()}

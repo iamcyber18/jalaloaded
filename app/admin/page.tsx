@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import Link from 'next/link';
+import AdminSidebar from '@/components/AdminSidebar';
 import PostMediaUploader from '@/components/PostMediaUploader';
 import { IMediaItem } from '@/models/Post';
 
@@ -13,7 +12,7 @@ export default function AdminPage() {
     introduction: '',
     mainContent: '',
     conclusion: '',
-    author: process.env.NEXT_PUBLIC_ADMIN_USERNAME || 'admin',
+    author: 'jalal',
     category: 'General',
     tags: '',
     allowComments: true,
@@ -23,13 +22,6 @@ export default function AdminPage() {
   const [media, setMedia] = useState<IMediaItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tagPills, setTagPills] = useState<string[]>([]);
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/admin/login');
-    router.refresh();
-  };
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === ',' || e.key === 'Enter') {
@@ -86,6 +78,7 @@ export default function AdminPage() {
           author: form.author,
           category: form.category,
           allowComments: form.allowComments,
+          featured: form.featured,
           tags: tagPills,
           media,
           status
@@ -95,7 +88,7 @@ export default function AdminPage() {
       if (res.ok) {
         const data = await res.json();
         toast.success(`Post ${status === 'published' ? 'published' : 'saved as draft'}!`);
-        setForm({ title: '', introduction: '', mainContent: '', conclusion: '', author: process.env.NEXT_PUBLIC_ADMIN_USERNAME || 'admin', category: 'General', tags: '', allowComments: true, featured: false });
+        setForm({ title: '', introduction: '', mainContent: '', conclusion: '', author: 'jalal', category: 'General', tags: '', allowComments: true, featured: false });
         setMedia([]);
         setTagPills([]);
         window.open(`/blog/${data.slug}`, '_blank');
@@ -113,41 +106,7 @@ export default function AdminPage() {
 
   return (
     <div className="jl">
-      {/* SIDEBAR */}
-      <div className="admin-sidebar">
-        <div className="logo-area">
-          <div className="logo">JALALOADED</div>
-          <div className="logo-sub">Admin Panel</div>
-        </div>
-
-        <div className="nav-section">Content</div>
-        <div className="nav-item active"><div className="nav-dot"></div>New Post</div>
-        <div className="nav-item"><div className="nav-dot"></div>All Posts</div>
-        <div className="nav-item"><div className="nav-dot"></div>Music</div>
-        <div className="nav-item"><div className="nav-dot"></div>Videos</div>
-
-        <div className="nav-section">Manage</div>
-        <div className="nav-item"><div className="nav-dot"></div>Media Library</div>
-        <div className="nav-item"><div className="nav-dot"></div>Comments</div>
-        <Link href="/admin/adverts" style={{ textDecoration: 'none' }}>
-          <div className="nav-item"><div className="nav-dot"></div>Adverts</div>
-        </Link>
-        <div className="nav-item"><div className="nav-dot"></div>Settings</div>
-
-        <div className="author-area">
-          <div className="author-row">
-            <div className="av">{form.author === 'jalal' ? 'JA' : 'CO'}</div>
-            <div>
-              <div className="av-name">{form.author === 'jalal' ? 'Jalal' : 'Co-friend'}</div>
-              <div className="av-role">Author</div>
-            </div>
-          </div>
-          <button className="logout-btn" onClick={handleLogout}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-            Sign Out
-          </button>
-        </div>
-      </div>
+      <AdminSidebar currentAuthor={form.author} />
 
       {/* MAIN */}
       <div className="main">

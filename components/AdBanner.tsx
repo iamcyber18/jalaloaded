@@ -1,7 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
 interface Advert {
   _id: string;
   title: string;
@@ -10,28 +8,7 @@ interface Advert {
   advertiser: string;
 }
 
-export default function AdBanner({ placement = 'blog-inline' }: { placement?: string }) {
-  const [ad, setAd] = useState<Advert | null>(null);
-
-  useEffect(() => {
-    const fetchAd = async () => {
-      try {
-        const res = await fetch(`/api/adverts?placement=${placement}&active=true`);
-        if (res.ok) {
-          const ads = await res.json();
-          if (ads.length > 0) {
-            // Pick a random ad from the available ones
-            const randomAd = ads[Math.floor(Math.random() * ads.length)];
-            setAd(randomAd);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load ad:', error);
-      }
-    };
-    fetchAd();
-  }, [placement]);
-
+export default function AdBanner({ ad }: { ad?: Advert | null }) {
   if (!ad) return null;
 
   const handleClick = async () => {

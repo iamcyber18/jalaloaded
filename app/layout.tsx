@@ -1,8 +1,5 @@
 import type { Metadata } from 'next'
-import { MusicPlayerProvider } from '@/components/MusicPlayerContext'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
-import MusicPlayer from '@/components/MusicPlayer'
+import AppShell from '@/components/AppShell'
 import Toast from '@/components/Toast'
 import './globals.css'
 
@@ -29,14 +26,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased min-h-screen flex flex-col">
-        <MusicPlayerProvider>
-          <Navbar />
-          <main className="flex-1 w-full relative pb-20"> {/* pb-20 accounts for the sticky music player */}
-            {children}
-          </main>
-          <MusicPlayer />
-          <Footer />
-        </MusicPlayerProvider>
+        <AppShell>{children}</AppShell>
         <Toast />
       </body>
     </html>

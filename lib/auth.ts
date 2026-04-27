@@ -35,3 +35,8 @@ export async function getSession() {
   if (!token) return null;
   return verifyToken(token);
 }
+
+export async function isAdminAuthenticated() {
+  const session = await getSession();
+  return Boolean(session && session.role === 'admin');
+}

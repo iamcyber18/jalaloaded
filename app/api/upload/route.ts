@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import cloudinary from '@/lib/cloudinary';
 import { Readable } from 'stream';
+import { isAdminAuthenticated } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
+    if (!(await isAdminAuthenticated())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const type = formData.get('type') as string;
