@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Footer() {
   return (
     <footer className="footer">
@@ -8,12 +10,12 @@ export default function Footer() {
         </div>
       </div>
       <div className="footer-links">
-        <div className="footer-link">Home</div>
-        <div className="footer-link">Blog</div>
-        <div className="footer-link">Music</div>
-        <div className="footer-link">Videos</div>
-        <div className="footer-link">Privacy</div>
-        <div className="footer-link">Contact</div>
+        <Link href="/" className="footer-link" style={{ textDecoration: 'none' }}>Home</Link>
+        <Link href="/blog" className="footer-link" style={{ textDecoration: 'none' }}>Blog</Link>
+        <Link href="/music" className="footer-link" style={{ textDecoration: 'none' }}>Music</Link>
+        <Link href="/videos" className="footer-link" style={{ textDecoration: 'none' }}>Videos</Link>
+        <Link href="/privacy" className="footer-link" style={{ textDecoration: 'none' }}>Privacy</Link>
+        <Link href="/contact" className="footer-link" style={{ textDecoration: 'none' }}>Contact</Link>
       </div>
       <div className="socials">
         <div className="soc-btn">𝕏</div>
