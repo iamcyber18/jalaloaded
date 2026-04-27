@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export const revalidate = 60; // 1 minute generic cache wrapper
+export const dynamic = 'force-dynamic';
 
 const LEAGUES = [
   { id: 'eng.1', name: 'EPL' },

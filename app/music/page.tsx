@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { formatNumber, timeAgo } from '@/lib/utils';
 import Image from 'next/image';
 
+export const dynamic = 'force-dynamic';
+
 async function getMusicData(genre?: string) {
   await dbConnect();
   

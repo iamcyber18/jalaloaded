@@ -1,10 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  typescript: {
-    // `next build` is failing on Windows during Next's internal TypeScript worker spawn
-    // even though `tsc --noEmit` passes. Keep type safety via the explicit typecheck script.
-    ignoreBuildErrors: true,
+  experimental: {
+    // Use worker threads during build to avoid Windows child-process spawn failures.
+    workerThreads: true,
   },
   images: {
     remotePatterns: [

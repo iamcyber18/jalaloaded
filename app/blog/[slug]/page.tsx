@@ -14,6 +14,8 @@ import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+export const dynamic = 'force-dynamic';
+
 type RelatedPost = {
   _id: { toString(): string };
   category: string;

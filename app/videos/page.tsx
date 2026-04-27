@@ -3,6 +3,8 @@ import Video from '@/models/Video';
 import VideoCard from '@/components/VideoCard';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 async function getVideos(page: number, category?: string) {
   await dbConnect();
   

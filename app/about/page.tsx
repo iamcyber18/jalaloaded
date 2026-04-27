@@ -4,6 +4,8 @@ import Post from '@/models/Post';
 import Song from '@/models/Song';
 import Video from '@/models/Video';
 
+export const dynamic = 'force-dynamic';
+
 async function getStats() {
   await dbConnect();
   const [posts, songs, videos] = await Promise.all([
