@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 import PostMediaUploader from '@/components/PostMediaUploader';
 import { IMediaItem } from '@/models/Post';
 
@@ -128,6 +129,9 @@ export default function AdminPage() {
         <div className="nav-section">Manage</div>
         <div className="nav-item"><div className="nav-dot"></div>Media Library</div>
         <div className="nav-item"><div className="nav-dot"></div>Comments</div>
+        <Link href="/admin/adverts" style={{ textDecoration: 'none' }}>
+          <div className="nav-item"><div className="nav-dot"></div>Adverts</div>
+        </Link>
         <div className="nav-item"><div className="nav-dot"></div>Settings</div>
 
         <div className="author-area">
