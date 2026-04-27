@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function NewsletterPage() {
   const session = await getSession();
-  if (!session || (session.role !== 'admin' && session.role !== 'sub-admin')) {
+  if (!session || session.role !== 'admin') {
     redirect('/admin/login');
   }
 

@@ -112,7 +112,7 @@ export default function ContactPage() {
                 <div style={{ fontSize: '16px', fontWeight: '500' }}>
                   <a href="https://wa.me/2347051978758" target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>07051978758</a>
                   <span style={{ color: 'rgba(255,255,255,0.4)', margin: '0 4px' }}>,</span> 
-                  <a href="tel:09047527504" style={{ color: '#fff', textDecoration: 'none' }}>09047527504</a>
+                  <a href="https://wa.me/2349047527504" target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>09047527504</a>
                 </div>
               </div>
             </div>

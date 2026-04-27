@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const session = await getSession();
 
     // Verify admin access
-    if (!session || (session.role !== 'admin' && session.role !== 'sub-admin')) {
+    if (!session || session.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
