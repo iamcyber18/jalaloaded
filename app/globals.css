@@ -803,6 +803,12 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
 }
 
 
+/* LIKE ANIMATION */
+@keyframes likeFloat {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -150%) scale(1.5); }
+}
+
 /* =============================================
    MOBILE RESPONSIVE — Full Site
    Breakpoints: 768px (tablet), 480px (phone)

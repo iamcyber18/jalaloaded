@@ -2,6 +2,7 @@ import dbConnect from '@/lib/mongodb';
 import Post from '@/models/Post';
 import MediaBlock from '@/components/MediaBlock';
 import CommentSection from '@/components/CommentSection';
+import LikeButton from '@/components/LikeButton';
 import Link from 'next/link';
 
 // Convert stored author key to a proper display name
@@ -92,11 +93,8 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                   <div className="meta-val">{formatNumber(post.views || 1)}</div>
                 </div>
                 <div className="share-row">
-                  <button className="share-btn">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                    <span>{formatNumber(post.likes || 0)}</span>
-                  </button>
-                  <button className="share-btn">
+                  <LikeButton postId={post._id.toString()} initialLikes={post.likes || 0} />
+                  <button className="share-btn" onClick={() => { if (typeof navigator !== 'undefined' && navigator.share) navigator.share({ title: post.title, url: window.location.href }); }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                     Share
                   </button>
@@ -131,9 +129,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
             {/* REACTION BAR */}
             <div className="reaction-bar">
               <div className="reactions">
-                <button className="react-btn"><span className="react-emoji">🔥</span><span className="react-count">2.1k</span></button>
-                <button className="react-btn"><span className="react-emoji">💯</span><span className="react-count">1.4k</span></button>
-                <button className="react-btn"><span className="react-emoji">🎵</span><span className="react-count">983</span></button>
+                <LikeButton postId={post._id.toString()} initialLikes={post.likes || 0} />
               </div>
               <div className="views-info">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
