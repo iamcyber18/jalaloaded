@@ -6,6 +6,7 @@ import CommentSection from '@/components/CommentSection';
 import LikeButton from '@/components/LikeButton';
 import ShareButton from '@/components/ShareButton';
 import AdBanner from '@/components/AdBanner';
+import NewsletterForm from '@/components/NewsletterForm';
 import Link from 'next/link';
 import { getAuthorDisplay } from '@/lib/authors';
 import { timeAgo, calculateReadTime, formatNumber } from '@/lib/utils';
@@ -288,8 +289,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
           <div className="nl-box">
             <div className="nl-title">Stay <span>Loaded</span></div>
             <div className="nl-sub">Fresh posts, music drops & vibes — straight to your inbox.</div>
-            <input className="nl-input" placeholder="Your email..." />
-            <button className="nl-btn">Subscribe Free</button>
+            <NewsletterForm />
           </div>
 
           <div className="s-card">

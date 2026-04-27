@@ -9,6 +9,7 @@ import LiveScoresTicker from '@/components/LiveScoresTicker';
 import PostCard from '@/components/PostCard';
 import MusicCard from '@/components/MusicCard';
 import VideoCard from '@/components/VideoCard';
+import NewsletterForm from '@/components/NewsletterForm';
 import { ensurePublishedAtBackfill } from '@/lib/postPublishing';
 
 export const dynamic = 'force-dynamic';
@@ -177,10 +178,7 @@ export default async function Home() {
             <div className="nl-sub">
               Get the freshest posts, music drops and videos delivered to your inbox. No spam, only vibes.
             </div>
-            <div className="nl-form">
-              <input className="nl-input" placeholder="Enter your email address..." />
-              <button className="nl-btn">Subscribe</button>
-            </div>
+            <NewsletterForm />
           </div>
         </div>
 
