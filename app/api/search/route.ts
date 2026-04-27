@@ -27,8 +27,8 @@ export async function GET(request: Request) {
           { tags: regex },
         ],
       })
-        .select('title slug category createdAt media')
-        .sort({ createdAt: -1 })
+        .select('title slug category createdAt publishedAt media')
+        .sort({ publishedAt: -1, createdAt: -1, _id: -1 })
         .limit(5)
         .lean(),
       Song.find({
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
     ]);
 
     return NextResponse.json({ posts, songs, videos });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Search failed' }, { status: 500 });
   }
 }

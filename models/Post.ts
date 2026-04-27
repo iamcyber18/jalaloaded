@@ -22,6 +22,7 @@ export interface IPost extends Document {
   tags: string[];
   media: IMediaItem[];
   status: 'draft' | 'published';
+  publishedAt?: Date;
   createdByUsername?: string;
   createdByRole?: 'admin' | 'sub-admin';
   views: number;
@@ -62,6 +63,7 @@ const PostSchema = new Schema<IPost>(
     tags: [{ type: String }],
     media: [MediaItemSchema],
     status: { type: String, enum: ['draft', 'published'], default: 'published' },
+    publishedAt: { type: Date },
     views: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
     allowComments: { type: Boolean, default: true },

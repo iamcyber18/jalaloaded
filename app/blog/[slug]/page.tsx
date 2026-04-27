@@ -9,12 +9,22 @@ import AdBanner from '@/components/AdBanner';
 import Link from 'next/link';
 import { getAuthorDisplay } from '@/lib/authors';
 import { timeAgo, calculateReadTime, formatNumber } from '@/lib/utils';
+import { ensurePublishedAtBackfill } from '@/lib/postPublishing';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+type RelatedPost = {
+  _id: { toString(): string };
+  category: string;
+  media?: Array<{ url: string }>;
+  slug: string;
+  title: string;
+};
+
 async function getPost(slug: string) {
   await dbConnect();
+  await ensurePublishedAtBackfill();
   // Increment view and fetch
   const post = await Post.findOneAndUpdate(
     { slug, status: 'published' },
@@ -29,7 +39,7 @@ async function getPost(slug: string) {
     category: post.category,
     _id: { $ne: post._id },
     status: 'published'
-  }).sort({ createdAt: -1 }).limit(3).lean();
+  }).sort({ publishedAt: -1, createdAt: -1, _id: -1 }).limit(3).lean<RelatedPost[]>();
 
   // Get random active inline ads
   const now = new Date();
@@ -99,7 +109,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                 <div className="meta-divider"></div>
                 <div className="meta-item">
                   <div className="meta-label">Published</div>
-                  <div className="meta-val">{timeAgo(post.createdAt || Date.now())}</div>
+                  <div className="meta-val">{timeAgo(post.publishedAt || post.createdAt)}</div>
                 </div>
                 <div className="meta-divider"></div>
                 <div className="meta-item">
@@ -233,7 +243,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                   <Link href={`/blog?category=${post.category}`} style={{ fontSize: '11px', color: 'var(--orange)', cursor: 'pointer', textDecoration: 'none' }}>View all &rarr;</Link>
                 </div>
                 <div className="related-grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)' }}>
-                  {related.map((r: any) => (
+                  {related.map((r) => (
                     <Link href={`/blog/${r.slug}`} key={r._id.toString()} className="rel-card" style={{ display: 'block', textDecoration: 'none' }}>
                       <div className="rel-thumb" style={r.media && r.media.length > 0 ? { background: `url(${r.media[0].url}) center/cover` } : { background: 'linear-gradient(135deg,#1a0008,#3d001a)' }}>
                          {!r.media || r.media.length === 0 ? <div style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '30px', color: 'rgba(255,107,0,0.07)' }}>JL</div> : null}

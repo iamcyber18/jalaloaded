@@ -9,6 +9,7 @@ import LiveScoresTicker from '@/components/LiveScoresTicker';
 import PostCard from '@/components/PostCard';
 import MusicCard from '@/components/MusicCard';
 import VideoCard from '@/components/VideoCard';
+import { ensurePublishedAtBackfill } from '@/lib/postPublishing';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,7 @@ type HomePost = {
   createdAt: Date | string;
   featured?: boolean;
   media?: HomeMedia[];
+  publishedAt?: Date | string;
   slug: string;
   title: string;
 };
@@ -57,13 +59,14 @@ function dedupePosts(posts: HomePost[]) {
 
 async function getHomepageData() {
   await dbConnect();
+  await ensurePublishedAtBackfill();
 
   const [featuredPosts, recentPosts, songs, videos] = await Promise.all([
     Post.find({ status: 'published', featured: true })
-      .sort({ updatedAt: -1, createdAt: -1, _id: -1 })
+      .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1, _id: -1 })
       .limit(1)
       .lean<HomePost[]>(),
-    Post.find({ status: 'published' }).sort({ createdAt: -1, _id: -1 }).limit(10).lean<HomePost[]>(),
+    Post.find({ status: 'published' }).sort({ publishedAt: -1, createdAt: -1, _id: -1 }).limit(10).lean<HomePost[]>(),
     Song.find().sort({ createdAt: -1, _id: -1 }).limit(10).lean<HomeSong[]>(),
     Video.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeVideo[]>(),
   ]);
@@ -88,7 +91,7 @@ export default async function Home() {
   const heroSlides: HeroCarouselSlide[] = carouselPosts.map((post) => ({
     author: post.author,
     category: post.category,
-    createdAt: new Date(post.createdAt).toISOString(),
+    createdAt: new Date(post.publishedAt || post.createdAt).toISOString(),
     featured: Boolean(post.featured),
     id: post._id.toString(),
     imageUrl: post.media?.find((mediaItem) => mediaItem.type === 'photo')?.url || null,

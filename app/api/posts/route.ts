@@ -21,7 +21,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const query: any = {};
+    const query: {
+      status?: 'draft' | 'published';
+      category?: string;
+      createdByUsername?: string;
+      $or?: Array<Record<string, RegExp>>;
+    } = {};
     if (requestedStatus === 'draft') {
       query.status = 'draft';
     } else if (requestedStatus !== 'all') {
@@ -49,8 +54,11 @@ export async function GET(request: Request) {
       ];
     }
 
+    const publicSort = { publishedAt: -1, createdAt: -1, _id: -1 };
+    const adminSort = requestedStatus === 'draft' ? { updatedAt: -1, createdAt: -1, _id: -1 } : publicSort;
+
     const posts = await Post.find(query)
-      .sort({ createdAt: -1 })
+      .sort(adminSort)
       .skip(skip)
       .limit(limit)
       .lean();
@@ -63,7 +71,7 @@ export async function GET(request: Request) {
       currentPage: page,
       totalPosts: total
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
   }
 }
@@ -78,6 +86,7 @@ export async function POST(request: Request) {
 
     await dbConnect();
     const body = await request.json();
+    const nextStatus = body.status === 'draft' ? 'draft' : 'published';
     
     // Auto-generate slug
     const baseSlug = slugify(body.title);
@@ -97,8 +106,10 @@ export async function POST(request: Request) {
 
     const newPost = new Post({
       ...body,
+      status: nextStatus,
       slug,
       author: postAuthor,
+      publishedAt: nextStatus === 'published' ? new Date() : undefined,
       createdByUsername: session.username,
       createdByRole: session.role,
     });

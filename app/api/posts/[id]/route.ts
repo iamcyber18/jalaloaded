@@ -59,6 +59,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       body.createdByRole = session.role;
     }
 
+    const nextStatus =
+      body.status === 'draft' ? 'draft' : body.status === 'published' ? 'published' : existingPost.status;
+
+    if (nextStatus === 'published' && (existingPost.status !== 'published' || !existingPost.publishedAt)) {
+      body.publishedAt = new Date();
+    }
+
     const post = await Post.findByIdAndUpdate(resolvedParams.id, body, {
       new: true,
       runValidators: true,
