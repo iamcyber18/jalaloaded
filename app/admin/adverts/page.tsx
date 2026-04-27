@@ -25,6 +25,7 @@ export default function AdvertsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [form, setForm] = useState({
     title: '',
@@ -57,6 +58,40 @@ export default function AdvertsPage() {
     setForm({ title: '', imageUrl: '', linkUrl: '', placement: 'blog-inline', advertiser: '', isActive: true, startDate: '', endDate: '' });
     setEditingId(null);
     setShowForm(false);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'image');
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setForm(prev => ({ ...prev, imageUrl: data.url }));
+        toast.success('Image uploaded successfully');
+      } else {
+        toast.error('Failed to upload image');
+      }
+    } catch (err) {
+      toast.error('Error uploading image');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -190,20 +225,30 @@ export default function AdvertsPage() {
             </div>
 
             <div className="ad-field" style={{ gridColumn: 'span 2' }}>
-              <label className="ad-label-text">Image URL *</label>
-              <input
-                type="url"
-                className="ad-input"
-                placeholder="https://res.cloudinary.com/... or direct image link"
-                value={form.imageUrl}
-                onChange={e => setForm({ ...form, imageUrl: e.target.value })}
-                required
-              />
-              {form.imageUrl && (
-                <div style={{ marginTop: '8px', borderRadius: '8px', overflow: 'hidden', maxHeight: '120px' }}>
-                  <img src={form.imageUrl} alt="Preview" style={{ width: '100%', height: '120px', objectFit: 'cover' }} />
+              <label className="ad-label-text">Advert Image *</label>
+              
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ position: 'relative', border: '2px dashed rgba(255,255,255,0.2)', borderRadius: '8px', padding: '24px', textAlign: 'center', cursor: 'pointer', transition: '0.2s', borderColor: isUploading ? 'var(--orange)' : '' }} className="hover:border-[var(--orange)]">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={isUploading}
+                      style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%' }}
+                    />
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>{isUploading ? '⏳' : '📤'}</div>
+                    <div style={{ fontSize: '13px', fontWeight: 600 }}>{isUploading ? 'Uploading...' : 'Click or Drag Image Here'}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '4px' }}>Supports JPG, PNG, WEBP</div>
+                  </div>
                 </div>
-              )}
+
+                {form.imageUrl && (
+                  <div style={{ width: '140px', height: '140px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+                    <img src={form.imageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="ad-field" style={{ gridColumn: 'span 2' }}>
