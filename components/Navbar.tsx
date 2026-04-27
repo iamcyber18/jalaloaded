@@ -75,8 +75,9 @@ export default function Navbar() {
   return (
     <>
       <nav className="nav">
-        <Link href="/" className="nav-logo" style={{ display: 'flex', alignItems: 'center' }}>
-          <Image src="/images/jalaloadedlogo.png" alt="Jalaloaded" width={200} height={64} style={{ objectFit: 'contain', height: '64px', width: 'auto' }} priority />
+        <Link href="/" className="nav-logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none' }}>
+          <Image src="/images/jalaloadedlogo.png" alt="Jalaloaded Logo" width={200} height={64} style={{ objectFit: 'contain', height: '64px', width: 'auto' }} priority />
+          <span style={{ fontSize: '14px', fontWeight: 'bold', marginTop: '4px', letterSpacing: '1px', color: 'var(--color-text-primary)' }}>JALALOADED</span>
         </Link>
 
         {/* Desktop links */}
