@@ -11,13 +11,17 @@ import VideoCard from '@/components/VideoCard';
 import { getAuthorDisplay } from '@/lib/authors';
 import { timeAgo } from '@/lib/utils';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Helper to fetch data directly in server component
 async function getHomepageData() {
   await dbConnect();
   
   const [featuredPost, latestPosts, songs, videos] = await Promise.all([
     Post.findOne({ status: 'published', featured: true }).sort({ updatedAt: -1, createdAt: -1 }).lean(),
-    Post.find({ status: 'published' }).sort({ createdAt: -1 }).limit(7).lean(),
+    // Fetch more posts to ensure we always have enough for the hero + 6 latest posts grid
+    Post.find({ status: 'published' }).sort({ createdAt: -1 }).limit(10).lean(),
     Song.find().sort({ createdAt: -1 }).limit(10).lean(),
     Video.find().sort({ createdAt: -1 }).limit(6).lean()
   ]);

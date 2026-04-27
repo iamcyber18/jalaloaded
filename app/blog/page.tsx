@@ -3,6 +3,9 @@ import Post from '@/models/Post';
 import PostCard from '@/components/PostCard';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getPosts(page: number, category?: string) {
   await dbConnect();
   
