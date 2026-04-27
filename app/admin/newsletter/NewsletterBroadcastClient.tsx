@@ -56,71 +56,103 @@ export default function NewsletterBroadcastClient({ initialCount }: { initialCou
     }
   };
 
+  const inputStyle = {
+    width: '100%',
+    padding: '14px',
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '8px',
+    color: '#fff',
+    fontFamily: 'inherit',
+    fontSize: '14px',
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+  };
+
+  const labelStyle = {
+    display: 'block',
+    marginBottom: '8px',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    color: 'rgba(255, 255, 255, 0.8)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.5px'
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '1200px' }}>
       
       {/* Stat Card */}
-      <div style={{ display: 'flex', alignItems: 'center', background: 'var(--color-background-secondary)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', gap: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', background: 'var(--color-background-secondary, #1a1a1a)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', gap: '20px' }}>
         <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(255, 107, 0, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>
           📧
         </div>
         <div>
-          <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>Total Active Subscribers</div>
-          <div style={{ fontSize: '36px', fontFamily: '"Bebas Neue", sans-serif', color: 'var(--orange)', lineHeight: '1' }}>{initialCount}</div>
+          <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary, #888)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>Total Active Subscribers</div>
+          <div style={{ fontSize: '36px', fontFamily: '"Bebas Neue", sans-serif', color: 'var(--orange, #FF6B00)', lineHeight: '1' }}>{initialCount}</div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px', alignItems: 'start' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'start' }}>
         
         {/* Composer Form */}
-        <div className="admin-card">
-          <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '12px' }}>Compose Broadcast</h3>
+        <div style={{ flex: '1 1 400px', background: 'var(--color-background-secondary, #1a1a1a)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <h3 style={{ margin: '0 0 24px 0', fontSize: '18px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '16px', color: '#fff' }}>Compose Broadcast</h3>
           <form onSubmit={handleSend} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div className="form-group">
-              <label className="form-label">Email Subject</label>
+            <div>
+              <label style={labelStyle}>Email Subject</label>
               <input
                 type="text"
-                className="form-input"
                 placeholder="e.g. New Music Drop: Fireboy DML is back!"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 disabled={status === 'loading'}
                 required
+                style={inputStyle}
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Message Body</label>
+            <div>
+              <label style={labelStyle}>Message Body</label>
+              <p style={{ fontSize: '11px', color: '#888', marginTop: '-4px', marginBottom: '8px' }}>Line breaks will be preserved.</p>
               <textarea
-                className="form-textarea"
-                placeholder="Write your email content here. Line breaks are automatically preserved."
+                placeholder="Write your email content here..."
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 rows={12}
                 disabled={status === 'loading'}
                 required
-                style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '14px', lineHeight: '1.6' }}
+                style={{ ...inputStyle, resize: 'vertical', minHeight: '150px' }}
               />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px' }}>
               <button 
                 type="submit" 
-                className="btn btn-primary"
                 disabled={status === 'loading' || initialCount === 0}
-                style={{ padding: '12px 24px', fontSize: '14px', flexShrink: 0 }}
+                style={{ 
+                  padding: '12px 24px', 
+                  fontSize: '14px', 
+                  background: 'var(--orange, #FF6B00)', 
+                  color: '#fff', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  cursor: (status === 'loading' || initialCount === 0) ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold',
+                  opacity: (status === 'loading' || initialCount === 0) ? 0.7 : 1
+                }}
               >
                 {status === 'loading' ? 'Sending...' : '🚀 Blast to All Subscribers'}
               </button>
-
-              {status === 'success' && <div style={{ color: '#4ade80', fontSize: '13px', padding: '10px 16px', background: 'rgba(74, 222, 128, 0.1)', borderRadius: '8px', border: '1px solid rgba(74, 222, 128, 0.2)' }}>{message}</div>}
-              {status === 'error' && <div style={{ color: '#ff4d4d', fontSize: '13px', padding: '10px 16px', background: 'rgba(255, 77, 77, 0.1)', borderRadius: '8px', border: '1px solid rgba(255, 77, 77, 0.2)' }}>{message}</div>}
             </div>
+            
+            {status === 'success' && <div style={{ color: '#4ade80', fontSize: '14px', padding: '12px 16px', background: 'rgba(74, 222, 128, 0.1)', borderRadius: '8px', border: '1px solid rgba(74, 222, 128, 0.2)', marginTop: '8px' }}>{message}</div>}
+            {status === 'error' && <div style={{ color: '#ff4d4d', fontSize: '14px', padding: '12px 16px', background: 'rgba(255, 77, 77, 0.1)', borderRadius: '8px', border: '1px solid rgba(255, 77, 77, 0.2)', marginTop: '8px' }}>{message}</div>}
           </form>
         </div>
 
         {/* Live Preview */}
-        <div className="admin-card" style={{ background: '#f5f5f5', color: '#333' }}>
+        <div style={{ flex: '1 1 400px', background: '#f5f5f5', color: '#333', padding: '24px', borderRadius: '12px', border: '1px solid #e0e0e0' }}>
           <h3 style={{ margin: '0 0 20px 0', fontSize: '12px', textTransform: 'uppercase', color: '#888', borderBottom: '1px solid #e0e0e0', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between' }}>
             <span>Live Email Preview</span>
             <span>Desktop View</span>
