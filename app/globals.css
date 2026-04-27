@@ -23,6 +23,7 @@
 /* NAV */
 .nav{background:var(--dark);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100}
 .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--orange);letter-spacing:2px}
+.nav-logo-img{object-fit:contain;height:64px;width:auto}
 .nav-links{display:flex;gap:4px}
 .nl{padding:6px 13px;border-radius:20px;font-size:11px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.15s;font-weight:500;letter-spacing:0.3px}
 .nl:hover{color:rgba(255,255,255,0.85)}
@@ -1202,8 +1203,10 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
 
   /* NAV */
   .nav { padding: 0 12px; height: 48px; }
-  .nav-search { display: none; }
+  .nav-search { display: block !important; width: 120px !important; font-size: 11px; padding-left: 28px !important; }
+  .search-dropdown { width: 300px; right: -40px; }
   .nav-logo { font-size: 22px; }
+  .nav-logo-img { height: 40px; }
 
   /* BREAKING TICKER */
   .breaking { padding: 5px 12px; }

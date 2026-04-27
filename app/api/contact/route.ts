@@ -23,12 +23,23 @@ export async function POST(request: Request) {
     });
 
     const htmlBody = `
-      <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
-        <h2 style="color: #FF6B00; margin-top: 0;">New Contact Form Submission</h2>
-        <p><strong>From:</strong> ${name} &lt;${email}&gt;</p>
-        <p><strong>Subject:</strong> ${subject || 'No Subject'}</p>
-        <hr style="border: none; border-top: 1px solid #eaeaea; margin: 20px 0;" />
-        <div style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">${message}</div>
+      <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 8px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <img src="https://jalaloaded.vercel.app/images/jalaloadedlogo.png" alt="Jalaloaded Logo" style="height: 60px; width: auto; max-width: 100%;" />
+        </div>
+        <h2 style="color: #FF6B00; margin-top: 0; font-size: 20px; border-bottom: 1px solid #eaeaea; padding-bottom: 10px;">New Contact Submission</h2>
+        <div style="background: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+          <p style="margin: 0 0 8px 0;"><strong>From:</strong> ${name} &lt;${email}&gt;</p>
+          <p style="margin: 0;"><strong>Subject:</strong> ${subject || 'No Subject'}</p>
+        </div>
+        <div style="white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #444;">${message}</div>
+        <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0 20px;" />
+        <p style="font-size: 11px; color: #888; text-align: center; margin-bottom: 5px;">
+          This message was sent from the Jalaloaded Contact Form.
+        </p>
+        <p style="font-size: 11px; color: #aaa; text-align: center; margin-top: 0;">
+          &copy; ${new Date().getFullYear()} Jalaloaded. All rights reserved.
+        </p>
       </div>
     `;
 
