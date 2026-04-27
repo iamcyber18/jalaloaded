@@ -33,7 +33,6 @@ export default function AdminSidebar() {
     <div className="admin-sidebar">
       <div className="logo-area" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0' }}>
         <img src="/images/jalaloadedlogo.png" alt="Jalaloaded Logo" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
-        <div className="logo" style={{ marginTop: '12px', fontSize: '20px', letterSpacing: '1px' }}>JALALOADED</div>
         <div className="logo-sub" style={{ marginTop: '4px' }}>Admin Panel</div>
       </div>
 

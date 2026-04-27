@@ -3,7 +3,6 @@ export default function Footer() {
     <footer className="footer">
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
         <img src="/images/jalaloadedlogo.png" alt="Jalaloaded Logo" style={{ height: '64px', width: 'auto', objectFit: 'contain' }} />
-        <div style={{ fontSize: '18px', fontWeight: 'bold', marginTop: '8px', letterSpacing: '1px' }}>JALALOADED</div>
         <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>
           © {new Date().getFullYear()} Jalaloaded. All rights reserved.
         </div>

@@ -44,7 +44,6 @@ export default function AdminLoginPage() {
       <div className="login-card">
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '16px' }}>
           <img src="/images/jalaloadedlogo.png" alt="Jalaloaded Logo" style={{ height: '80px', width: 'auto', objectFit: 'contain' }} />
-          <div className="login-logo" style={{ marginTop: '16px', fontSize: '28px', letterSpacing: '2px' }}>JALALOADED</div>
         </div>
         <div className="login-subtitle">Admin Panel</div>
 
