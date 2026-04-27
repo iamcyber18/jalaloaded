@@ -72,8 +72,11 @@ async function getHomepageData() {
   ]);
 
   const carouselPosts = dedupePosts([...featuredPosts, ...recentPosts]).slice(0, 4);
-  const carouselIds = new Set(carouselPosts.map((post) => post._id.toString()));
-  const latestPosts = recentPosts.filter((post) => !carouselIds.has(post._id.toString())).slice(0, 6);
+  
+  // Just show the 6 most recent posts in the grid below the hero. 
+  // We used to filter out all carousel posts, which caused confusion when new posts 
+  // "disappeared" into the carousel and weren't visible in the main feed.
+  const latestPosts = recentPosts.slice(0, 6);
 
   return {
     latestPosts,
