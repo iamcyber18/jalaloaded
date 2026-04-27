@@ -86,6 +86,13 @@ export async function POST(request: Request) {
     const newPost = new Post({ ...body, slug });
     await newPost.save();
 
+    if (body.featured) {
+      await Post.updateMany(
+        { _id: { $ne: newPost._id } },
+        { $set: { featured: false } }
+      );
+    }
+
     return NextResponse.json(newPost, { status: 201 });
   } catch (error) {
     console.error('Error creating post:', error);

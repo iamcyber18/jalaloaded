@@ -49,6 +49,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
+    if (body.featured) {
+      await Post.updateMany(
+        { _id: { $ne: post._id } },
+        { $set: { featured: false } }
+      );
+    }
+
     return NextResponse.json(post);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });

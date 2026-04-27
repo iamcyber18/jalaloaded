@@ -14,21 +14,25 @@ import { timeAgo } from '@/lib/utils';
 async function getHomepageData() {
   await dbConnect();
   
-  const [posts, songs, videos] = await Promise.all([
+  const [featuredPost, latestPosts, songs, videos] = await Promise.all([
+    Post.findOne({ status: 'published', featured: true }).sort({ updatedAt: -1, createdAt: -1 }).lean(),
     Post.find({ status: 'published' }).sort({ createdAt: -1 }).limit(7).lean(),
     Song.find().sort({ createdAt: -1 }).limit(10).lean(),
     Video.find().sort({ createdAt: -1 }).limit(6).lean()
   ]);
 
-  return { posts, songs, videos };
+  return { featuredPost, latestPosts, songs, videos };
 }
 
 export default async function Home() {
-  const { posts, songs, videos } = await getHomepageData();
+  const { featuredPost, latestPosts, songs, videos } = await getHomepageData();
   
-  const breakingNews = posts.slice(0, 3);
-  const heroPost = posts[0];
-  const gridPosts = posts.slice(1);
+  const hasFeaturedPost = Boolean(featuredPost);
+  const breakingNews = latestPosts.slice(0, 3);
+  const heroPost = featuredPost || latestPosts[0];
+  const gridPosts = latestPosts
+    .filter((post: any) => post._id.toString() !== heroPost?._id?.toString())
+    .slice(0, 6);
 
   return (
     <div className="jlh min-h-screen">
@@ -71,7 +75,7 @@ export default async function Home() {
                 </div>
               </div>
               <div className="hero-content">
-                <div className="hero-badge">FEATURED POST</div>
+                <div className="hero-badge">{hasFeaturedPost ? 'FEATURED POST' : 'LATEST POST'}</div>
                 <div className="hero-title">{heroPost.title}</div>
                 <div className="hero-meta">
                   <div className="hero-av">JA</div>
@@ -141,7 +145,7 @@ export default async function Home() {
           <div className="s-card">
             <div className="s-title"><div className="s-line"></div>Trending Now</div>
             <div>
-              {posts.slice(0, 5).map((p: any, i: number) => (
+              {latestPosts.slice(0, 5).map((p: any, i: number) => (
                 <Link href={`/blog/${p.slug}`} key={p._id.toString()} className="trend-item block" style={{ textDecoration: 'none' }}>
                   <div className="trend-num">0{i+1}</div>
                   <div>
