@@ -97,7 +97,9 @@ export default function ContactPage() {
               </div>
               <div>
                 <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Email Us</div>
-                <div style={{ fontSize: '16px', color: '#fff', fontWeight: '500' }}>jalaloaded.new@gmail.com</div>
+                <div style={{ fontSize: '16px', fontWeight: '500' }}>
+                  <a href="mailto:jalaloaded.new@gmail.com" style={{ color: '#fff', textDecoration: 'none' }}>jalaloaded.new@gmail.com</a>
+                </div>
               </div>
             </div>
 
@@ -107,7 +109,11 @@ export default function ContactPage() {
               </div>
               <div>
                 <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Call / WhatsApp</div>
-                <div style={{ fontSize: '16px', color: '#fff', fontWeight: '500' }}>07051978758, 09047527504</div>
+                <div style={{ fontSize: '16px', fontWeight: '500' }}>
+                  <a href="https://wa.me/2347051978758" target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>07051978758</a>
+                  <span style={{ color: 'rgba(255,255,255,0.4)', margin: '0 4px' }}>,</span> 
+                  <a href="tel:09047527504" style={{ color: '#fff', textDecoration: 'none' }}>09047527504</a>
+                </div>
               </div>
             </div>
 
