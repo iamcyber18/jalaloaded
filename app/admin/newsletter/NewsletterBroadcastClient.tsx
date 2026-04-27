@@ -28,8 +28,11 @@ export default function NewsletterBroadcastClient({ initialCount }: { initialCou
         </div>
         ${body.replace(/\n/g, '<br/>')}
         <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0 20px;" />
-        <p style="font-size: 11px; color: #888; text-align: center;">
+        <p style="font-size: 11px; color: #888; text-align: center; margin-bottom: 5px;">
           You are receiving this because you subscribed to the Jalaloaded newsletter.
+        </p>
+        <p style="font-size: 11px; color: #aaa; text-align: center; margin-top: 0;">
+          &copy; ${new Date().getFullYear()} Jalaloaded. All rights reserved.
         </p>
       </div>
     `;
@@ -178,8 +181,11 @@ export default function NewsletterBroadcastClient({ initialCount }: { initialCou
             />
             
             <hr style={{ border: 'none', borderTop: '1px solid #eaeaea', margin: '30px 0 20px' }} />
-            <p style={{ fontSize: '11px', color: '#888', fontFamily: 'Arial, sans-serif', textAlign: 'center' }}>
+            <p style={{ fontSize: '11px', color: '#888', fontFamily: 'Arial, sans-serif', textAlign: 'center', marginBottom: '5px' }}>
               You are receiving this because you subscribed to the Jalaloaded newsletter.
+            </p>
+            <p style={{ fontSize: '11px', color: '#aaa', fontFamily: 'Arial, sans-serif', textAlign: 'center', marginTop: 0 }}>
+              &copy; {new Date().getFullYear()} Jalaloaded. All rights reserved.
             </p>
           </div>
         </div>
