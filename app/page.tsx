@@ -11,9 +11,6 @@ import VideoCard from '@/components/VideoCard';
 import { getAuthorDisplay } from '@/lib/authors';
 import { timeAgo } from '@/lib/utils';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 // Helper to fetch data directly in server component
 async function getHomepageData() {
   await dbConnect();
