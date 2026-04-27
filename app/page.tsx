@@ -241,53 +241,6 @@ export default async function Home() {
           <div className="s-card">
             <div className="s-title">
               <div className="s-line"></div>
-              The Crew
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div className="hero-av" style={{ width: '38px', height: '38px', fontSize: '12px', flexShrink: 0 }}>
-                  JA
-                </div>
-                <div>
-                  <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 700, fontSize: '13px' }}>Jalal</div>
-                  <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', lineHeight: 1.4 }}>
-                    Creator and lead writer. Passionate about music, culture and street vibes.
-                  </div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div
-                  style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '50%',
-                    background: 'rgba(255,107,0,0.15)',
-                    border: '1px solid rgba(255,107,0,0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: 'var(--orange)',
-                    fontFamily: '"Syne", sans-serif',
-                    flexShrink: 0,
-                  }}
-                >
-                  CO
-                </div>
-                <div>
-                  <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 700, fontSize: '13px' }}>Co-friend</div>
-                  <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', lineHeight: 1.4 }}>
-                    Co-author. Covers sports, entertainment and the latest gist.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="s-card">
-            <div className="s-title">
-              <div className="s-line"></div>
               Popular Tags
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
