@@ -4,6 +4,7 @@ import MediaBlock from '@/components/MediaBlock';
 import CommentSection from '@/components/CommentSection';
 import LikeButton from '@/components/LikeButton';
 import ShareButton from '@/components/ShareButton';
+import AdBanner from '@/components/AdBanner';
 import Link from 'next/link';
 
 // Convert stored author key to a proper display name
@@ -103,17 +104,60 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
             {/* MEDIA BLOCK */}
             <MediaBlock mediaItems={post.media || []} />
 
-            {/* BODY */}
+            {/* BODY WITH AD BANNER */}
             <div className="article-body">
-              <ReactMarkdown 
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>,
-                  p: ({children}) => <p>{children}</p>
-                }}
-              >
-                {post.body}
-              </ReactMarkdown>
+              {(() => {
+                const content = post.body || '';
+                // Try to split at the conclusion divider '---'
+                const parts = content.split('\n---\n');
+                
+                if (parts.length > 1) {
+                  return (
+                    <>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
+                        {parts[0]}
+                      </ReactMarkdown>
+                      <div style={{ margin: '32px 0' }}>
+                        <AdBanner placement="blog-inline" />
+                      </div>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
+                        {parts.slice(1).join('\n---\n')}
+                      </ReactMarkdown>
+                    </>
+                  );
+                }
+
+                // Fallback: split by double newline and insert near middle
+                const blocks = content.split('\n\n');
+                if (blocks.length > 3) {
+                  const mid = Math.floor(blocks.length / 2);
+                  return (
+                    <>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
+                        {blocks.slice(0, mid).join('\n\n')}
+                      </ReactMarkdown>
+                      <div style={{ margin: '32px 0' }}>
+                        <AdBanner placement="blog-inline" />
+                      </div>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
+                        {blocks.slice(mid).join('\n\n')}
+                      </ReactMarkdown>
+                    </>
+                  );
+                }
+
+                // If content is very short, just append it at the end
+                return (
+                  <>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
+                      {content}
+                    </ReactMarkdown>
+                    <div style={{ margin: '32px 0' }}>
+                      <AdBanner placement="blog-inline" />
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             {/* TAGS */}
