@@ -535,13 +535,7 @@ export default function AdminPostsPage() {
 
                     <div className="section-gap"></div>
 
-                    <div className="form-card">
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 700, fontSize: '14px' }}>Photos &amp; Media</div>
-                        <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Reorder, replace, or add more media.</span>
-                      </div>
-                      <PostMediaUploader media={media} onChange={setMedia} />
-                    </div>
+                    <PostMediaUploader media={media} onChange={setMedia} />
                   </div>
 
                   <div>

@@ -108,7 +108,7 @@ export default function AdminPage() {
       } else {
         toast.error("Failed to create post.");
       }
-    } catch (err) {
+    } catch {
       toast.error("An error occurred.");
     } finally {
       setIsSubmitting(false);
@@ -214,14 +214,7 @@ export default function AdminPage() {
 
             <div className="section-gap"></div>
 
-            {/* MEDIA SECTION */}
-            <div className="form-card">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 700, fontSize: '14px' }}>Photos &amp; Media</div>
-                <span style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Upload images or add video URLs</span>
-              </div>
-              <PostMediaUploader media={media} onChange={setMedia} />
-            </div>
+            <PostMediaUploader media={media} onChange={setMedia} />
           </div>
 
           {/* RIGHT: SIDEBAR PANELS */}

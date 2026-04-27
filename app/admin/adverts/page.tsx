@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import Image from 'next/image';
+import { uploadAdminAsset } from '@/lib/adminUpload';
 
 interface Advert {
   _id: string;
@@ -19,6 +21,17 @@ interface Advert {
   createdAt: string;
 }
 
+type AdvertFormState = {
+  title: string;
+  imageUrl: string;
+  linkUrl: string;
+  placement: string;
+  advertiser: string;
+  isActive: boolean;
+  startDate: string;
+  endDate: string;
+};
+
 export default function AdvertsPage() {
   const [adverts, setAdverts] = useState<Advert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +40,7 @@ export default function AdvertsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<AdvertFormState>({
     title: '',
     imageUrl: '',
     linkUrl: '',
@@ -52,7 +65,13 @@ export default function AdvertsPage() {
     }
   };
 
-  useEffect(() => { fetchAdverts(); }, []);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void fetchAdverts();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const resetForm = () => {
     setForm({ title: '', imageUrl: '', linkUrl: '', placement: 'blog-inline', advertiser: '', isActive: true, startDate: '', endDate: '' });
@@ -70,27 +89,16 @@ export default function AdvertsPage() {
     }
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', 'image');
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setForm(prev => ({ ...prev, imageUrl: data.url }));
-        toast.success('Image uploaded successfully');
-      } else {
-        toast.error('Failed to upload image');
-      }
-    } catch (err) {
-      toast.error('Error uploading image');
+      const upload = await uploadAdminAsset(file, 'image');
+      setForm(prev => ({ ...prev, imageUrl: upload.url }));
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error uploading image');
     } finally {
       setIsUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -103,7 +111,7 @@ export default function AdvertsPage() {
 
     setSubmitting(true);
     try {
-      const payload: any = { ...form };
+      const payload: Partial<AdvertFormState> = { ...form };
       if (!payload.startDate) delete payload.startDate;
       if (!payload.endDate) delete payload.endDate;
 
@@ -245,7 +253,7 @@ export default function AdvertsPage() {
 
                 {form.imageUrl && (
                   <div style={{ width: '140px', height: '140px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
-                    <img src={form.imageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <Image src={form.imageUrl} alt="Preview" width={140} height={140} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 )}
               </div>
@@ -332,7 +340,7 @@ export default function AdvertsPage() {
           {adverts.map(ad => (
             <div key={ad._id} className={`ad-card ${!ad.isActive ? 'ad-card-paused' : ''}`}>
               <div className="ad-card-img">
-                <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <Image src={ad.imageUrl} alt={ad.title} fill sizes="(max-width: 768px) 100vw, 33vw" style={{ objectFit: 'cover' }} />
                 <div className={`ad-status-badge ${ad.isActive ? 'active' : 'paused'}`}>
                   {ad.isActive ? 'LIVE' : 'PAUSED'}
                 </div>
