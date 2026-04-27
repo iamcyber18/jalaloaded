@@ -81,7 +81,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                 <div className="meta-divider"></div>
                 <div className="meta-item">
                   <div className="meta-label">Published</div>
-                  <div className="meta-val">{new Date(post.createdAt || Date.now()).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                  <div className="meta-val">{timeAgo(post.createdAt || Date.now())}</div>
                 </div>
                 <div className="meta-divider"></div>
                 <div className="meta-item">
