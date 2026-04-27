@@ -243,7 +243,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                   <Link href={`/blog?category=${post.category}`} style={{ fontSize: '11px', color: 'var(--orange)', cursor: 'pointer', textDecoration: 'none' }}>View all &rarr;</Link>
                 </div>
                 <div className="related-grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)' }}>
-                  {related.map((r) => (
+                  {related.map((r: any) => (
                     <Link href={`/blog/${r.slug}`} key={r._id.toString()} className="rel-card" style={{ display: 'block', textDecoration: 'none' }}>
                       <div className="rel-thumb" style={r.media && r.media.length > 0 ? { background: `url(${r.media[0].url}) center/cover` } : { background: 'linear-gradient(135deg,#1a0008,#3d001a)' }}>
                          {!r.media || r.media.length === 0 ? <div style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '30px', color: 'rgba(255,107,0,0.07)' }}>JL</div> : null}

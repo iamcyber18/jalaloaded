@@ -54,8 +54,8 @@ export async function GET(request: Request) {
       ];
     }
 
-    const publicSort = { publishedAt: -1, createdAt: -1, _id: -1 };
-    const adminSort = requestedStatus === 'draft' ? { updatedAt: -1, createdAt: -1, _id: -1 } : publicSort;
+    const publicSort: Record<string, 1 | -1> = { publishedAt: -1, createdAt: -1, _id: -1 };
+    const adminSort: Record<string, 1 | -1> = requestedStatus === 'draft' ? { updatedAt: -1, createdAt: -1, _id: -1 } : publicSort;
 
     const posts = await Post.find(query)
       .sort(adminSort)

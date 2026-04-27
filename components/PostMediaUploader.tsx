@@ -171,7 +171,7 @@ export default function PostMediaUploader({ media, onChange }: UploaderProps) {
       name: file.name,
       progress: 0,
       status: 'signing' as UploadStatus,
-      type: file.type.startsWith('image/') ? 'photo' : 'video',
+      type: (file.type.startsWith('image/') ? 'photo' : 'video') as 'photo' | 'video',
     }));
 
     setUploadQueue(queueItems);
@@ -211,7 +211,7 @@ export default function PostMediaUploader({ media, onChange }: UploaderProps) {
 
     const uploadedMedia = results
       .filter(
-        (result): result is PromiseFulfilledResult<{ index: number; item: IMediaItem }> =>
+        (result): result is PromiseFulfilledResult<any> =>
           result.status === 'fulfilled'
       )
       .map((result) => result.value)

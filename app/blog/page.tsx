@@ -86,7 +86,7 @@ export default async function BlogPage({
 
         {posts.length > 0 ? (
           <div className="posts-grid">
-            {posts.map((post) => (
+            {posts.map((post: any) => (
               <PostCard key={post._id.toString()} post={post} />
             ))}
           </div>
