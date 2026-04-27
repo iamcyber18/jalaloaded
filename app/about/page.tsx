@@ -59,17 +59,17 @@ export default async function AboutPage() {
              <div className="sec-title"><div className="sec-line"></div>The Crew</div>
         </div>
         <div className="posts-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-          {/* Jalal */}
+          {/* Victor Galadima */}
           <div className="s-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div className="hero-av" style={{ width: '48px', height: '48px', fontSize: '16px', flexShrink: 0 }}>JA</div>
+                <div className="hero-av" style={{ width: '48px', height: '48px', fontSize: '16px', flexShrink: 0 }}>VG</div>
                 <div>
-                   <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text-primary)' }}>Jalal</div>
-                   <div style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Founder & Lead Writer</div>
+                   <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text-primary)' }}>Victor Galadima <span style={{ fontSize: '14px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>(Cyber)</span></div>
+                   <div style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Founder & Lead Tech Writer</div>
                 </div>
              </div>
              <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
-                With a passion for media and entertainment, Jalal started this platform to bring the rawest and most authentic content to the masses.
+                A passionate Computer Science graduate from Federal University Wukari, Victor bridges the gap between technology and modern entertainment. With a sharp eye for digital trends and a deep love for the culture, he built this platform to bring the rawest, most authentic, and cutting-edge content directly to the masses.
              </div>
              <div className="socials" style={{ marginTop: 'auto' }}>
                 <div className="soc-btn">𝕏</div>
@@ -77,17 +77,17 @@ export default async function AboutPage() {
              </div>
           </div>
 
-          {/* Co-friend */}
+          {/* Daniel Rimamtatany */}
           <div className="s-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,107,0,0.15)', border: '1px solid rgba(255,107,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 700, color: 'var(--orange)', fontFamily: '"Syne", sans-serif', flexShrink: 0 }}>CO</div>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,107,0,0.15)', border: '1px solid rgba(255,107,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 700, color: 'var(--orange)', fontFamily: '"Syne", sans-serif', flexShrink: 0 }}>DR</div>
                 <div>
-                   <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text-primary)' }}>Co-friend</div>
-                   <div style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Co-founder & Writer</div>
+                   <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text-primary)' }}>Daniel Rimamtatany <span style={{ fontSize: '14px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>(David Frank)</span></div>
+                   <div style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Co-founder & Creative Editor</div>
                 </div>
              </div>
              <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
-                The creative mastermind behind the deep dives and editorial pieces. Brings the insights you didn't know you needed.
+                Also a Computer Science alumnus of Federal University Wukari, Daniel is the creative mastermind behind the platform's deep dives and editorial pieces. He combines his technical expertise with a unique storytelling ability, bringing readers the crucial insights and fresh perspectives they didn't know they needed.
              </div>
              <div className="socials" style={{ marginTop: 'auto' }}>
                 <div className="soc-btn">𝕏</div>
