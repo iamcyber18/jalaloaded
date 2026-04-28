@@ -67,11 +67,19 @@ async function getPost(slug: string) {
     status: 'published'
   }).sort({ views: -1 }).limit(3).select('title slug category').lean();
 
+  // Get categories with post counts
+  const categories = await Post.aggregate([
+    { $match: { status: 'published' } },
+    { $group: { _id: '$category', count: { $sum: 1 } } },
+    { $sort: { count: -1 } }
+  ]);
+
   return { 
     post: JSON.parse(JSON.stringify(post)), 
     related: JSON.parse(JSON.stringify(related)),
     adverts: JSON.parse(JSON.stringify(selectedAds)),
-    trending: JSON.parse(JSON.stringify(trending))
+    trending: JSON.parse(JSON.stringify(trending)),
+    categories: JSON.parse(JSON.stringify(categories))
   };
 }
 
@@ -83,7 +91,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
     notFound();
   }
 
-  const { post, related, adverts, trending } = data;
+  const { post, related, adverts, trending, categories } = data;
   const author = getAuthorDisplay(post.author);
   
   const ad1 = adverts && adverts.length > 0 ? adverts[0] : null;
@@ -296,6 +304,20 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
               )) : (
                 <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', padding: '8px 0' }}>No trending posts yet.</div>
               )}
+            </div>
+          </div>
+
+          <div className="s-card">
+            <div className="s-title"><div className="s-line"></div>Categories</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {categories && categories.map((cat: any) => (
+                <Link href={`/?category=${cat._id}`} key={cat._id} style={{ textDecoration: 'none' }}>
+                  <div className="trend-item" style={{ padding: '8px 0' }}>
+                    <div className="trend-num" style={{ fontSize: '10px' }}>{cat.count}</div>
+                    <div><div className="trend-text">{cat._id}</div></div>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
 
