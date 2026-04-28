@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function LikeButton({ songId, initialLikes }: { songId: string; initialLikes: number }) {
+export default function LikeButton({ songId, postId, initialLikes }: { songId?: string; postId?: string; initialLikes: number }) {
   const [likes, setLikes] = useState(initialLikes);
   const [liked, setLiked] = useState(false);
 
@@ -10,12 +10,22 @@ export default function LikeButton({ songId, initialLikes }: { songId: string; i
     if (liked) return;
     setLiked(true);
     setLikes(l => l + 1);
+    
+    const id = songId || postId;
+    if (!id) return;
+
     try {
-      await fetch(`/api/songs/${songId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'like' }),
-      });
+      if (songId) {
+        await fetch(`/api/songs/${songId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'like' }),
+        });
+      } else if (postId) {
+        await fetch(`/api/posts/${postId}/like`, {
+          method: 'POST',
+        });
+      }
     } catch {}
   };
 
