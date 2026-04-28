@@ -13,7 +13,7 @@ export default function AdminPage() {
     introduction: '',
     mainContent: '',
     conclusion: '',
-    author: 'jalal',
+    author: '',
     category: 'General',
     tags: '',
     allowComments: true,
@@ -24,7 +24,7 @@ export default function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tagPills, setTagPills] = useState<string[]>([]);
   const { session } = useAdminSession();
-  const activeAuthor = session?.role === 'sub-admin' ? (session.displayName || session.username) : form.author;
+  const activeAuthor = session?.displayName || session?.username || form.author || 'Admin';
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === ',' || e.key === 'Enter') {
@@ -96,7 +96,7 @@ export default function AdminPage() {
           introduction: '',
           mainContent: '',
           conclusion: '',
-          author: session?.role === 'sub-admin' ? (session.displayName || session.username) : 'jalal',
+          author: '',
           category: 'General',
           tags: '',
           allowComments: true,
