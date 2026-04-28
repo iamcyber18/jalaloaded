@@ -4,6 +4,7 @@ import Toast from '@/components/Toast'
 import './globals.css'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://jalaloaded.vercel.app'),
   title: 'Jalaloaded — Latest Posts, Music, Videos & Live Scores',
   description: 'Your go-to spot for the freshest updates, music drops, and street vibes from Jalal and Co-friend.',
   icons: {
