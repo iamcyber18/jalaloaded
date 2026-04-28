@@ -53,6 +53,7 @@ export default function AdminMusicPage() {
     artist: '',
     genre: 'Afrobeats',
     year: new Date().getFullYear(),
+    featured: false,
     mediaUrl: '',
     streamUrl: '',
     downloadUrl: '',
@@ -154,7 +155,7 @@ export default function AdminMusicPage() {
       });
       if (!res.ok) throw new Error('Failed');
       toast.success('Song published! 🎶');
-      setForm({ title: '', artist: '', genre: 'Afrobeats', year: new Date().getFullYear(), mediaUrl: '', streamUrl: '', downloadUrl: '', coverUrl: '', description: '' });
+      setForm({ title: '', artist: '', genre: 'Afrobeats', year: new Date().getFullYear(), featured: false, mediaUrl: '', streamUrl: '', downloadUrl: '', coverUrl: '', description: '' });
       setShowForm(false);
       fetchSongs();
     } catch { toast.error('Failed to publish song'); }
@@ -306,6 +307,30 @@ export default function AdminMusicPage() {
               <div style={{ marginBottom: '16px' }}>
                 <div style={S.label}>Description (optional)</div>
                 <textarea style={{ ...S.input, minHeight: '60px', resize: 'vertical' }} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="A short note about the track..." />
+              </div>
+
+              {/* Featured Toggle */}
+              <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  onClick={() => setForm({ ...form, featured: !form.featured })}
+                  style={{
+                    width: '40px', height: '22px', borderRadius: '11px', cursor: 'pointer',
+                    background: form.featured ? '#FF6B00' : 'rgba(255,255,255,0.1)',
+                    position: 'relative', transition: 'background 0.2s'
+                  }}
+                >
+                  <div style={{
+                    width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
+                    position: 'absolute', top: '2px', transition: 'left 0.2s',
+                    left: form.featured ? '20px' : '2px'
+                  }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: form.featured ? '#FF6B00' : 'rgba(255,255,255,0.5)' }}>
+                    ⭐ Featured Song
+                  </div>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Shows in the featured carousel on the music page</div>
+                </div>
               </div>
 
               {/* Submit */}

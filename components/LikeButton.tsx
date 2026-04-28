@@ -1,69 +1,41 @@
 'use client';
 
 import { useState } from 'react';
-import { formatNumber } from '@/lib/utils';
 
-export default function LikeButton({ postId, initialLikes }: { postId: string; initialLikes: number }) {
+export default function LikeButton({ songId, initialLikes }: { songId: string; initialLikes: number }) {
   const [likes, setLikes] = useState(initialLikes);
   const [liked, setLiked] = useState(false);
-  const [animating, setAnimating] = useState(false);
 
   const handleLike = async () => {
-    if (liked) return; // prevent multiple likes per session
-
-    setAnimating(true);
+    if (liked) return;
     setLiked(true);
-    setLikes(prev => prev + 1);
-
+    setLikes(l => l + 1);
     try {
-      const res = await fetch(`/api/posts/${postId}/like`, { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        setLikes(data.likes);
-      }
-    } catch (error) {
-      // Revert on error
-      setLiked(false);
-      setLikes(prev => prev - 1);
-    }
-
-    setTimeout(() => setAnimating(false), 600);
+      await fetch(`/api/songs/${songId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'like' }),
+      });
+    } catch {}
   };
 
   return (
     <button
-      className={`share-btn ${liked ? 'liked' : ''}`}
       onClick={handleLike}
-      style={{ position: 'relative', overflow: 'hidden' }}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: '8px',
+        padding: '11px 22px', borderRadius: '10px',
+        background: liked ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.04)',
+        border: liked ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(255,255,255,0.08)',
+        color: liked ? '#ef4444' : 'rgba(255,255,255,0.6)',
+        fontSize: '12px', fontWeight: 600, cursor: liked ? 'default' : 'pointer',
+        fontFamily: '"DM Sans", sans-serif', transition: 'all 0.2s'
+      }}
     >
-      <svg
-        width="13"
-        height="13"
-        viewBox="0 0 24 24"
-        fill={liked ? '#FF6B00' : 'none'}
-        stroke={liked ? '#FF6B00' : 'currentColor'}
-        strokeWidth="2"
-        style={{
-          transition: 'all 0.3s ease',
-          transform: animating ? 'scale(1.3)' : 'scale(1)',
-        }}
-      >
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? '#ef4444' : 'none'} stroke={liked ? '#ef4444' : 'currentColor'} strokeWidth="2">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
       </svg>
-      <span>{formatNumber(likes)}</span>
-      {animating && (
-        <span style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          fontSize: '18px',
-          animation: 'likeFloat 0.6s ease-out forwards',
-          pointerEvents: 'none',
-        }}>
-          ❤️
-        </span>
-      )}
+      {likes}
     </button>
   );
 }
