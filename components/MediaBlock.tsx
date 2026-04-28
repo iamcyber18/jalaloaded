@@ -22,19 +22,18 @@ export default function MediaBlock({ mediaItems }: { mediaItems: IMediaItem[] })
   // Dynamic grid style based on photo count
   const getGridStyle = (count: number): React.CSSProperties => {
     if (count === 1) {
-      return { display: 'grid', gridTemplateColumns: '1fr', gridTemplateRows: '340px', gap: '6px' };
+      return { display: 'grid', gridTemplateColumns: '1fr', gridTemplateRows: '300px', gap: '6px' };
     }
     if (count === 2) {
-      return { display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '260px', gap: '6px' };
+      return { display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '240px', gap: '6px' };
     }
     if (count === 3) {
-      return { display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '180px 180px', gap: '6px' };
+      return { display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '160px 160px', gap: '6px' };
     }
     if (count === 4) {
-      return { display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '180px 180px', gap: '6px' };
+      return { display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '160px 160px', gap: '6px' };
     }
-    // 5+ photos
-    return { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: '160px 160px', gap: '6px' };
+    return { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: '140px 140px', gap: '6px' };
   };
 
   // For 3 photos, first photo spans 2 rows
@@ -97,11 +96,11 @@ export default function MediaBlock({ mediaItems }: { mediaItems: IMediaItem[] })
               ) : null;
             } else {
               return (
-                <div key={idx} style={{ position: 'relative', width: '100%', aspectRatio: '16/9', background: '#000', borderRadius: '8px', overflow: 'hidden' }}>
+                <div key={idx} style={{ position: 'relative', width: '100%', maxHeight: '400px', background: '#000', borderRadius: '8px', overflow: 'hidden' }}>
                   <video 
                     src={video.url} 
                     controls 
-                    style={{ width: '100%', height: '100%' }}
+                    style={{ width: '100%', maxHeight: '400px', objectFit: 'contain' }}
                     poster={video.thumbnailUrl}
                   >
                     Your browser does not support the video tag.
