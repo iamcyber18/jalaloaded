@@ -151,6 +151,25 @@ export default function AdminPage() {
 
             <div className="section-gap"></div>
 
+            <PostMediaUploader media={media} onChange={setMedia} />
+
+            {/* IMAGE PLACEMENT GUIDE */}
+            {media.filter(m => m.type === 'photo').length > 0 && (
+              <div style={{ background: 'rgba(255,107,0,0.06)', border: '1px solid rgba(255,107,0,0.15)', borderRadius: '12px', padding: '14px 16px', marginTop: '16px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#FF6B00', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>📸 Image Placement Guide</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', lineHeight: '1.8' }}>
+                  {media.filter(m => m.type === 'photo').map((_, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 700, color: '#FF6B00' }}>Image {i + 1}:</span>
+                      <span>{i === 0 ? '📌 Cover image (top of article)' : i === 1 ? '📍 Between Introduction & Main Content' : i === 2 ? '📍 Between Main Content & Conclusion' : '📍 After article'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="section-gap"></div>
+
             {/* INTRODUCTION */}
             <div className="form-card">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
@@ -168,15 +187,15 @@ export default function AdminPage() {
                 style={{ minHeight: '100px' }}
               />
               <div className="char-count">{form.introduction.length} chars</div>
-              {media.filter(m => m.type === 'photo').length > 1 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', alignSelf: 'center' }}>Insert image:</span>
-                  {media.filter(m => m.type === 'photo').slice(1).map((_, i) => (
-                    <button key={i} type="button" onClick={() => setForm({ ...form, introduction: form.introduction + `[image:${i + 2}]` })} style={{ padding: '3px 10px', borderRadius: '6px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.2)', color: '#FF6B00', fontSize: '10px', fontWeight: 700, cursor: 'pointer', fontFamily: '"DM Sans", sans-serif' }}>📷 Image {i + 2}</button>
-                  ))}
-                </div>
-              )}
             </div>
+
+            {/* IMAGE 2 INDICATOR */}
+            {media.filter(m => m.type === 'photo').length >= 2 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', margin: '8px 0', background: 'rgba(255,107,0,0.05)', border: '1px dashed rgba(255,107,0,0.2)', borderRadius: '8px' }}>
+                <span style={{ fontSize: '16px' }}>🖼️</span>
+                <span style={{ fontSize: '10px', color: '#FF6B00', fontWeight: 600 }}>Image 2 will appear here</span>
+              </div>
+            )}
 
             <div className="section-gap"></div>
 
@@ -197,15 +216,15 @@ export default function AdminPage() {
                 style={{ minHeight: '200px' }}
               />
               <div className="char-count">{form.mainContent.length} chars</div>
-              {media.filter(m => m.type === 'photo').length > 1 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', alignSelf: 'center' }}>Insert image:</span>
-                  {media.filter(m => m.type === 'photo').slice(1).map((_, i) => (
-                    <button key={i} type="button" onClick={() => setForm({ ...form, mainContent: form.mainContent + `[image:${i + 2}]` })} style={{ padding: '3px 10px', borderRadius: '6px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.2)', color: '#FF6B00', fontSize: '10px', fontWeight: 700, cursor: 'pointer', fontFamily: '"DM Sans", sans-serif' }}>📷 Image {i + 2}</button>
-                  ))}
-                </div>
-              )}
             </div>
+
+            {/* IMAGE 3 INDICATOR */}
+            {media.filter(m => m.type === 'photo').length >= 3 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', margin: '8px 0', background: 'rgba(255,107,0,0.05)', border: '1px dashed rgba(255,107,0,0.2)', borderRadius: '8px' }}>
+                <span style={{ fontSize: '16px' }}>🖼️</span>
+                <span style={{ fontSize: '10px', color: '#FF6B00', fontWeight: 600 }}>Image 3 will appear here</span>
+              </div>
+            )}
 
             <div className="section-gap"></div>
 
@@ -226,19 +245,7 @@ export default function AdminPage() {
                 style={{ minHeight: '80px' }}
               />
               <div className="char-count">{form.conclusion.length} chars</div>
-              {media.filter(m => m.type === 'photo').length > 1 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', alignSelf: 'center' }}>Insert image:</span>
-                  {media.filter(m => m.type === 'photo').slice(1).map((_, i) => (
-                    <button key={i} type="button" onClick={() => setForm({ ...form, conclusion: form.conclusion + `[image:${i + 2}]` })} style={{ padding: '3px 10px', borderRadius: '6px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.2)', color: '#FF6B00', fontSize: '10px', fontWeight: 700, cursor: 'pointer', fontFamily: '"DM Sans", sans-serif' }}>📷 Image {i + 2}</button>
-                  ))}
-                </div>
-              )}
             </div>
-
-            <div className="section-gap"></div>
-
-            <PostMediaUploader media={media} onChange={setMedia} />
           </div>
 
           {/* RIGHT: SIDEBAR PANELS */}

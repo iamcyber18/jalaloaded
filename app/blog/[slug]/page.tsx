@@ -2,7 +2,6 @@ import dbConnect from '@/lib/mongodb';
 import Post from '@/models/Post';
 import Advert from '@/models/Advert';
 import MediaBlock from '@/components/MediaBlock';
-import InlineArticleBody from '@/components/InlineArticleBody';
 import CommentSection from '@/components/CommentSection';
 import LikeButton from '@/components/LikeButton';
 import ShareButton from '@/components/ShareButton';
@@ -135,63 +134,69 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
             {/* MEDIA BLOCK */}
             <MediaBlock mediaItems={post.media || []} />
 
-            {/* BODY WITH INLINE IMAGES & AD BANNERS */}
+            {/* ARTICLE BODY WITH IMAGES BETWEEN SECTIONS */}
             <div className="article-body">
               {(() => {
                 const content = post.body || '';
-                const mediaItems = post.media || [];
-                // Split at the conclusion divider '---'
-                const parts = content.split('\n---\n');
+                const photos = (post.media || []).filter((m: any) => m.type === 'photo').sort((a: any, b: any) => a.order - b.order);
                 
-                if (parts.length > 1) {
+                // Split body into sections: intro / main / conclusion using '---' divider
+                const sections = content.split('\n---\n');
+                const mdProps = { remarkPlugins: [remarkGfm], components: { blockquote: ({children}: any) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}: any) => <p>{children}</p> } };
+                
+                const inlineImgStyle = { width: '100%', maxHeight: '380px', objectFit: 'cover' as const, display: 'block', borderRadius: '10px' };
+                const imgWrap = { margin: '24px 0', borderRadius: '10px', overflow: 'hidden', background: '#000' };
+
+                if (sections.length >= 3) {
+                  // 3+ sections: intro, main, conclusion
                   return (
                     <>
-                      <InlineArticleBody content={parts[0]} mediaItems={mediaItems} />
-                      {ad1 && (
-                        <div style={{ margin: '32px 0' }}>
-                          <AdBanner ad={ad1} />
-                        </div>
-                      )}
-                      <InlineArticleBody content={parts.slice(1).join('\n---\n')} mediaItems={mediaItems} />
-                      {ad2 && (
-                        <div style={{ margin: '32px 0' }}>
-                          <AdBanner ad={ad2} />
-                        </div>
-                      )}
+                      <ReactMarkdown {...mdProps}>{sections[0]}</ReactMarkdown>
+                      {photos[1] && <div style={imgWrap}><img src={photos[1].url} alt="Article image" style={inlineImgStyle} /></div>}
+                      {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
+                      <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
+                      {photos[2] && <div style={imgWrap}><img src={photos[2].url} alt="Article image" style={inlineImgStyle} /></div>}
+                      {ad2 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad2} /></div>}
+                      <ReactMarkdown {...mdProps}>{sections.slice(2).join('\n---\n')}</ReactMarkdown>
+                      {photos.slice(3).map((p: any, i: number) => <div key={i} style={imgWrap}><img src={p.url} alt="Article image" style={inlineImgStyle} /></div>)}
                     </>
                   );
                 }
 
-                // Fallback: split by double newline and insert ad near middle
+                if (sections.length === 2) {
+                  return (
+                    <>
+                      <ReactMarkdown {...mdProps}>{sections[0]}</ReactMarkdown>
+                      {photos[1] && <div style={imgWrap}><img src={photos[1].url} alt="Article image" style={inlineImgStyle} /></div>}
+                      {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
+                      <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
+                      {photos.slice(2).map((p: any, i: number) => <div key={i} style={imgWrap}><img src={p.url} alt="Article image" style={inlineImgStyle} /></div>)}
+                      {ad2 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad2} /></div>}
+                    </>
+                  );
+                }
+
+                // Single section: split by double newline and insert image in middle
                 const blocks = content.split('\n\n');
                 if (blocks.length > 3) {
                   const mid = Math.floor(blocks.length / 2);
                   return (
                     <>
-                      <InlineArticleBody content={blocks.slice(0, mid).join('\n\n')} mediaItems={mediaItems} />
-                      {ad1 && (
-                        <div style={{ margin: '32px 0' }}>
-                          <AdBanner ad={ad1} />
-                        </div>
-                      )}
-                      <InlineArticleBody content={blocks.slice(mid).join('\n\n')} mediaItems={mediaItems} />
-                      {ad2 && (
-                        <div style={{ margin: '32px 0' }}>
-                          <AdBanner ad={ad2} />
-                        </div>
-                      )}
+                      <ReactMarkdown {...mdProps}>{blocks.slice(0, mid).join('\n\n')}</ReactMarkdown>
+                      {photos[1] && <div style={imgWrap}><img src={photos[1].url} alt="Article image" style={inlineImgStyle} /></div>}
+                      {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
+                      <ReactMarkdown {...mdProps}>{blocks.slice(mid).join('\n\n')}</ReactMarkdown>
+                      {photos.slice(2).map((p: any, i: number) => <div key={i} style={imgWrap}><img src={p.url} alt="Article image" style={inlineImgStyle} /></div>)}
+                      {ad2 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad2} /></div>}
                     </>
                   );
                 }
 
                 return (
                   <>
-                    <InlineArticleBody content={content} mediaItems={mediaItems} />
-                    {ad1 && (
-                      <div style={{ margin: '32px 0' }}>
-                        <AdBanner ad={ad1} />
-                      </div>
-                    )}
+                    <ReactMarkdown {...mdProps}>{content}</ReactMarkdown>
+                    {photos.slice(1).map((p: any, i: number) => <div key={i} style={imgWrap}><img src={p.url} alt="Article image" style={inlineImgStyle} /></div>)}
+                    {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
                   </>
                 );
               })()}
@@ -287,11 +292,11 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
             <div className="s-title"><div className="s-line"></div>Quick Stats</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <div style={{ background: 'var(--color-background-secondary)', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-                <div style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '22px', color: 'var(--orange)' }}>847</div>
+                <div style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '22px', color: 'var(--orange)' }}>{formatNumber(post.likes || 0)}</div>
                 <div style={{ fontSize: '9px', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Likes</div>
               </div>
               <div style={{ background: 'var(--color-background-secondary)', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-                <div style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '22px', color: 'var(--orange)' }} id="sb-ccount">14</div>
+                <div style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '22px', color: 'var(--orange)' }} id="sb-ccount">{formatNumber(post.comments?.length || 0)}</div>
                 <div style={{ fontSize: '9px', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Comments</div>
               </div>
               <div style={{ background: 'var(--color-background-secondary)', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
