@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!post) return { title: 'Post Not Found' };
 
   const title = post.title;
-  const description = post.excerpt || (typeof post.body === 'string' ? post.body.slice(0, 160).replace(/[#*_\n]/g, '') + '...' : 'Read on Jalaloaded');
+  const description = typeof post.body === 'string' ? post.body.slice(0, 160).replace(/[#*_\n]/g, '').trim() + '...' : 'Read on Jalaloaded';
   const image = post.media?.[0]?.url || null;
 
   return {
