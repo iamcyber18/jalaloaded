@@ -11,8 +11,15 @@ interface Props {
 }
 
 export default function TrackAction({ songId, action, href, children, style, title, download: isDownload }: Props) {
-  const handleClick = () => {
-    // Fire-and-forget tracking
+  const handleClick = (e: React.MouseEvent) => {
+    if (action === 'download' && isDownload) {
+      // Use the download API which embeds cover art + forces download
+      e.preventDefault();
+      window.open(`/api/songs/${songId}/download`, '_blank');
+      return;
+    }
+
+    // Fire-and-forget tracking for play/like
     fetch(`/api/songs/${songId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -23,13 +30,12 @@ export default function TrackAction({ songId, action, href, children, style, tit
   if (href) {
     return (
       <a
-        href={href}
+        href={action === 'download' && isDownload ? '#' : href}
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleClick}
         style={{ ...style, textDecoration: 'none' }}
         title={title}
-        {...(isDownload ? { download: '' } : {})}
       >
         {children}
       </a>
