@@ -40,6 +40,7 @@ export default function AdminSidebar() {
       {isSubAdmin && <NavLink href="/admin/dashboard" label="Dashboard" active={pathname === '/admin/dashboard'} />}
       <NavLink href="/admin" label="New Post" active={pathname === '/admin'} />
       <NavLink href="/admin/posts" label={postsLabel} active={pathname === '/admin/posts'} />
+      <NavLink href="/admin/music" label="Music" active={pathname === '/admin/music'} />
 
       <div className="nav-section">Manage</div>
       {session?.role === 'admin' && <NavLink href="/admin/newsletter" label="Newsletter" active={pathname === '/admin/newsletter'} />}

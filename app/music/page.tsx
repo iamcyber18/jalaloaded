@@ -55,18 +55,33 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
             <div className="hero-artist" id="hero-track-artist">{heroSong?.artist || 'Unknown Artist'} &bull; Jalaloaded</div>
             <div className="hero-tags">
               <span className="htag" id="hero-genre-tag">{heroSong?.genre || 'Afrobeats'}</span>
-              <span className="htag" id="hero-year-tag">{new Date(heroSong?.createdAt || Date.now()).getFullYear()}</span>
+              <span className="htag" id="hero-year-tag">{heroSong?.year || new Date(heroSong?.createdAt || Date.now()).getFullYear()}</span>
             </div>
           </div>
           <div className="hero-right">
-            <button className="dl-hero-btn" id="hero-dl-btn">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Download
-            </button>
-            <button className="share-hero-btn">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              Share Track
-            </button>
+            {heroSong?.downloadUrl || heroSong?.mediaUrl ? (
+              <a href={heroSong.downloadUrl || heroSong.mediaUrl} download target="_blank" rel="noopener noreferrer" className="dl-hero-btn" style={{ textDecoration: 'none' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download
+              </a>
+            ) : (
+              <button className="dl-hero-btn" id="hero-dl-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download
+              </button>
+            )}
+            {heroSong?.streamUrl && (
+              <a href={heroSong.streamUrl} target="_blank" rel="noopener noreferrer" className="share-hero-btn" style={{ textDecoration: 'none' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Stream Online
+              </a>
+            )}
+            {!heroSong?.streamUrl && (
+              <button className="share-hero-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Share Track
+              </button>
+            )}
             <div className="hero-stats">
               <div className="hstat"><div className="hstat-val" id="hero-plays">{formatNumber(heroSong?.plays || 0)}</div><div className="hstat-label">Plays</div></div>
               <div className="hstat"><div className="hstat-val" id="hero-dls">{formatNumber(heroSong?.downloads || 0)}</div><div className="hstat-label">Downloads</div></div>
@@ -185,9 +200,16 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                   <span className="track-genre" style={{ background: `${gc}22`, color: gc }}>{song.genre}</span>
                   <div className="track-dur">3:24</div>
                   <div className="track-actions">
-                    <button className="t-btn dl" title="Download">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    </button>
+                    {(song.downloadUrl || song.mediaUrl) && (
+                      <a href={song.downloadUrl || song.mediaUrl} download target="_blank" rel="noopener noreferrer" className="t-btn dl" title="Download" style={{ textDecoration: 'none' }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                      </a>
+                    )}
+                    {song.streamUrl && (
+                      <a href={song.streamUrl} target="_blank" rel="noopener noreferrer" className="t-btn" title="Stream" style={{ textDecoration: 'none', color: '#1DBE73' }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      </a>
+                    )}
                   </div>
                 </div>
               );

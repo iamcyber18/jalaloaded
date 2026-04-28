@@ -4,14 +4,16 @@ export interface ISong extends Document {
   title: string;
   artist: string;
   genre: 'Afrobeats' | 'Amapiano' | 'Highlife' | 'R&B' | 'Gospel' | 'Hip-hop' | 'Other';
+  year: number;
   mediaUrl: string;
+  streamUrl?: string;
+  downloadUrl?: string;
   coverUrl?: string;
   duration?: number;
   fileSize?: string;
   plays: number;
   downloads: number;
   likes: number;
-  author: 'jalal' | 'co-friend';
   description?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -26,14 +28,16 @@ const SongSchema = new Schema<ISong>(
       enum: ['Afrobeats', 'Amapiano', 'Highlife', 'R&B', 'Gospel', 'Hip-hop', 'Other'],
       default: 'Afrobeats',
     },
+    year: { type: Number, default: () => new Date().getFullYear() },
     mediaUrl: { type: String, required: true },
+    streamUrl: { type: String },
+    downloadUrl: { type: String },
     coverUrl: { type: String },
     duration: { type: Number },
     fileSize: { type: String },
     plays: { type: Number, default: 0 },
     downloads: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
-    author: { type: String, enum: ['jalal', 'co-friend'] },
     description: { type: String },
   },
   { timestamps: true }
