@@ -22,7 +22,23 @@ interface SongItem {
 }
 
 export default function AdminMusicPage() {
-  const { session } = useAdminSession();
+  const { session, loading: sessionLoading } = useAdminSession();
+
+  // Block sub-admins
+  if (!sessionLoading && session?.role === 'sub-admin') {
+    return (
+      <div className="jl">
+        <AdminSidebar />
+        <div className="main">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ fontSize: '32px' }}>🔒</div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>Access Denied</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)' }}>Only the main admin can manage music.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   const [songs, setSongs] = useState<SongItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
