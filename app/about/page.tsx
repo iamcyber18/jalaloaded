@@ -24,12 +24,12 @@ export default async function AboutPage() {
       <div className="page" style={{ gridTemplateColumns: '1fr', maxWidth: '800px', margin: '0 auto' }}>
         
         {/* HERO */}
-        <div className="hero" style={{ height: '300px', cursor: 'default' }}>
+        <div className="hero about-hero" style={{ cursor: 'default' }}>
           <div className="hero-img-bg"><div className="hero-pattern"></div></div>
           <div className="hero-overlay"></div>
           <div className="hero-content" style={{ textAlign: 'center', bottom: '20px' }}>
-            <div className="hero-title" style={{ fontSize: '36px', marginBottom: '16px' }}>WE ARE JALALOADED</div>
-            <p className="hero-date" style={{ fontSize: '14px', maxWidth: '600px', margin: '0 auto', lineHeight: '1.6' }}>
+            <div className="hero-title about-hero-title">WE ARE JALALOADED</div>
+            <p className="hero-date about-hero-desc">
               The number one platform for the latest gists, music drops, and exclusive media content from the streets to the world.
             </p>
           </div>
@@ -39,7 +39,7 @@ export default async function AboutPage() {
         <div className="sec-hdr" style={{ marginTop: '20px' }}>
              <div className="sec-title"><div className="sec-line"></div>Platform Impact</div>
         </div>
-        <div className="posts-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+        <div className="about-stats-grid">
             <div className="s-card" style={{ textAlign: 'center', padding: '24px' }}>
                <div style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '42px', color: '#FF6B00', lineHeight: 1 }}>{formatNumber(stats.posts)}</div>
                <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '8px' }}>Articles</div>
@@ -58,13 +58,13 @@ export default async function AboutPage() {
         <div className="sec-hdr" style={{ marginTop: '20px' }}>
              <div className="sec-title"><div className="sec-line"></div>The Crew</div>
         </div>
-        <div className="posts-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+        <div className="about-crew-grid">
           {/* Victor Galadima */}
           <div className="s-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div className="hero-av" style={{ width: '48px', height: '48px', fontSize: '16px', flexShrink: 0 }}>VG</div>
                 <div>
-                   <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text-primary)' }}>Victor Galadima <span style={{ fontSize: '14px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>(Cyber)</span></div>
+                   <div className="about-crew-name">Victor Galadima <span style={{ fontSize: '14px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>(Cyber)</span></div>
                    <div style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Founder, Developer & Lead Tech Writer</div>
                 </div>
              </div>
@@ -89,7 +89,7 @@ export default async function AboutPage() {
              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,107,0,0.15)', border: '1px solid rgba(255,107,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 700, color: 'var(--orange)', fontFamily: '"Syne", sans-serif', flexShrink: 0 }}>DR</div>
                 <div>
-                   <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 800, fontSize: '18px', color: 'var(--color-text-primary)' }}>Daniel Rimamtatany <span style={{ fontSize: '14px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>(David Frank)</span></div>
+                   <div className="about-crew-name">Daniel Rimamtatany <span style={{ fontSize: '14px', color: 'var(--color-text-tertiary)', fontWeight: 600 }}>(David Frank)</span></div>
                    <div style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Co-founder & Creative Editor</div>
                 </div>
              </div>

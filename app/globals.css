@@ -1136,6 +1136,16 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
 .ad-act-delete:hover { color: #ff4444; border-color: rgba(255,68,68,0.3); background: rgba(255,68,68,0.1); }
 
 /* =============================================
+   ABOUT PAGE
+   ============================================= */
+.about-hero { height: 300px; }
+.about-hero-title { font-size: 36px; margin-bottom: 16px; }
+.about-hero-desc { font-size: 14px; max-width: 600px; margin: 0 auto; line-height: 1.6; }
+.about-stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.about-crew-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.about-crew-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: var(--color-text-primary); }
+
+/* =============================================
    MOBILE RESPONSIVE — Full Site
    Breakpoints: 768px (tablet), 480px (phone)
    ============================================= */
@@ -1196,6 +1206,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
   .admin-sidebar { width: 180px; }
   .post-manager-grid { grid-template-columns: 1fr; }
   .post-editor-grid { grid-template-columns: 1fr; }
+
+  /* ABOUT PAGE */
+  .about-hero { height: 260px; }
+  .about-hero-title { font-size: 28px; }
+  .about-stats-grid { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .about-crew-grid { grid-template-columns: 1fr; }
+  .about-crew-name { font-size: 16px; }
 }
 
 /* --- PHONE (max 480px) --- */
@@ -1299,4 +1316,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
   /* FILTER CHIPS */
   .filter-row { gap: 6px; }
   .filter-chip { padding: 5px 10px; font-size: 10px; }
+
+  /* ABOUT PAGE */
+  .about-hero { height: 200px; }
+  .about-hero-title { font-size: 22px; margin-bottom: 10px; }
+  .about-hero-desc { font-size: 12px; padding: 0 10px; }
+  .about-stats-grid { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .about-stats-grid .s-card { padding: 16px !important; }
+  .about-crew-grid { grid-template-columns: 1fr; gap: 12px; }
+  .about-crew-name { font-size: 15px; }
 }
