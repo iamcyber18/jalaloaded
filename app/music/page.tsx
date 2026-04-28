@@ -195,7 +195,8 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                   </div>
                   <div className="track-info">
                     <div className="track-title">{song.title}</div>
-                    <div className="track-meta">{song.artist} &bull; {formatNumber(song.plays || 0)} plays</div>
+                    <div className="track-meta">{song.artist} &bull; {formatNumber(song.plays || 0)} plays{song.year ? ` • ${song.year}` : ''}</div>
+                    {song.description && <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', marginTop: '2px', lineHeight: 1.4, maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{song.description}</div>}
                   </div>
                   <span className="track-genre" style={{ background: `${gc}22`, color: gc }}>{song.genre}</span>
                   <div className="track-dur">3:24</div>
