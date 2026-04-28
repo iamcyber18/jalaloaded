@@ -59,6 +59,8 @@ export default function AdminMusicPage() {
     coverUrl: '',
     description: '',
   });
+  const [coverProgress, setCoverProgress] = useState(0);
+  const [audioProgress, setAudioProgress] = useState(0);
 
   const genres = ['Afrobeats', 'Amapiano', 'Highlife', 'R&B', 'Gospel', 'Hip-hop', 'Other'];
 
@@ -75,37 +77,62 @@ export default function AdminMusicPage() {
     setLoading(false);
   };
 
-  const uploadFile = async (file: File, resourceType: 'image' | 'video' | 'auto') => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('resourceType', resourceType);
-    const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    if (!res.ok) throw new Error('Upload failed');
-    return await res.json();
+  const uploadWithProgress = (file: File, fileType: string, onProgress: (p: number) => void): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', fileType);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/upload');
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          onProgress(pct);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try { resolve(JSON.parse(xhr.responseText)); }
+          catch { reject(new Error('Invalid response')); }
+        } else {
+          reject(new Error(`Upload failed: ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error('Network error'));
+      xhr.send(formData);
+    });
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingCover(true);
+    setCoverProgress(0);
     try {
-      const data = await uploadFile(file, 'image');
+      const data = await uploadWithProgress(file, 'image', setCoverProgress);
       setForm(f => ({ ...f, coverUrl: data.url }));
       toast.success('Cover uploaded!');
     } catch { toast.error('Cover upload failed'); }
     setUploadingCover(false);
+    setCoverProgress(0);
   };
 
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingAudio(true);
+    setAudioProgress(0);
     try {
-      const data = await uploadFile(file, 'auto');
+      const data = await uploadWithProgress(file, 'video', setAudioProgress);
       setForm(f => ({ ...f, mediaUrl: data.url, downloadUrl: data.url }));
       toast.success('Audio uploaded!');
     } catch { toast.error('Audio upload failed'); }
     setUploadingAudio(false);
+    setAudioProgress(0);
   };
 
   const handleSubmit = async () => {
@@ -178,23 +205,35 @@ export default function AdminMusicPage() {
                 <div style={S.label}>Cover Art</div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                   <div
-                    onClick={() => coverInputRef.current?.click()}
+                    onClick={() => !uploadingCover && coverInputRef.current?.click()}
                     style={{
-                      width: '100px', height: '100px', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer',
+                      width: '100px', height: '100px', borderRadius: '12px', overflow: 'hidden', cursor: uploadingCover ? 'default' : 'pointer',
                       background: form.coverUrl ? `url(${form.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.15), rgba(255,107,0,0.05))',
-                      border: '2px dashed rgba(255,107,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      border: '2px dashed rgba(255,107,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      position: 'relative'
                     }}
                   >
-                    {!form.coverUrl && (
-                      <div style={{ textAlign: 'center', color: '#FF6B00', fontSize: '10px' }}>
-                        {uploadingCover ? '...' : '+ Cover'}
+                    {uploadingCover && (
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#FF6B00' }}>{coverProgress}%</div>
+                        <div style={{ width: '60px', height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                          <div style={{ width: `${coverProgress}%`, height: '100%', background: '#FF6B00', borderRadius: '2px', transition: 'width 0.3s' }} />
+                        </div>
                       </div>
+                    )}
+                    {!form.coverUrl && !uploadingCover && (
+                      <div style={{ textAlign: 'center', color: '#FF6B00', fontSize: '10px' }}>+ Cover</div>
                     )}
                   </div>
                   <input ref={coverInputRef} type="file" accept="image/*" hidden onChange={handleCoverUpload} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Click to upload cover art. JPG/PNG recommended. Square images work best.</div>
+                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+                      {uploadingCover ? `Uploading cover... ${coverProgress}%` : form.coverUrl ? '✅ Cover uploaded — click image to replace' : 'Click to upload cover art. JPG/PNG recommended.'}
+                    </div>
                   </div>
+                  {form.coverUrl && !uploadingCover && (
+                    <button onClick={() => setForm({ ...form, coverUrl: '' })} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                  )}
                 </div>
               </div>
 
@@ -230,12 +269,22 @@ export default function AdminMusicPage() {
                 {form.mediaUrl ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(29,190,115,0.08)', border: '1px solid rgba(29,190,115,0.15)' }}>
                     <span style={{ fontSize: '16px' }}>✅</span>
-                    <span style={{ fontSize: '11px', color: '#1DBE73', fontWeight: 600, flex: 1 }}>Audio uploaded</span>
+                    <span style={{ fontSize: '11px', color: '#1DBE73', fontWeight: 600, flex: 1 }}>Audio uploaded successfully</span>
                     <button onClick={() => setForm({ ...form, mediaUrl: '', downloadUrl: '' })} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                  </div>
+                ) : uploadingAudio ? (
+                  <div style={{ padding: '14px 16px', borderRadius: '10px', border: '1px solid rgba(255,107,0,0.15)', background: 'rgba(255,107,0,0.03)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 600 }}>⏳ Uploading audio...</span>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#FF6B00' }}>{audioProgress}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                      <div style={{ width: `${audioProgress}%`, height: '100%', background: 'linear-gradient(90deg, #FF6B00, #ff8533)', borderRadius: '2px', transition: 'width 0.3s' }} />
+                    </div>
                   </div>
                 ) : (
                   <div onClick={() => audioInputRef.current?.click()} style={S.uploadBtn}>
-                    {uploadingAudio ? '⏳ Uploading audio...' : '🎧 Click to upload audio file (MP3, WAV, OGG)'}
+                    🎧 Click to upload audio file (MP3, WAV, OGG)
                   </div>
                 )}
                 <input ref={audioInputRef} type="file" accept="audio/*" hidden onChange={handleAudioUpload} />
