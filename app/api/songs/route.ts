@@ -28,6 +28,13 @@ export async function POST(request: Request) {
   try {
     await dbConnect();
     const body = await request.json();
+
+    // Auto-generate slug
+    if (!body.slug && body.artist && body.title) {
+      const base = `${body.artist}-${body.title}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      body.slug = `${base}-${Date.now().toString(36)}`;
+    }
+
     const newSong = new Song(body);
     await newSong.save();
     return NextResponse.json(newSong, { status: 201 });

@@ -47,15 +47,6 @@ const SongSchema = new Schema<ISong>(
   { timestamps: true }
 );
 
-// Auto-generate slug from title + artist before saving
-SongSchema.pre('save', function (next) {
-  if (!this.slug || this.isModified('title') || this.isModified('artist')) {
-    const base = `${this.artist}-${this.title}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    this.slug = `${base}-${Date.now().toString(36)}`;
-  }
-  next();
-});
-
 const Song: Model<ISong> = mongoose.models.Song || mongoose.model<ISong>('Song', SongSchema);
 
 export default Song;
