@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import AdminSidebar from '@/components/AdminSidebar';
 import PostMediaUploader from '@/components/PostMediaUploader';
 import { useAdminSession } from '@/components/useAdminSession';
@@ -23,6 +25,7 @@ export default function AdminPage() {
   const [media, setMedia] = useState<IMediaItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tagPills, setTagPills] = useState<string[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
   const { session } = useAdminSession();
   const activeAuthor = session?.displayName || session?.username || form.author || 'Admin';
 
@@ -126,6 +129,7 @@ export default function AdminPage() {
         <div className="topbar">
           <div className="page-title">Create New Post</div>
           <div className="topbar-actions">
+            <button className="btn-draft" onClick={() => setShowPreview(true)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>👁️ Preview</button>
             <button className="btn-draft" onClick={() => handleSubmit('draft')}>Save Draft</button>
             <button className="btn-publish" onClick={() => handleSubmit('published')} disabled={isSubmitting}>
               {isSubmitting ? 'Publishing...' : 'Publish Post'}
@@ -323,6 +327,110 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+      {/* POST PREVIEW MODAL */}
+      {showPreview && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)', overflow: 'auto' }} onClick={() => setShowPreview(false)}>
+          <div style={{ maxWidth: '700px', margin: '40px auto', background: 'var(--color-background)', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }} onClick={e => e.stopPropagation()}>
+            {/* Preview Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,107,0,0.05)' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#FF6B00' }}>👁️ Post Preview</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => { setShowPreview(false); handleSubmit('draft'); }} style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#fff', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>Save Draft</button>
+                <button onClick={() => { setShowPreview(false); handleSubmit('published'); }} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', background: '#FF6B00', color: '#fff', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>Publish</button>
+                <button onClick={() => setShowPreview(false)} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#fff', fontSize: '14px', cursor: 'pointer' }}>✕</button>
+              </div>
+            </div>
+
+            {/* Cover Photos */}
+            {(() => {
+              const coverPhotos = media.filter(m => m.type === 'photo' && (!m.position || m.position === 'cover'));
+              if (coverPhotos.length === 0) return null;
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: coverPhotos.length === 1 ? '1fr' : '1fr 1fr', gridTemplateRows: coverPhotos.length <= 2 ? '280px' : '160px 160px', gap: '4px' }}>
+                  {coverPhotos.map((p, i) => (
+                    <div key={i} style={coverPhotos.length === 3 && i === 0 ? { gridRow: 'span 2', overflow: 'hidden' } : { overflow: 'hidden' }}>
+                      <img src={p.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
+            {/* Article Content */}
+            <div style={{ padding: '24px 20px' }}>
+              {/* Category & Meta */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ padding: '3px 10px', borderRadius: '4px', background: 'rgba(255,107,0,0.1)', color: '#FF6B00', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{form.category}</span>
+                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Just now</span>
+              </div>
+
+              {/* Title */}
+              <h1 style={{ fontFamily: '"Syne", sans-serif', fontSize: '24px', fontWeight: 800, color: '#fff', lineHeight: 1.3, marginBottom: '14px' }}>
+                {form.title || 'Untitled Post'}
+              </h1>
+
+              {/* Author */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #FF6B00, #ff9248)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: '#fff' }}>
+                  {(activeAuthor || 'A').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff' }}>{activeAuthor}</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>Writer • Jalaloaded</div>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="article-body">
+                {form.introduction && (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.introduction}</ReactMarkdown>
+                )}
+
+                {/* After-intro images */}
+                {media.filter(m => m.type === 'photo' && m.position === 'after-intro').map((p, i) => (
+                  <div key={`ai-${i}`} style={{ margin: '20px 0', borderRadius: '10px', overflow: 'hidden', background: '#000' }}>
+                    <img src={p.url} alt="" style={{ width: '100%', maxHeight: '350px', objectFit: 'cover', display: 'block' }} />
+                  </div>
+                ))}
+
+                {form.mainContent && (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.mainContent}</ReactMarkdown>
+                )}
+
+                {/* After-main images */}
+                {media.filter(m => m.type === 'photo' && m.position === 'after-main').map((p, i) => (
+                  <div key={`am-${i}`} style={{ margin: '20px 0', borderRadius: '10px', overflow: 'hidden', background: '#000' }}>
+                    <img src={p.url} alt="" style={{ width: '100%', maxHeight: '350px', objectFit: 'cover', display: 'block' }} />
+                  </div>
+                ))}
+
+                {form.conclusion && (
+                  <>
+                    <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.06)', margin: '20px 0' }} />
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.conclusion}</ReactMarkdown>
+                  </>
+                )}
+
+                {/* After-conclusion images */}
+                {media.filter(m => m.type === 'photo' && m.position === 'after-conclusion').map((p, i) => (
+                  <div key={`ac-${i}`} style={{ margin: '20px 0', borderRadius: '10px', overflow: 'hidden', background: '#000' }}>
+                    <img src={p.url} alt="" style={{ width: '100%', maxHeight: '350px', objectFit: 'cover', display: 'block' }} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Tags */}
+              {tagPills.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  {tagPills.map(tag => (
+                    <span key={tag} style={{ padding: '4px 10px', borderRadius: '4px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
