@@ -52,19 +52,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to connect to email server. Please check your EMAIL_USER and App Password.' }, { status: 500 });
     }
 
-    // Send emails
-    // We send using BCC to protect user privacy
-    const info = await transporter.sendMail({
-      from: `"Jalaloaded" <${process.env.EMAIL_USER}>`,
-      bcc: emailList,
-      subject: subject,
-      html: html,
-    });
+    // Send individual emails to each subscriber for reliable delivery
+    // Gmail silently drops BCC recipients beyond a certain limit
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const recipientEmail of emailList) {
+      try {
+        await transporter.sendMail({
+          from: `"Jalaloaded" <${process.env.EMAIL_USER}>`,
+          to: recipientEmail,
+          subject: subject,
+          html: html,
+        });
+        successCount++;
+      } catch (sendError) {
+        console.error(`Failed to send to ${recipientEmail}:`, sendError);
+        failCount++;
+      }
+    }
 
     return NextResponse.json({ 
-      message: 'Broadcast sent successfully', 
-      recipients: emailList.length,
-      messageId: info.messageId
+      message: `Broadcast complete. ${successCount} sent, ${failCount} failed.`, 
+      recipients: successCount,
+      failed: failCount
     }, { status: 200 });
 
   } catch (error) {
