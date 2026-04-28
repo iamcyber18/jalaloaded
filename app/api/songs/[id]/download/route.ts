@@ -60,7 +60,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
           const taggedBuffer = NodeID3.update(tags, audioBuffer);
           if (taggedBuffer) {
-            audioBuffer = taggedBuffer as Buffer;
+            audioBuffer = Buffer.from(taggedBuffer);
           }
         }
       } catch (e) {
@@ -77,7 +77,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         };
         const taggedBuffer = NodeID3.update(tags, audioBuffer);
         if (taggedBuffer) {
-          audioBuffer = taggedBuffer as Buffer;
+          audioBuffer = Buffer.from(taggedBuffer);
         }
       } catch (e) {
         console.error('Tag embed error:', e);
