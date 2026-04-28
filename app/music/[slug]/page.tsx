@@ -6,8 +6,39 @@ import TrackAction from '@/components/TrackAction';
 import ShareButton from '@/components/ShareButton';
 import LikeButton from '@/components/LikeButton';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  await dbConnect();
+  let song = await Song.findOne({ slug }).lean();
+  if (!song) {
+    try { song = await Song.findById(slug).lean(); } catch {}
+  }
+  if (!song) return { title: 'Song Not Found' };
+
+  const title = `${song.artist} - ${song.title}`;
+  const description = song.description || `Listen to ${song.title} by ${song.artist} on Jalaloaded. ${song.genre} • ${song.year}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'music.song',
+      ...(song.coverUrl ? { images: [{ url: song.coverUrl, width: 500, height: 500, alt: title }] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(song.coverUrl ? { images: [song.coverUrl] } : {}),
+    },
+  };
+}
 
 async function getSong(slug: string) {
   await dbConnect();
