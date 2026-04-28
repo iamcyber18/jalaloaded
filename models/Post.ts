@@ -8,6 +8,7 @@ export interface IMediaItem {
   caption?: string;
   duration?: number;
   order: number;
+  position?: 'cover' | 'after-intro' | 'after-main' | 'after-conclusion';
 }
 
 export interface IPost extends Document {
@@ -42,6 +43,7 @@ const MediaItemSchema = new Schema<IMediaItem>({
   caption: { type: String },
   duration: { type: Number },
   order: { type: Number, required: true },
+  position: { type: String, enum: ['cover', 'after-intro', 'after-main', 'after-conclusion'], default: 'cover' },
 });
 
 const PostSchema = new Schema<IPost>(

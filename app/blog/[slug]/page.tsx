@@ -138,27 +138,35 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
             <div className="article-body">
               {(() => {
                 const content = post.body || '';
-                const photos = (post.media || []).filter((m: any) => m.type === 'photo').sort((a: any, b: any) => a.order - b.order);
+                const allPhotos = (post.media || []).filter((m: any) => m.type === 'photo');
                 
-                // Split body into sections: intro / main / conclusion using '---' divider
-                const sections = content.split('\n---\n');
+                // Group photos by position
+                const afterIntro = allPhotos.filter((p: any) => p.position === 'after-intro');
+                const afterMain = allPhotos.filter((p: any) => p.position === 'after-main');
+                const afterConclusion = allPhotos.filter((p: any) => p.position === 'after-conclusion');
+                
                 const mdProps = { remarkPlugins: [remarkGfm], components: { blockquote: ({children}: any) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}: any) => <p>{children}</p> } };
-                
                 const inlineImgStyle = { width: '100%', maxHeight: '380px', objectFit: 'cover' as const, display: 'block', borderRadius: '10px' };
                 const imgWrap = { margin: '24px 0', borderRadius: '10px', overflow: 'hidden', background: '#000' };
+                
+                const renderPhotos = (photos: any[]) => photos.map((p: any, i: number) => (
+                  <div key={i} style={imgWrap}><img src={p.url} alt="Article image" style={inlineImgStyle} /></div>
+                ));
 
+                // Split body into sections using '---' divider
+                const sections = content.split('\n---\n');
+                
                 if (sections.length >= 3) {
-                  // 3+ sections: intro, main, conclusion
                   return (
                     <>
                       <ReactMarkdown {...mdProps}>{sections[0]}</ReactMarkdown>
-                      {photos[1] && <div style={imgWrap}><img src={photos[1].url} alt="Article image" style={inlineImgStyle} /></div>}
+                      {renderPhotos(afterIntro)}
                       {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
                       <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
-                      {photos[2] && <div style={imgWrap}><img src={photos[2].url} alt="Article image" style={inlineImgStyle} /></div>}
+                      {renderPhotos(afterMain)}
                       {ad2 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad2} /></div>}
                       <ReactMarkdown {...mdProps}>{sections.slice(2).join('\n---\n')}</ReactMarkdown>
-                      {photos.slice(3).map((p: any, i: number) => <div key={i} style={imgWrap}><img src={p.url} alt="Article image" style={inlineImgStyle} /></div>)}
+                      {renderPhotos(afterConclusion)}
                     </>
                   );
                 }
@@ -167,26 +175,28 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                   return (
                     <>
                       <ReactMarkdown {...mdProps}>{sections[0]}</ReactMarkdown>
-                      {photos[1] && <div style={imgWrap}><img src={photos[1].url} alt="Article image" style={inlineImgStyle} /></div>}
+                      {renderPhotos(afterIntro)}
                       {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
                       <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
-                      {photos.slice(2).map((p: any, i: number) => <div key={i} style={imgWrap}><img src={p.url} alt="Article image" style={inlineImgStyle} /></div>)}
+                      {renderPhotos(afterMain)}
+                      {renderPhotos(afterConclusion)}
                       {ad2 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad2} /></div>}
                     </>
                   );
                 }
 
-                // Single section: split by double newline and insert image in middle
+                // Single section fallback
                 const blocks = content.split('\n\n');
                 if (blocks.length > 3) {
                   const mid = Math.floor(blocks.length / 2);
                   return (
                     <>
                       <ReactMarkdown {...mdProps}>{blocks.slice(0, mid).join('\n\n')}</ReactMarkdown>
-                      {photos[1] && <div style={imgWrap}><img src={photos[1].url} alt="Article image" style={inlineImgStyle} /></div>}
+                      {renderPhotos(afterIntro)}
                       {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
                       <ReactMarkdown {...mdProps}>{blocks.slice(mid).join('\n\n')}</ReactMarkdown>
-                      {photos.slice(2).map((p: any, i: number) => <div key={i} style={imgWrap}><img src={p.url} alt="Article image" style={inlineImgStyle} /></div>)}
+                      {renderPhotos(afterMain)}
+                      {renderPhotos(afterConclusion)}
                       {ad2 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad2} /></div>}
                     </>
                   );
@@ -195,7 +205,9 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                 return (
                   <>
                     <ReactMarkdown {...mdProps}>{content}</ReactMarkdown>
-                    {photos.slice(1).map((p: any, i: number) => <div key={i} style={imgWrap}><img src={p.url} alt="Article image" style={inlineImgStyle} /></div>)}
+                    {renderPhotos(afterIntro)}
+                    {renderPhotos(afterMain)}
+                    {renderPhotos(afterConclusion)}
                     {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
                   </>
                 );

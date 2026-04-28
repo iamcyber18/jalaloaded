@@ -125,7 +125,7 @@ export default function PostMediaUploader({ media, onChange }: UploaderProps) {
             updateQueueItem(queueId, { progress: Math.max(progress, 5), status: 'uploading' });
           });
           updateQueueItem(queueId, { progress: 100, status: 'done' });
-          return { index, item: { duration: uploaded.duration, order: media.length + index, source: 'upload' as const, thumbnailUrl: uploaded.thumbnailUrl, type: resourceType === 'image' ? 'photo' : 'video', url: uploaded.url } };
+          return { index, item: { duration: uploaded.duration, order: media.length + index, source: 'upload' as const, thumbnailUrl: uploaded.thumbnailUrl, type: resourceType === 'image' ? 'photo' : 'video', url: uploaded.url, position: 'cover' as const } };
         } catch (error) { updateQueueItem(queueId, { status: 'error' }); throw error; }
       })
     );
@@ -155,7 +155,7 @@ export default function PostMediaUploader({ media, onChange }: UploaderProps) {
     const match = ytUrl.match(regExp);
     const ytId = match && match[2].length === 11 ? match[2] : null;
     if (!ytId) { toast.error('Enter a valid YouTube URL.'); return; }
-    onChange([...media, { order: media.length, source: 'youtube', thumbnailUrl: `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`, type: 'video', url: ytUrl }]);
+    onChange([...media, { order: media.length, source: 'youtube', thumbnailUrl: `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`, type: 'video', url: ytUrl, position: 'cover' as const }]);
     setYtUrl('');
     toast.success('YouTube video added.');
   };
@@ -285,11 +285,41 @@ export default function PostMediaUploader({ media, onChange }: UploaderProps) {
                     )}
                   </div>
                   <div style={S.cardInfo}>
-                    <div>
-                      <div style={S.cardTitle}>{item.source === 'youtube' ? 'YouTube embed' : item.type === 'photo' ? 'Uploaded photo' : 'Uploaded video'}</div>
-                      <div style={S.cardMeta}>{item.source === 'upload' ? 'Cloudinary' : 'External'}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={S.cardTitle}>{item.source === 'youtube' ? 'YouTube embed' : item.type === 'photo' ? 'Uploaded photo' : 'Uploaded video'}</div>
+                          <div style={S.cardMeta}>{item.source === 'upload' ? 'Cloudinary' : 'External'}</div>
+                        </div>
+                        <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)' }}>⠿</div>
+                      </div>
+                      {item.type === 'photo' && (
+                        <select
+                          value={item.position || 'cover'}
+                          onChange={(e) => {
+                            const newMedia = [...media];
+                            newMedia[index] = { ...item, position: e.target.value as any };
+                            onChange(newMedia);
+                          }}
+                          style={{
+                            background: 'rgba(255,107,0,0.1)',
+                            border: '1px solid rgba(255,107,0,0.2)',
+                            color: '#FF6B00',
+                            borderRadius: '4px',
+                            padding: '4px 8px',
+                            fontSize: '10px',
+                            fontWeight: 600,
+                            outline: 'none',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <option value="cover" style={{ background: '#111', color: '#fff' }}>Position: Cover (Top)</option>
+                          <option value="after-intro" style={{ background: '#111', color: '#fff' }}>Position: After Intro</option>
+                          <option value="after-main" style={{ background: '#111', color: '#fff' }}>Position: After Main Content</option>
+                          <option value="after-conclusion" style={{ background: '#111', color: '#fff' }}>Position: After Conclusion</option>
+                        </select>
+                      )}
                     </div>
-                    <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)' }}>⠿</div>
                   </div>
                 </div>
               ))}
