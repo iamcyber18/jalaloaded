@@ -2,6 +2,7 @@ import dbConnect from '@/lib/mongodb';
 import Song from '@/models/Song';
 import Link from 'next/link';
 import { formatNumber } from '@/lib/utils';
+import TrackAction from '@/components/TrackAction';
 
 export const dynamic = 'force-dynamic';
 
@@ -109,25 +110,25 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
               {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 {(heroSong.downloadUrl || heroSong.mediaUrl) && (
-                  <a href={heroSong.downloadUrl || heroSong.mediaUrl} download target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', background: 'linear-gradient(135deg, #FF6B00, #ff8533)', color: '#fff', fontSize: '12px', fontWeight: 700, textDecoration: 'none', transition: 'transform 0.2s', cursor: 'pointer' }}>
+                  <TrackAction songId={heroSong._id} action="download" href={heroSong.downloadUrl || heroSong.mediaUrl} download
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', background: 'linear-gradient(135deg, #FF6B00, #ff8533)', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Download
-                  </a>
+                  </TrackAction>
                 )}
                 {heroSong.streamUrl && (
-                  <a href={heroSong.streamUrl} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', background: 'rgba(29,190,115,0.1)', border: '1px solid rgba(29,190,115,0.2)', color: '#1DBE73', fontSize: '12px', fontWeight: 700, textDecoration: 'none', cursor: 'pointer' }}>
+                  <TrackAction songId={heroSong._id} action="play" href={heroSong.streamUrl}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', background: 'rgba(29,190,115,0.1)', border: '1px solid rgba(29,190,115,0.2)', color: '#1DBE73', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                     Stream Online
-                  </a>
+                  </TrackAction>
                 )}
                 {heroSong.mediaUrl && (
-                  <a href={heroSong.mediaUrl} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', fontSize: '12px', fontWeight: 600, textDecoration: 'none', cursor: 'pointer' }}>
+                  <TrackAction songId={heroSong._id} action="play" href={heroSong.mediaUrl}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                     Listen
-                  </a>
+                  </TrackAction>
                 )}
               </div>
             </div>
@@ -230,22 +231,22 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                     {/* Actions */}
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
                       {song.mediaUrl && (
-                        <a href={song.mediaUrl} target="_blank" rel="noopener noreferrer" title="Listen"
-                          style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', textDecoration: 'none', color: 'rgba(255,255,255,0.4)', transition: 'all 0.2s' }}>
+                        <TrackAction songId={song._id} action="play" href={song.mediaUrl} title="Listen"
+                          style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        </a>
+                        </TrackAction>
                       )}
                       {song.streamUrl && (
-                        <a href={song.streamUrl} target="_blank" rel="noopener noreferrer" title="Stream Online"
-                          style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(29,190,115,0.06)', border: '1px solid rgba(29,190,115,0.12)', textDecoration: 'none', color: '#1DBE73', transition: 'all 0.2s' }}>
+                        <TrackAction songId={song._id} action="play" href={song.streamUrl} title="Stream Online"
+                          style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(29,190,115,0.06)', border: '1px solid rgba(29,190,115,0.12)', color: '#1DBE73' }}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                        </a>
+                        </TrackAction>
                       )}
                       {(song.downloadUrl || song.mediaUrl) && (
-                        <a href={song.downloadUrl || song.mediaUrl} download target="_blank" rel="noopener noreferrer" title="Download"
-                          style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,107,0,0.06)', border: '1px solid rgba(255,107,0,0.12)', textDecoration: 'none', color: '#FF6B00', transition: 'all 0.2s' }}>
+                        <TrackAction songId={song._id} action="download" href={song.downloadUrl || song.mediaUrl} download title="Download"
+                          style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,107,0,0.06)', border: '1px solid rgba(255,107,0,0.12)', color: '#FF6B00' }}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        </a>
+                        </TrackAction>
                       )}
                     </div>
                   </div>
@@ -301,10 +302,10 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                     <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>{formatNumber(song.downloads || 0)} downloads</div>
                   </div>
                   {(song.downloadUrl || song.mediaUrl) && (
-                    <a href={song.downloadUrl || song.mediaUrl} download target="_blank" rel="noopener noreferrer"
-                      style={{ padding: '4px 8px', borderRadius: '4px', background: 'rgba(255,107,0,0.08)', color: '#FF6B00', fontSize: '9px', fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(255,107,0,0.12)' }}>
+                    <TrackAction songId={song._id} action="download" href={song.downloadUrl || song.mediaUrl} download
+                      style={{ padding: '4px 8px', borderRadius: '4px', background: 'rgba(255,107,0,0.08)', color: '#FF6B00', fontSize: '9px', fontWeight: 700, border: '1px solid rgba(255,107,0,0.12)' }}>
                       DL
-                    </a>
+                    </TrackAction>
                   )}
                 </div>
               ))}
