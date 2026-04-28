@@ -140,7 +140,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                   <div className="meta-val">{formatNumber(post.views || 1)}</div>
                 </div>
                 <div className="share-row">
-                  <LikeButton postId={post._id.toString()} initialLikes={post.likes || 0} />
+                  <LikeButton songId={post._id.toString()} initialLikes={post.likes || 0} />
                   <ShareButton title={post.title} />
                 </div>
               </div>
@@ -240,7 +240,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
             {/* REACTION BAR */}
             <div className="reaction-bar">
               <div className="reactions">
-                <LikeButton postId={post._id.toString()} initialLikes={post.likes || 0} />
+                <LikeButton songId={post._id.toString()} initialLikes={post.likes || 0} />
               </div>
               <div className="views-info">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
