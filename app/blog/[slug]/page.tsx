@@ -61,10 +61,17 @@ async function getPost(slug: string) {
   const shuffledAds = allAds.sort(() => 0.5 - Math.random());
   const selectedAds = shuffledAds.slice(0, 2);
 
+  // Get trending posts (most viewed, excluding current)
+  const trending = await Post.find({
+    _id: { $ne: post._id },
+    status: 'published'
+  }).sort({ views: -1 }).limit(3).select('title slug category').lean();
+
   return { 
     post: JSON.parse(JSON.stringify(post)), 
     related: JSON.parse(JSON.stringify(related)),
-    adverts: JSON.parse(JSON.stringify(selectedAds))
+    adverts: JSON.parse(JSON.stringify(selectedAds)),
+    trending: JSON.parse(JSON.stringify(trending))
   };
 }
 
@@ -76,7 +83,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
     notFound();
   }
 
-  const { post, related, adverts } = data;
+  const { post, related, adverts, trending } = data;
   const author = getAuthorDisplay(post.author);
   
   const ad1 = adverts && adverts.length > 0 ? adverts[0] : null;
@@ -279,18 +286,16 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
           <div className="s-card">
             <div className="s-title"><div className="s-line"></div>Trending Now</div>
             <div id="sb-trending">
-               <div className="trend-item">
-                  <div className="trend-num">01</div>
-                  <div><div className="trend-text">Burna Boy Breaks Spotify Record Again</div><div className="trend-cat">MUSIC</div></div>
-               </div>
-               <div className="trend-item">
-                  <div className="trend-num">02</div>
-                  <div><div className="trend-text">Super Eagles AFCON Squad Named</div><div className="trend-cat">SPORTS</div></div>
-               </div>
-               <div className="trend-item">
-                  <div className="trend-num">03</div>
-                  <div><div className="trend-text">Lagos Street Food Guide 2025</div><div className="trend-cat">LIFESTYLE</div></div>
-               </div>
+              {trending && trending.length > 0 ? trending.map((t: any, i: number) => (
+                <Link href={`/blog/${t.slug}`} key={t._id} style={{ textDecoration: 'none' }}>
+                  <div className="trend-item">
+                    <div className="trend-num">{String(i + 1).padStart(2, '0')}</div>
+                    <div><div className="trend-text">{t.title}</div><div className="trend-cat">{t.category?.toUpperCase()}</div></div>
+                  </div>
+                </Link>
+              )) : (
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', padding: '8px 0' }}>No trending posts yet.</div>
+              )}
             </div>
           </div>
 
