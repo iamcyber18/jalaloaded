@@ -168,6 +168,14 @@ export default function AdminPage() {
                 style={{ minHeight: '100px' }}
               />
               <div className="char-count">{form.introduction.length} chars</div>
+              {media.filter(m => m.type === 'photo').length > 1 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', alignSelf: 'center' }}>Insert image:</span>
+                  {media.filter(m => m.type === 'photo').slice(1).map((_, i) => (
+                    <button key={i} type="button" onClick={() => setForm({ ...form, introduction: form.introduction + `[image:${i + 2}]` })} style={{ padding: '3px 10px', borderRadius: '6px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.2)', color: '#FF6B00', fontSize: '10px', fontWeight: 700, cursor: 'pointer', fontFamily: '"DM Sans", sans-serif' }}>📷 Image {i + 2}</button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="section-gap"></div>
@@ -189,6 +197,14 @@ export default function AdminPage() {
                 style={{ minHeight: '200px' }}
               />
               <div className="char-count">{form.mainContent.length} chars</div>
+              {media.filter(m => m.type === 'photo').length > 1 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', alignSelf: 'center' }}>Insert image:</span>
+                  {media.filter(m => m.type === 'photo').slice(1).map((_, i) => (
+                    <button key={i} type="button" onClick={() => setForm({ ...form, mainContent: form.mainContent + `[image:${i + 2}]` })} style={{ padding: '3px 10px', borderRadius: '6px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.2)', color: '#FF6B00', fontSize: '10px', fontWeight: 700, cursor: 'pointer', fontFamily: '"DM Sans", sans-serif' }}>📷 Image {i + 2}</button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="section-gap"></div>
@@ -210,6 +226,14 @@ export default function AdminPage() {
                 style={{ minHeight: '80px' }}
               />
               <div className="char-count">{form.conclusion.length} chars</div>
+              {media.filter(m => m.type === 'photo').length > 1 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', alignSelf: 'center' }}>Insert image:</span>
+                  {media.filter(m => m.type === 'photo').slice(1).map((_, i) => (
+                    <button key={i} type="button" onClick={() => setForm({ ...form, conclusion: form.conclusion + `[image:${i + 2}]` })} style={{ padding: '3px 10px', borderRadius: '6px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.2)', color: '#FF6B00', fontSize: '10px', fontWeight: 700, cursor: 'pointer', fontFamily: '"DM Sans", sans-serif' }}>📷 Image {i + 2}</button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="section-gap"></div>

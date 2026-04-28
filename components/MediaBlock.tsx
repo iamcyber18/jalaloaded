@@ -8,72 +8,37 @@ export default function MediaBlock({ mediaItems }: { mediaItems: IMediaItem[] })
 
   if (!mediaItems || mediaItems.length === 0) return null;
 
-  // Split media by type
   const photos = mediaItems.filter(m => m.type === 'photo').sort((a,b) => a.order - b.order);
   const videos = mediaItems.filter(m => m.type === 'video').sort((a,b) => a.order - b.order);
 
-  // Helper to extract YouTube ID
+  // Only show the FIRST photo as the cover/featured image
+  const coverPhoto = photos[0];
+
   const getYouTubeId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  // Dynamic grid style based on photo count
-  const getGridStyle = (count: number): React.CSSProperties => {
-    if (count === 1) {
-      return { display: 'grid', gridTemplateColumns: '1fr', gridTemplateRows: '300px', gap: '6px' };
-    }
-    if (count === 2) {
-      return { display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '240px', gap: '6px' };
-    }
-    if (count === 3) {
-      return { display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '160px 160px', gap: '6px' };
-    }
-    if (count === 4) {
-      return { display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '160px 160px', gap: '6px' };
-    }
-    return { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridTemplateRows: '140px 140px', gap: '6px' };
-  };
-
-  // For 3 photos, first photo spans 2 rows
-  const getSlotStyle = (count: number, index: number): React.CSSProperties => {
-    if (count === 3 && index === 0) {
-      return { gridRow: 'span 2' };
-    }
-    return {};
-  };
-
-  const maxDisplay = photos.length >= 5 ? 6 : photos.length;
-
   return (
     <>
-      {/* Photos Section */}
-      {photos.length > 0 && (
+      {/* Cover Photo (first image only) */}
+      {coverPhoto && (
         <div className="photo-section">
-          <div style={getGridStyle(photos.length)}>
-            {photos.slice(0, maxDisplay).map((photo, index) => (
-              <div 
-                key={index} 
-                className="photo-slot"
-                style={getSlotStyle(photos.length, index)}
-                onClick={() => setLightboxImage(photo.url)}
-              >
-                <img 
-                  src={photo.url} 
-                  alt={photo.caption || `Photo ${index + 1}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
-                {photos.length > maxDisplay && index === maxDisplay - 1 && (
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: '24px', fontFamily: '"Bebas Neue", sans-serif' }}>
-                    +{photos.length - maxDisplay}
-                  </div>
-                )}
-                <div className="photo-overlay"><div className="photo-expand"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></div></div>
-              </div>
-            ))}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gridTemplateRows: '300px', gap: '6px' }}>
+            <div 
+              className="photo-slot"
+              onClick={() => setLightboxImage(coverPhoto.url)}
+            >
+              <img 
+                src={coverPhoto.url} 
+                alt={coverPhoto.caption || 'Cover photo'}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+              <div className="photo-overlay"><div className="photo-expand"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></div></div>
+            </div>
           </div>
-          {photos[0]?.caption && <div className="photo-caption">{photos[0].caption}</div>}
+          {coverPhoto.caption && <div className="photo-caption">{coverPhoto.caption}</div>}
         </div>
       )}
 

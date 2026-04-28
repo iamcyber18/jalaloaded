@@ -2,6 +2,7 @@ import dbConnect from '@/lib/mongodb';
 import Post from '@/models/Post';
 import Advert from '@/models/Advert';
 import MediaBlock from '@/components/MediaBlock';
+import InlineArticleBody from '@/components/InlineArticleBody';
 import CommentSection from '@/components/CommentSection';
 import LikeButton from '@/components/LikeButton';
 import ShareButton from '@/components/ShareButton';
@@ -134,27 +135,24 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
             {/* MEDIA BLOCK */}
             <MediaBlock mediaItems={post.media || []} />
 
-            {/* BODY WITH AD BANNER */}
+            {/* BODY WITH INLINE IMAGES & AD BANNERS */}
             <div className="article-body">
               {(() => {
                 const content = post.body || '';
-                // Try to split at the conclusion divider '---'
+                const mediaItems = post.media || [];
+                // Split at the conclusion divider '---'
                 const parts = content.split('\n---\n');
                 
                 if (parts.length > 1) {
                   return (
                     <>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
-                        {parts[0]}
-                      </ReactMarkdown>
+                      <InlineArticleBody content={parts[0]} mediaItems={mediaItems} />
                       {ad1 && (
                         <div style={{ margin: '32px 0' }}>
                           <AdBanner ad={ad1} />
                         </div>
                       )}
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
-                        {parts.slice(1).join('\n---\n')}
-                      </ReactMarkdown>
+                      <InlineArticleBody content={parts.slice(1).join('\n---\n')} mediaItems={mediaItems} />
                       {ad2 && (
                         <div style={{ margin: '32px 0' }}>
                           <AdBanner ad={ad2} />
@@ -164,23 +162,19 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                   );
                 }
 
-                // Fallback: split by double newline and insert near middle
+                // Fallback: split by double newline and insert ad near middle
                 const blocks = content.split('\n\n');
                 if (blocks.length > 3) {
                   const mid = Math.floor(blocks.length / 2);
                   return (
                     <>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
-                        {blocks.slice(0, mid).join('\n\n')}
-                      </ReactMarkdown>
+                      <InlineArticleBody content={blocks.slice(0, mid).join('\n\n')} mediaItems={mediaItems} />
                       {ad1 && (
                         <div style={{ margin: '32px 0' }}>
                           <AdBanner ad={ad1} />
                         </div>
                       )}
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
-                        {blocks.slice(mid).join('\n\n')}
-                      </ReactMarkdown>
+                      <InlineArticleBody content={blocks.slice(mid).join('\n\n')} mediaItems={mediaItems} />
                       {ad2 && (
                         <div style={{ margin: '32px 0' }}>
                           <AdBanner ad={ad2} />
@@ -190,12 +184,9 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                   );
                 }
 
-                // If content is very short, just append it at the end
                 return (
                   <>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ blockquote: ({children}) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}) => <p>{children}</p> }}>
-                      {content}
-                    </ReactMarkdown>
+                    <InlineArticleBody content={content} mediaItems={mediaItems} />
                     {ad1 && (
                       <div style={{ margin: '32px 0' }}>
                         <AdBanner ad={ad1} />
