@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import AdminSidebar from '@/components/AdminSidebar';
 import { useAdminSession } from '@/components/useAdminSession';
+import { uploadAdminAsset } from '@/lib/adminUpload';
 
 interface ArtistItem {
   _id: string;
@@ -64,47 +65,13 @@ export default function AdminArtistsPage() {
     setUploading(true);
     setUploadProgress(0);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', 'image');
-
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/upload');
-
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
-      };
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const data = JSON.parse(xhr.responseText);
-            setForm(f => ({ ...f, image: data.url }));
-            toast.success('Image uploaded');
-          } catch {
-            toast.error('Invalid server response');
-          }
-        } else {
-          let errorMsg = `Upload failed: ${xhr.status}`;
-          try {
-            const errData = JSON.parse(xhr.responseText);
-            if (errData.error) errorMsg = errData.error;
-          } catch { /* ignore */ }
-          toast.error(errorMsg);
-        }
-        setUploading(false);
-        setUploadProgress(0);
-      };
-
-      xhr.onerror = () => {
-        toast.error('Network error during upload');
-        setUploading(false);
-        setUploadProgress(0);
-      };
-
-      xhr.send(formData);
-    } catch {
-      toast.error('Upload failed');
+      const uploaded = await uploadAdminAsset(file, 'image', setUploadProgress);
+      setForm(f => ({ ...f, image: uploaded.url }));
+      toast.success('Image uploaded');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Upload failed';
+      toast.error(message);
+    } finally {
       setUploading(false);
       setUploadProgress(0);
     }
