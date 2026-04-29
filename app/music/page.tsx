@@ -146,13 +146,13 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                     {/* Actions */}
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
                       {song.mediaUrl && (
-                        <TrackAction songId={song._id} action="play" href={song.mediaUrl} title="Listen"
-                          style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>
+                        <Link href={`/music/${song.slug || song._id}`} title="Listen"
+                          style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        </TrackAction>
+                        </Link>
                       )}
                       {(song.downloadUrl || song.mediaUrl) && (
-                        <TrackAction songId={song._id} action="download" href={song.downloadUrl || song.mediaUrl} download title="Download"
+                        <TrackAction songId={song._id} action="download" href={`/api/songs/${song._id}/download`} download title="Download"
                           style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,107,0,0.06)', border: '1px solid rgba(255,107,0,0.12)', color: '#FF6B00' }}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         </TrackAction>

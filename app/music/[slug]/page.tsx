@@ -5,6 +5,7 @@ import { formatNumber } from '@/lib/utils';
 import TrackAction from '@/components/TrackAction';
 import ShareButton from '@/components/ShareButton';
 import LikeButton from '@/components/LikeButton';
+import AudioPlayer from '@/components/AudioPlayer';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -132,7 +133,7 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
             {/* Action Buttons */}
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               {(song.downloadUrl || song.mediaUrl) && (
-                <TrackAction songId={song._id} action="download" href={song.downloadUrl || song.mediaUrl} download
+                <TrackAction songId={song._id} action="download" href={`/api/songs/${song._id}/download`} download
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '10px', background: 'linear-gradient(135deg, #FF6B00, #ff8533)', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   Download
@@ -150,6 +151,13 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
             </div>
           </div>
         </div>
+
+        {/* AUDIO PLAYER */}
+        {song.mediaUrl && (
+          <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px' }}>
+            <AudioPlayer src={song.mediaUrl} title={song.title} artist={song.artist} coverUrl={song.coverUrl} />
+          </div>
+        )}
       </div>
 
       {/* MORE FROM ARTIST */}

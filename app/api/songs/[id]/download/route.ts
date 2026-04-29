@@ -68,13 +68,34 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       }
     } else if (isMP3) {
       try {
-        const tags = {
+        // Use Jalaloaded logo as cover when no cover art
+        const logoUrl = 'https://jalaloaded.vercel.app/images/jalaloadedlogo.png';
+        let logoBuffer: Buffer | null = null;
+        try {
+          const logoRes = await fetch(logoUrl);
+          if (logoRes.ok) {
+            logoBuffer = Buffer.from(await logoRes.arrayBuffer());
+          }
+        } catch {}
+
+        const tags: any = {
           title: song.title,
           artist: song.artist,
           album: 'Jalaloaded',
           year: String(song.year || new Date().getFullYear()),
           genre: song.genre,
+          comment: { language: 'eng', text: 'Downloaded from Jalaloaded' },
         };
+
+        if (logoBuffer) {
+          tags.image = {
+            mime: 'image/png',
+            type: { id: 3, name: 'front cover' },
+            description: 'Jalaloaded',
+            imageBuffer: logoBuffer,
+          };
+        }
+
         const taggedBuffer = NodeID3.update(tags, audioBuffer);
         if (taggedBuffer) {
           audioBuffer = Buffer.from(taggedBuffer);
