@@ -5,12 +5,13 @@ interface Props {
   action: 'play' | 'download' | 'like';
   href?: string;
   children: React.ReactNode;
+  className?: string;
   style?: React.CSSProperties;
   title?: string;
   download?: boolean;
 }
 
-export default function TrackAction({ songId, action, href, children, style, title, download: isDownload }: Props) {
+export default function TrackAction({ songId, action, href, children, className, style, title, download: isDownload }: Props) {
   const handleClick = (e: React.MouseEvent) => {
     if (action === 'download' && isDownload) {
       // Use the download API which embeds cover art + forces download
@@ -34,6 +35,7 @@ export default function TrackAction({ songId, action, href, children, style, tit
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleClick}
+        className={className}
         style={{ ...style, textDecoration: 'none' }}
         title={title}
       >
@@ -43,7 +45,7 @@ export default function TrackAction({ songId, action, href, children, style, tit
   }
 
   return (
-    <button onClick={handleClick} style={{ ...style, border: 'none', cursor: 'pointer' }} title={title}>
+    <button onClick={handleClick} className={className} style={{ ...style, border: 'none', cursor: 'pointer' }} title={title}>
       {children}
     </button>
   );
