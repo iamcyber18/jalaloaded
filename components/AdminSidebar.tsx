@@ -64,7 +64,7 @@ export default function AdminSidebar() {
 
       <div className={`nav-links-container ${isOpen ? 'open' : ''}`}>
         <div className="nav-section">Content</div>
-        {isSubAdmin && <NavLink href="/admin/dashboard" label="Dashboard" active={pathname === '/admin/dashboard'} onClick={closeMenu} />}
+        <NavLink href="/admin/dashboard" label="Dashboard" active={pathname === '/admin/dashboard'} onClick={closeMenu} />
         <NavLink href="/admin" label="New Post" active={pathname === '/admin'} onClick={closeMenu} />
         <NavLink href="/admin/posts" label={postsLabel} active={pathname === '/admin/posts'} onClick={closeMenu} />
         {session?.role === 'admin' && <NavLink href="/admin/music" label="Music" active={pathname === '/admin/music'} onClick={closeMenu} />}

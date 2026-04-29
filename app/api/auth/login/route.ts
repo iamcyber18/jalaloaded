@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       username: session.username,
       role: session.role,
       displayName: session.displayName,
-      redirectTo: session.role === 'sub-admin' ? '/admin/dashboard' : '/admin',
+      redirectTo: '/admin/dashboard',
     });
 
     response.cookies.set('admin_token', token, {
