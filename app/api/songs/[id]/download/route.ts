@@ -2,13 +2,61 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Song from '@/models/Song';
 import NodeID3 from 'node-id3';
+import sharp from 'sharp';
+
+const LOGO_URL = 'https://jalaloaded.vercel.app/images/jalaloadedlogo.png';
+
+async function fetchBuffer(url: string): Promise<Buffer | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return Buffer.from(await res.arrayBuffer());
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Overlay the Jalaloaded logo onto the cover art (bottom-right corner).
+ * If no cover art, use logo on a branded background.
+ */
+async function buildCoverImage(coverBuffer: Buffer | null, logoBuffer: Buffer): Promise<Buffer> {
+  if (coverBuffer) {
+    // Resize cover to 500x500, then overlay logo at bottom-right
+    const cover = sharp(coverBuffer).resize(500, 500, { fit: 'cover' });
+    const logoResized = await sharp(logoBuffer)
+      .resize(100, 100, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png()
+      .toBuffer();
+
+    return cover
+      .composite([{
+        input: logoResized,
+        gravity: 'southeast',
+      }])
+      .jpeg({ quality: 90 })
+      .toBuffer();
+  } else {
+    // No cover art: create a branded dark background with centered logo
+    const logoResized = await sharp(logoBuffer)
+      .resize(250, 250, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png()
+      .toBuffer();
+
+    return sharp({
+      create: { width: 500, height: 500, channels: 4, background: { r: 18, g: 18, b: 18, alpha: 255 } }
+    })
+      .composite([{ input: logoResized, gravity: 'center' }])
+      .jpeg({ quality: 90 })
+      .toBuffer();
+  }
+}
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
     await dbConnect();
 
-    // Find the song and increment downloads
     const song = await Song.findByIdAndUpdate(
       resolvedParams.id,
       { $inc: { downloads: 1 } },
@@ -34,49 +82,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const contentType = audioRes.headers.get('content-type') || 'audio/mpeg';
     const isMP3 = contentType.includes('mpeg') || audioUrl.includes('.mp3');
 
-    // If MP3, embed cover art and metadata using ID3 tags
-    if (isMP3 && song.coverUrl) {
+    if (isMP3) {
       try {
-        // Fetch cover art
-        const coverRes = await fetch(song.coverUrl);
-        if (coverRes.ok) {
-          const coverBuffer = Buffer.from(await coverRes.arrayBuffer());
-          const coverType = coverRes.headers.get('content-type') || 'image/jpeg';
+        // Fetch logo (always needed)
+        const logoBuffer = await fetchBuffer(LOGO_URL);
 
-          const tags = {
-            title: song.title,
-            artist: song.artist,
-            album: 'Jalaloaded',
-            year: String(song.year || new Date().getFullYear()),
-            genre: song.genre,
-            comment: { language: 'eng', text: song.description || 'Downloaded from Jalaloaded' },
-            image: {
-              mime: coverType,
-              type: { id: 3, name: 'front cover' },
-              description: 'Cover',
-              imageBuffer: coverBuffer,
-            },
-          };
+        // Fetch artist cover art if available
+        const coverBuffer = song.coverUrl ? await fetchBuffer(song.coverUrl) : null;
 
-          const taggedBuffer = NodeID3.update(tags, audioBuffer);
-          if (taggedBuffer) {
-            audioBuffer = Buffer.from(taggedBuffer);
-          }
+        // Build final cover image with logo overlay
+        let finalCoverBuffer: Buffer | null = null;
+        if (logoBuffer) {
+          finalCoverBuffer = await buildCoverImage(coverBuffer, logoBuffer);
+        } else if (coverBuffer) {
+          finalCoverBuffer = coverBuffer;
         }
-      } catch (e) {
-        console.error('Cover embed error:', e);
-      }
-    } else if (isMP3) {
-      try {
-        // Use Jalaloaded logo as cover when no cover art
-        const logoUrl = 'https://jalaloaded.vercel.app/images/jalaloadedlogo.png';
-        let logoBuffer: Buffer | null = null;
-        try {
-          const logoRes = await fetch(logoUrl);
-          if (logoRes.ok) {
-            logoBuffer = Buffer.from(await logoRes.arrayBuffer());
-          }
-        } catch {}
 
         const tags: any = {
           title: song.title,
@@ -84,15 +104,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           album: 'Jalaloaded',
           year: String(song.year || new Date().getFullYear()),
           genre: song.genre,
-          comment: { language: 'eng', text: 'Downloaded from Jalaloaded' },
+          comment: { language: 'eng', text: song.description || 'Downloaded from Jalaloaded' },
         };
 
-        if (logoBuffer) {
+        if (finalCoverBuffer) {
           tags.image = {
-            mime: 'image/png',
+            mime: 'image/jpeg',
             type: { id: 3, name: 'front cover' },
-            description: 'Jalaloaded',
-            imageBuffer: logoBuffer,
+            description: 'Cover',
+            imageBuffer: finalCoverBuffer,
           };
         }
 
@@ -101,7 +121,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           audioBuffer = Buffer.from(taggedBuffer);
         }
       } catch (e) {
-        console.error('Tag embed error:', e);
+        console.error('ID3 embed error:', e);
       }
     }
 
