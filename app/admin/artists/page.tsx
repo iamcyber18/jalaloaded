@@ -64,31 +64,50 @@ export default function AdminArtistsPage() {
     setUploading(true);
     setUploadProgress(0);
     try {
-      const sigRes = await fetch('/api/upload/signature');
-      const { signature, timestamp, cloudName, apiKey, folder } = await sigRes.json();
-
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('signature', signature);
-      fd.append('timestamp', String(timestamp));
-      fd.append('api_key', apiKey);
-      fd.append('folder', folder);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'image');
 
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
-      xhr.upload.onprogress = (e) => { if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100)); };
+      xhr.open('POST', '/api/upload');
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+      };
+
       xhr.onload = () => {
-        if (xhr.status === 200) {
-          const data = JSON.parse(xhr.responseText);
-          setForm(f => ({ ...f, image: data.secure_url }));
-          toast.success('Image uploaded');
-        } else { toast.error('Upload failed'); }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            setForm(f => ({ ...f, image: data.url }));
+            toast.success('Image uploaded');
+          } catch {
+            toast.error('Invalid server response');
+          }
+        } else {
+          let errorMsg = `Upload failed: ${xhr.status}`;
+          try {
+            const errData = JSON.parse(xhr.responseText);
+            if (errData.error) errorMsg = errData.error;
+          } catch { /* ignore */ }
+          toast.error(errorMsg);
+        }
         setUploading(false);
         setUploadProgress(0);
       };
-      xhr.onerror = () => { toast.error('Upload error'); setUploading(false); };
-      xhr.send(fd);
-    } catch { toast.error('Upload failed'); setUploading(false); }
+
+      xhr.onerror = () => {
+        toast.error('Network error during upload');
+        setUploading(false);
+        setUploadProgress(0);
+      };
+
+      xhr.send(formData);
+    } catch {
+      toast.error('Upload failed');
+      setUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   const handleSave = async () => {
