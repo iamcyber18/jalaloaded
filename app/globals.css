@@ -1361,8 +1361,13 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
   .nav-item { padding: 12px 14px; font-size: 14px; margin: 0 0 4px 0; }
   .author-area { display: flex; flex-direction: row; justify-content: space-between; align-items: center; border-top: 0.5px solid rgba(255,255,255,0.07); margin-top: 12px; padding-top: 12px; }
   .author-row { margin-bottom: 0; }
+  .main { padding: 16px 12px; max-height: none; }
+  .post-manager { padding: 8px; }
+  .post-manager-grid { grid-template-columns: 1fr; gap: 12px; }
+  .post-list-card { padding: 12px; max-height: none; }
+  .post-counts { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .editor-metric { padding: 8px; }
   .editor-area { padding: 12px; }
-  .post-manager { padding: 12px; }
   .topbar { padding: 10px 14px; flex-wrap: wrap; gap: 10px; }
   .page-title { font-size: 14px; }
   .topbar-actions { gap: 6px; flex-wrap: wrap; }

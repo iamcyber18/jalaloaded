@@ -92,14 +92,9 @@ export default function FeaturedCarousel({ songs }: { songs: FeaturedSong[] }) {
               {song.title}
             </h2>
           </Link>
-          <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '6px' }}>
+          <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '16px' }}>
             {song.artist} • {song.year}
           </div>
-          {song.description && (
-            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', lineHeight: 1.6, marginBottom: '16px', maxWidth: '450px' }}>
-              {song.description}
-            </div>
-          )}
 
           {/* Stats */}
           <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
