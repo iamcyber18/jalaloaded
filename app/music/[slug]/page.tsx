@@ -106,7 +106,7 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
               {song.title}
             </h1>
             <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>
-              {song.artist}
+              <Link href={`/music/artist/${song.artist.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`} style={{ color: '#FF6B00', textDecoration: 'none', fontWeight: 600 }}>{song.artist}</Link>
             </div>
             {song.description && (
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', lineHeight: 1.7, marginBottom: '18px', maxWidth: '400px' }}>

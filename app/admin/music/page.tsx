@@ -40,6 +40,7 @@ export default function AdminMusicPage() {
     );
   }
   const [songs, setSongs] = useState<SongItem[]>([]);
+  const [artistsList, setArtistsList] = useState<{_id:string;name:string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -67,6 +68,7 @@ export default function AdminMusicPage() {
 
   useEffect(() => {
     fetchSongs();
+    fetchArtists();
   }, []);
 
   const fetchSongs = async () => {
@@ -77,6 +79,16 @@ export default function AdminMusicPage() {
     } catch { toast.error('Failed to load songs'); }
     setLoading(false);
   };
+  const fetchArtists = async () => {
+    try {
+      const res = await fetch('/api/artists');
+      const data = await res.json();
+      setArtistsList(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error('Failed to load artists for dropdown');
+    }
+  };
+
 
   const uploadWithProgress = (file: File, fileType: string, onProgress: (p: number) => void): Promise<any> => {
     return new Promise((resolve, reject) => {
@@ -246,7 +258,11 @@ export default function AdminMusicPage() {
                 </div>
                 <div>
                   <div style={S.label}>Artist *</div>
-                  <input style={S.input} value={form.artist} onChange={e => setForm({ ...form, artist: e.target.value })} placeholder="e.g. Burna Boy" />
+                  <select style={S.select} value={form.artist} onChange={e => setForm({ ...form, artist: e.target.value })}>
+                    <option value="" style={{ background: '#111' }}>Select Artist</option>
+                    {artistsList.map(a => <option key={a._id} value={a.name} style={{ background: '#111' }}>{a.name}</option>)}
+                  </select>
+                  <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>Manage artists from the <a href="/admin/artists" style={{ color: '#FF6B00' }}>Artists page</a></div>
                 </div>
               </div>
 

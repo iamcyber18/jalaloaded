@@ -121,21 +121,23 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                       </div>
                     </Link>
 
-                    {/* Song Info - clickable */}
-                    <Link href={`/music/${song.slug || song._id}`} style={{ textDecoration: 'none', flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}>
-                        {song.title}
-                        {song.featured && <span style={{ marginLeft: '6px', fontSize: '10px' }}>⭐</span>}
-                      </div>
+                    {/* Song Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Link href={`/music/${song.slug || song._id}`} style={{ textDecoration: 'none', color: '#fff' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}>
+                          {song.title}
+                          {song.featured && <span style={{ marginLeft: '6px', fontSize: '10px' }}>⭐</span>}
+                        </div>
+                      </Link>
                       <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
-                        {song.artist} • {song.year || new Date(song.createdAt).getFullYear()} • {formatNumber(song.plays || 0)} plays
+                        <Link href={`/music/artist/${song.artist.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`} style={{ color: '#FF6B00', textDecoration: 'none', fontWeight: 600 }}>{song.artist}</Link> • {song.year || new Date(song.createdAt).getFullYear()} • {formatNumber(song.plays || 0)} plays
                       </div>
                       {song.description && (
                         <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '3px', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {song.description}
                         </div>
                       )}
-                    </Link>
+                    </div>
 
                     {/* Like count */}
                     <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '3px' }}>

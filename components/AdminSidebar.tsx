@@ -41,6 +41,7 @@ export default function AdminSidebar() {
       <NavLink href="/admin" label="New Post" active={pathname === '/admin'} />
       <NavLink href="/admin/posts" label={postsLabel} active={pathname === '/admin/posts'} />
       {session?.role === 'admin' && <NavLink href="/admin/music" label="Music" active={pathname === '/admin/music'} />}
+      {session?.role === 'admin' && <NavLink href="/admin/artists" label="Artists" active={pathname === '/admin/artists'} />}
 
       <div className="nav-section">Manage</div>
       {session?.role === 'admin' && <NavLink href="/admin/newsletter" label="Newsletter" active={pathname === '/admin/newsletter'} />}
