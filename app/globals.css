@@ -1243,10 +1243,28 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
 
   /* ADMIN */
   .editor-area { grid-template-columns: 1fr; }
-  .admin-sidebar { width: 180px; }
+  .admin-sidebar { 
+    width: 100%; 
+    min-height: auto;
+    border-right: none;
+    border-bottom: 0.5px solid rgba(255,255,255,0.07);
+  }
+  .mobile-menu-toggle { display: block; }
+  .nav-links-container { 
+    display: none; 
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #0D0D0D;
+    border-bottom: 0.5px solid rgba(255,255,255,0.07);
+    z-index: 1000;
+    padding: 12px 16px;
+  }
+  .nav-links-container.open { display: flex; }
   .post-manager-grid { grid-template-columns: 1fr; }
   .post-editor-grid { grid-template-columns: 1fr; }
-  .jl { min-height: auto; }
+  .jl { min-height: auto; flex-direction: column; border-radius: 0; }
   .main { padding: 20px 16px; max-height: none; }
   .post-manager { padding: 12px; }
   .post-list-card { padding: 14px; max-height: none; }
@@ -1358,10 +1376,30 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
 
   /* ADMIN DASHBOARD */
   .jl { flex-direction: column; border-radius: 0; min-height: auto; }
-  .admin-sidebar { width: 100%; height: auto; flex-direction: column; padding: 0; gap: 0; }
+  .admin-sidebar { 
+    width: 100%; 
+    height: auto; 
+    min-height: auto;
+    flex-direction: column; 
+    padding: 0; 
+    gap: 0; 
+    position: relative;
+    border-right: none;
+    border-bottom: 0.5px solid rgba(255,255,255,0.07);
+  }
   .logo-area { padding: 12px 16px; border-bottom: 0.5px solid rgba(255,255,255,0.07); border-right: none; }
   .mobile-menu-toggle { display: block; }
-  .nav-links-container { display: none; padding: 12px 16px; }
+  .nav-links-container { 
+    display: none; 
+    padding: 12px 16px; 
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #0D0D0D;
+    border-bottom: 0.5px solid rgba(255,255,255,0.07);
+    z-index: 1000;
+  }
   .nav-links-container.open { display: flex; }
   .nav-section { display: block; margin: 12px 0 8px 0; }
   .nav-item { padding: 12px 14px; font-size: 14px; margin: 0 0 4px 0; }
