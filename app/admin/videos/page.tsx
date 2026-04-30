@@ -73,12 +73,36 @@ export default function AdminVideosPage() {
 
   const uploadWithProgress = (file: File, fileType: string, onProgress: (p: number) => void): Promise<any> => {
     return new Promise((resolve, reject) => {
+      // Validate file size (50MB limit for videos, 10MB for images)
+      const maxSize = fileType === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+      if (file.size > maxSize) {
+        reject(new Error(`File too large. Max size: ${fileType === 'video' ? '50MB' : '10MB'}`));
+        return;
+      }
+
+      // Validate file type
+      const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/quicktime'];
+      const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      
+      if (fileType === 'video' && !validVideoTypes.includes(file.type)) {
+        reject(new Error('Invalid video format. Supported: MP4, WebM, OGG, AVI, MOV'));
+        return;
+      }
+      
+      if (fileType === 'image' && !validImageTypes.includes(file.type)) {
+        reject(new Error('Invalid image format. Supported: JPEG, PNG, GIF, WebP'));
+        return;
+      }
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', fileType);
 
       const xhr = new XMLHttpRequest();
       xhr.open('POST', '/api/upload');
+      
+      // Set timeout (5 minutes for videos, 2 minutes for images)
+      xhr.timeout = fileType === 'video' ? 300000 : 120000;
 
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
@@ -89,14 +113,27 @@ export default function AdminVideosPage() {
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          try { resolve(JSON.parse(xhr.responseText)); }
-          catch { reject(new Error('Invalid response')); }
+          try { 
+            const response = JSON.parse(xhr.responseText);
+            if (response.error) {
+              reject(new Error(response.error));
+            } else {
+              resolve(response);
+            }
+          }
+          catch { reject(new Error('Invalid server response')); }
         } else {
-          reject(new Error(`Upload failed: ${xhr.status}`));
+          try {
+            const errorResponse = JSON.parse(xhr.responseText);
+            reject(new Error(errorResponse.error || `Upload failed with status ${xhr.status}`));
+          } catch {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
         }
       };
 
-      xhr.onerror = () => reject(new Error('Network error'));
+      xhr.ontimeout = () => reject(new Error('Upload timeout. Please try with a smaller file.'));
+      xhr.onerror = () => reject(new Error('Network error. Please check your connection.'));
       xhr.send(formData);
     });
   };
@@ -104,25 +141,35 @@ export default function AdminVideosPage() {
   const handleThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
     setUploadingThumb(true);
     setThumbProgress(0);
+    
     try {
       const data = await uploadWithProgress(file, 'image', setThumbProgress);
       setForm(f => ({ ...f, thumbnailUrl: data.url }));
-      toast.success('Thumbnail uploaded!');
-    } catch { toast.error('Thumbnail upload failed'); }
-    setUploadingThumb(false);
-    setThumbProgress(0);
+      toast.success('Thumbnail uploaded successfully!');
+    } catch (error) {
+      console.error('Thumbnail upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Thumbnail upload failed';
+      toast.error(errorMessage);
+    } finally {
+      setUploadingThumb(false);
+      setThumbProgress(0);
+    }
   };
 
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
     setUploadingVideo(true);
     setVideoProgress(0);
+    
     try {
       const data = await uploadWithProgress(file, 'video', setVideoProgress);
-      // Cloudinary returns duration and can generate thumbnails for videos by changing extension to .jpg
+      
+      // Cloudinary can generate thumbnails for videos by changing extension to .jpg
       const autoThumbUrl = data.url.replace(/\.[^/.]+$/, ".jpg");
       
       setForm(f => ({ 
@@ -131,10 +178,16 @@ export default function AdminVideosPage() {
         // Only auto-set thumbnail if one isn't already uploaded
         thumbnailUrl: f.thumbnailUrl || autoThumbUrl
       }));
-      toast.success('Video uploaded!');
-    } catch { toast.error('Video upload failed'); }
-    setUploadingVideo(false);
-    setVideoProgress(0);
+      
+      toast.success('Video uploaded successfully!');
+    } catch (error) {
+      console.error('Video upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Video upload failed';
+      toast.error(errorMessage);
+    } finally {
+      setUploadingVideo(false);
+      setVideoProgress(0);
+    }
   };
 
   const handleSave = async () => {
@@ -223,15 +276,35 @@ export default function AdminVideosPage() {
                         width: '80px', height: '50px', borderRadius: '8px', 
                         background: form.thumbnailUrl ? `url(${form.thumbnailUrl}) center/cover` : 'rgba(255,255,255,0.05)',
                         border: '1px dashed rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', flexShrink: 0
+                        cursor: uploadingThumb ? 'default' : 'pointer', flexShrink: 0,
+                        opacity: uploadingThumb ? 0.6 : 1
                       }}>
-                      {!form.thumbnailUrl && <span style={{ fontSize: '18px', opacity: 0.5 }}>🖼️</span>}
+                      {uploadingThumb ? (
+                        <div style={{ fontSize: '10px', color: '#FF6B00' }}>{thumbProgress}%</div>
+                      ) : !form.thumbnailUrl ? (
+                        <span style={{ fontSize: '18px', opacity: 0.5 }}>🖼️</span>
+                      ) : null}
                     </div>
-                    <input ref={thumbInputRef} type="file" accept="image/*" hidden onChange={handleThumbUpload} />
+                    <input ref={thumbInputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" hidden onChange={handleThumbUpload} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
-                        {uploadingThumb ? `Uploading thumbnail... ${thumbProgress}%` : form.thumbnailUrl ? '✅ Custom thumbnail set' : 'Click thumbnail to upload custom image. If omitted, one will be auto-generated from the video.'}
+                        {uploadingThumb 
+                          ? `Uploading thumbnail... ${thumbProgress}%` 
+                          : form.thumbnailUrl 
+                            ? '✅ Custom thumbnail set' 
+                            : 'Click thumbnail to upload custom image (Max 10MB). If omitted, one will be auto-generated from the video.'
+                        }
                       </div>
+                      {uploadingThumb && (
+                        <div style={{ marginTop: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden', height: '3px' }}>
+                          <div style={{ 
+                            height: '100%', 
+                            background: 'linear-gradient(90deg, #FF6B00, #ff8533)', 
+                            width: `${thumbProgress}%`, 
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -245,23 +318,40 @@ export default function AdminVideosPage() {
                       disabled={uploadingVideo}
                       style={{ 
                         padding: '10px 16px', borderRadius: '8px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.3)',
-                        color: '#FF6B00', fontSize: '12px', fontWeight: 600, cursor: uploadingVideo ? 'default' : 'pointer'
+                        color: '#FF6B00', fontSize: '12px', fontWeight: 600, cursor: uploadingVideo ? 'default' : 'pointer',
+                        opacity: uploadingVideo ? 0.6 : 1
                       }}
                     >
                       {uploadingVideo ? `Uploading... ${videoProgress}%` : 'Upload Video File'}
                     </button>
-                    <input ref={videoInputRef} type="file" accept="video/*" hidden onChange={handleVideoUpload} />
+                    <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,video/ogg,video/avi,video/mov,video/quicktime" hidden onChange={handleVideoUpload} />
                     <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', flex: 1 }}>
-                      Max size depends on Cloudinary limits.
+                      {uploadingVideo 
+                        ? `Uploading video... This may take a few minutes for large files.`
+                        : 'Max 50MB. Supported: MP4, WebM, OGG, AVI, MOV'
+                      }
                     </div>
                   </div>
                   
-                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginBottom: '12px' }}>— OR PASTE EXTERNAL LINK —</div>
+                  {uploadingVideo && (
+                    <div style={{ marginTop: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ 
+                        height: '4px', 
+                        background: 'linear-gradient(90deg, #FF6B00, #ff8533)', 
+                        width: `${videoProgress}%`, 
+                        transition: 'width 0.3s ease',
+                        borderRadius: '4px'
+                      }} />
+                    </div>
+                  )}
+                  
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginBottom: '12px', marginTop: '12px' }}>— OR PASTE EXTERNAL LINK —</div>
                   <input 
                     style={S.input} 
                     value={form.mediaUrl} 
                     onChange={e => setForm({ ...form, mediaUrl: e.target.value })} 
-                    placeholder="e.g. YouTube/Vimeo link or direct .mp4 URL" 
+                    placeholder="e.g. YouTube/Vimeo link or direct .mp4 URL"
+                    disabled={uploadingVideo}
                   />
                   {form.mediaUrl && !uploadingVideo && (
                     <div style={{ fontSize: '11px', color: '#4CAF50', marginTop: '6px' }}>✅ Video source attached</div>
