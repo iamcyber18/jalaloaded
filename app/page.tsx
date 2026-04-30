@@ -68,7 +68,7 @@ async function getHomepageData() {
       .limit(4)
       .lean<HomePost[]>(),
     Post.find({ status: 'published' }).sort({ publishedAt: -1, createdAt: -1, _id: -1 }).limit(10).lean<HomePost[]>(),
-    Song.find().sort({ createdAt: -1, _id: -1 }).limit(10).lean<HomeSong[]>(),
+    Song.find().sort({ plays: -1, _id: -1 }).limit(3).lean<HomeSong[]>(),
     Video.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeVideo[]>(),
   ]);
 

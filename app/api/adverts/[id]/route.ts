@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession, isSuperAdmin } from '@/lib/auth';
 import dbConnect from '@/lib/mongodb';
 import Advert from '@/models/Advert';
+import { deleteCloudinaryFiles } from '@/lib/cloudinary';
 
 // PUT - update an advert
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -37,11 +38,37 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { id } = await params;
     await dbConnect();
 
-    const advert = await Advert.findByIdAndDelete(id);
-    if (!advert) return NextResponse.json({ error: 'Advert not found' }, { status: 404 });
+    const advert = await Advert.findById(id);
+    if (!advert) {
+      return NextResponse.json({ error: 'Advert not found' }, { status: 404 });
+    }
 
-    return NextResponse.json({ success: true });
+    // Extract Cloudinary URLs from advert
+    const cloudinaryUrls: string[] = [];
+    if (advert.imageUrl && advert.imageUrl.includes('cloudinary.com')) {
+      cloudinaryUrls.push(advert.imageUrl);
+    }
+
+    // Delete the advert from database first
+    await Advert.findByIdAndDelete(id);
+
+    // Clean up Cloudinary files (don't fail the request if this fails)
+    if (cloudinaryUrls.length > 0) {
+      try {
+        const cleanupResult = await deleteCloudinaryFiles(cloudinaryUrls);
+        console.log(`Advert Cloudinary cleanup: ${cleanupResult.success} files deleted, ${cleanupResult.failed} failed`);
+      } catch (error) {
+        console.error('Advert Cloudinary cleanup failed:', error);
+        // Don't fail the request - advert is already deleted
+      }
+    }
+
+    return NextResponse.json({ 
+      success: true,
+      cleanedFiles: cloudinaryUrls.length 
+    });
   } catch (error) {
+    console.error('Delete advert error:', error);
     return NextResponse.json({ error: 'Failed to delete advert' }, { status: 500 });
   }
 }
