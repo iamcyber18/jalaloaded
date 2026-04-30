@@ -38,6 +38,27 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: 'Failed to update video' }, { status: 500 });
   }
 }
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const resolvedParams = await params;
+    const body = await request.json();
+    await dbConnect();
+
+    if (body.action === 'like') {
+      const video = await Video.findByIdAndUpdate(
+        resolvedParams.id,
+        { $inc: { likes: 1 } },
+        { new: true }
+      );
+      if (!video) return NextResponse.json({ error: 'Video not found' }, { status: 404 });
+      return NextResponse.json({ likes: video.likes });
+    }
+    
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to update video' }, { status: 500 });
+  }
+}
 
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {

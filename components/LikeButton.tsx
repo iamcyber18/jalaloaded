@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function LikeButton({ songId, postId, initialLikes }: { songId?: string; postId?: string; initialLikes: number }) {
+export default function LikeButton({ songId, postId, videoId, initialLikes }: { songId?: string; postId?: string; videoId?: string; initialLikes: number }) {
   const [likes, setLikes] = useState(initialLikes);
   const [liked, setLiked] = useState(false);
 
@@ -11,7 +11,7 @@ export default function LikeButton({ songId, postId, initialLikes }: { songId?: 
     setLiked(true);
     setLikes(l => l + 1);
     
-    const id = songId || postId;
+    const id = songId || postId || videoId;
     if (!id) return;
 
     try {
@@ -25,6 +25,12 @@ export default function LikeButton({ songId, postId, initialLikes }: { songId?: 
         await fetch(`/api/posts/${postId}/like`, {
           method: 'POST',
         });
+      } else if (videoId) {
+        await fetch(`/api/videos/${videoId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'like' }),
+        });
       }
     } catch {}
   };
@@ -34,12 +40,12 @@ export default function LikeButton({ songId, postId, initialLikes }: { songId?: 
       onClick={handleLike}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: '8px',
-        padding: '11px 22px', borderRadius: '10px',
-        background: liked ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.04)',
-        border: liked ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(255,255,255,0.08)',
-        color: liked ? '#ef4444' : 'rgba(255,255,255,0.6)',
-        fontSize: '12px', fontWeight: 600, cursor: liked ? 'default' : 'pointer',
-        fontFamily: '"DM Sans", sans-serif', transition: 'all 0.2s'
+        padding: '8px 16px', borderRadius: '20px',
+        background: liked ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.05)',
+        border: liked ? '1px solid rgba(239,68,68,0.2)' : '1px solid var(--color-border-tertiary)',
+        color: liked ? '#ef4444' : 'var(--color-text-primary)',
+        fontSize: '13px', fontWeight: 600, cursor: liked ? 'default' : 'pointer',
+        transition: 'all 0.2s'
       }}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? '#ef4444' : 'none'} stroke={liked ? '#ef4444' : 'currentColor'} strokeWidth="2">

@@ -27,11 +27,11 @@ export default function ShareButton({ title }: { title: string }) {
       onClick={handleShare}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: '8px',
-        padding: '11px 22px', borderRadius: '10px',
-        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-        color: copied ? '#1DBE73' : 'rgba(255,255,255,0.6)',
-        fontSize: '12px', fontWeight: 600, cursor: 'pointer',
-        fontFamily: '"DM Sans", sans-serif', transition: 'all 0.2s'
+        padding: '8px 16px', borderRadius: '20px',
+        background: 'rgba(255,255,255,0.05)', border: '1px solid var(--color-border-tertiary)',
+        color: copied ? '#1DBE73' : 'var(--color-text-primary)',
+        fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+        transition: 'all 0.2s'
       }}
     >
       {copied ? (
