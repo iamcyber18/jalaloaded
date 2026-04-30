@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 import LikeButton from '@/components/LikeButton';
 import ShareButton from '@/components/ShareButton';
 import { timeAgo } from '@/lib/utils';
+import FacebookVideoPlayer from '@/components/FacebookVideoPlayer';
 
 export const dynamic = 'force-dynamic';
 
@@ -151,18 +152,8 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
               style={{ position: 'absolute', top: 0, left: 0 }}
               loading="lazy"
             ></iframe>
-          ) : isFacebook && facebookVideoId ? (
-            <iframe 
-              width="100%" 
-              height="100%" 
-              src={`https://www.facebook.com/plugins/video.php?height=314&href=${encodeURIComponent(video.mediaUrl)}&show_text=false&width=560&t=0`}
-              title={video.title} 
-              frameBorder="0" 
-              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" 
-              allowFullScreen
-              style={{ position: 'absolute', top: 0, left: 0 }}
-              loading="lazy"
-            ></iframe>
+          ) : isFacebook ? (
+            <FacebookVideoPlayer videoUrl={video.mediaUrl} title={video.title} />
           ) : isTikTok ? (
             <div style={{ 
               width: '100%', 

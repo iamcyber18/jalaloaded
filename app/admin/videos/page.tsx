@@ -224,9 +224,11 @@ export default function AdminVideosPage() {
             }
           }
         } else if (isFacebook || isTikTok) {
-          // For Facebook and TikTok, recommend custom thumbnail upload
-          if (!payload.thumbnailUrl) {
-            toast.error(`${isFacebook ? 'Facebook' : 'TikTok'} videos work best with custom thumbnails. Please upload one for better display.`);
+          // For Facebook and TikTok, provide guidance about limitations
+          if (isFacebook) {
+            toast.success('Facebook video added! Note: Private Facebook videos may not embed properly and will show a "Watch on Facebook" button instead.');
+          } else {
+            toast.success('TikTok video added! TikTok videos will show a "Watch on TikTok" button since they cannot be embedded directly.');
           }
         }
       }
@@ -528,7 +530,7 @@ export default function AdminVideosPage() {
                       {(form.mediaUrl.includes('youtube.com') || form.mediaUrl.includes('youtu.be')) ? (
                         <span style={{ color: '#FF6B00' }}>🎬 YouTube video detected - thumbnail will be auto-generated</span>
                       ) : (form.mediaUrl.includes('facebook.com') || form.mediaUrl.includes('fb.watch')) ? (
-                        <span style={{ color: '#1877F2' }}>📘 Facebook video detected - please upload a custom thumbnail</span>
+                        <span style={{ color: '#1877F2' }}>📘 Facebook video detected - embedding may not work for private videos</span>
                       ) : form.mediaUrl.includes('tiktok.com') ? (
                         <span style={{ color: '#FF0050' }}>🎵 TikTok video detected - please upload a custom thumbnail</span>
                       ) : form.mediaUrl.includes('vimeo.com') ? (
