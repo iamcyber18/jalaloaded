@@ -9,7 +9,7 @@ export default function VideoCard({ video }: { video: any }) {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Generate thumbnail URL for YouTube videos if no custom thumbnail
+  // Generate thumbnail URL for various video platforms if no custom thumbnail
   const getThumbnailUrl = () => {
     if (video.thumbnailUrl) {
       return video.thumbnailUrl;
@@ -33,6 +33,10 @@ export default function VideoCard({ video }: { video: any }) {
         }
       }
     }
+    
+    // For Facebook videos, we can't easily get thumbnails via URL
+    // For TikTok videos, thumbnails are also not easily accessible
+    // These would need custom thumbnail uploads or API integration
     
     return null;
   };

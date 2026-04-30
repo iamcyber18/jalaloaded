@@ -205,6 +205,9 @@ export default function AdminVideosPage() {
       // Auto-generate thumbnail for YouTube if not provided
       if (!payload.thumbnailUrl && payload.mediaUrl) {
         const isYouTube = payload.mediaUrl.includes('youtube.com') || payload.mediaUrl.includes('youtu.be');
+        const isFacebook = payload.mediaUrl.includes('facebook.com') || payload.mediaUrl.includes('fb.watch');
+        const isTikTok = payload.mediaUrl.includes('tiktok.com');
+        
         if (isYouTube) {
           const patterns = [
             /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
@@ -219,6 +222,11 @@ export default function AdminVideosPage() {
               payload.thumbnailUrl = `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`;
               break;
             }
+          }
+        } else if (isFacebook || isTikTok) {
+          // For Facebook and TikTok, recommend custom thumbnail upload
+          if (!payload.thumbnailUrl) {
+            toast.error(`${isFacebook ? 'Facebook' : 'TikTok'} videos work best with custom thumbnails. Please upload one for better display.`);
           }
         }
       }
@@ -319,7 +327,7 @@ export default function AdminVideosPage() {
                           ? `Uploading thumbnail... ${thumbProgress}%` 
                           : form.thumbnailUrl 
                             ? '✅ Custom thumbnail set' 
-                            : 'Click thumbnail to upload custom image (Max 10MB). If omitted, one will be auto-generated from the video.'
+                            : 'Click thumbnail to upload custom image (Max 10MB). YouTube videos auto-generate thumbnails. Facebook and TikTok videos require custom thumbnails.'
                         }
                       </div>
                       {uploadingThumb && (
@@ -380,7 +388,7 @@ export default function AdminVideosPage() {
                       const url = e.target.value;
                       setForm({ ...form, mediaUrl: url });
                       
-                      // Auto-generate thumbnail for YouTube URLs
+                      // Auto-generate thumbnail for YouTube URLs only (other platforms need custom thumbnails)
                       if (url && !form.thumbnailUrl && (url.includes('youtube.com') || url.includes('youtu.be'))) {
                         const patterns = [
                           /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
@@ -398,13 +406,17 @@ export default function AdminVideosPage() {
                         }
                       }
                     }} 
-                    placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtu.be/... or direct .mp4 URL"
+                    placeholder="e.g. YouTube, Facebook, TikTok, Vimeo links or direct .mp4 URL"
                     disabled={uploadingVideo}
                   />
                   {form.mediaUrl && !uploadingVideo && (
                     <div style={{ fontSize: '11px', marginTop: '6px' }}>
                       {(form.mediaUrl.includes('youtube.com') || form.mediaUrl.includes('youtu.be')) ? (
                         <span style={{ color: '#FF6B00' }}>🎬 YouTube video detected - thumbnail will be auto-generated</span>
+                      ) : (form.mediaUrl.includes('facebook.com') || form.mediaUrl.includes('fb.watch')) ? (
+                        <span style={{ color: '#1877F2' }}>📘 Facebook video detected - please upload a custom thumbnail</span>
+                      ) : form.mediaUrl.includes('tiktok.com') ? (
+                        <span style={{ color: '#FF0050' }}>🎵 TikTok video detected - please upload a custom thumbnail</span>
                       ) : form.mediaUrl.includes('vimeo.com') ? (
                         <span style={{ color: '#1AB7EA' }}>🎬 Vimeo video detected</span>
                       ) : form.mediaUrl.match(/\.(mp4|webm|ogg|avi|mov)$/i) ? (

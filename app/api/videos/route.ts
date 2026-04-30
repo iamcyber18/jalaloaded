@@ -23,14 +23,19 @@ export async function POST(request: Request) {
     await dbConnect();
     const body = await request.json();
     
-    // Auto-generate thumbnail for YouTube videos if not provided
+    // Auto-generate thumbnail for supported platforms if not provided
     if (!body.thumbnailUrl && body.mediaUrl) {
       const isYouTube = body.mediaUrl.includes('youtube.com') || body.mediaUrl.includes('youtu.be');
+      const isFacebook = body.mediaUrl.includes('facebook.com') || body.mediaUrl.includes('fb.watch');
+      const isTikTok = body.mediaUrl.includes('tiktok.com');
+      
       if (isYouTube) {
         // Extract YouTube ID and generate thumbnail
         const patterns = [
           /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
-          /youtube\.com\/watch\?.*v=([^&\n?#]+)/
+          /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+          /youtube\.com\/shorts\/([^&\n?#]+)/,
+          /m\.youtube\.com\/watch\?v=([^&\n?#]+)/
         ];
         
         for (const pattern of patterns) {
@@ -41,6 +46,10 @@ export async function POST(request: Request) {
           }
         }
       }
+      
+      // Note: Facebook and TikTok don't provide easy thumbnail URL generation
+      // These platforms require API access or custom thumbnail uploads
+      // For now, we'll rely on custom thumbnails for these platforms
     }
     
     const newVideo = new Video(body);
