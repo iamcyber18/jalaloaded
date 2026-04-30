@@ -194,27 +194,54 @@ export default function AdminVideosPage() {
     if (!form.title.trim() || !form.mediaUrl.trim()) {
       return toast.error('Title and video URL are required');
     }
+    
     setSaving(true);
     try {
       const payload = {
         ...form,
         author: session?.role === 'admin' ? 'jalal' : 'co-friend',
       };
+      
+      // Auto-generate thumbnail for YouTube if not provided
+      if (!payload.thumbnailUrl && payload.mediaUrl) {
+        const isYouTube = payload.mediaUrl.includes('youtube.com') || payload.mediaUrl.includes('youtu.be');
+        if (isYouTube) {
+          const patterns = [
+            /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
+            /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+            /youtube\.com\/shorts\/([^&\n?#]+)/,
+            /m\.youtube\.com\/watch\?v=([^&\n?#]+)/
+          ];
+          
+          for (const pattern of patterns) {
+            const match = payload.mediaUrl.match(pattern);
+            if (match && match[1]) {
+              payload.thumbnailUrl = `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`;
+              break;
+            }
+          }
+        }
+      }
+      
       const res = await fetch('/api/videos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+      
       if (res.ok) {
-        toast.success('Video published!');
+        toast.success('Video published successfully!');
         setForm({ title: '', mediaUrl: '', thumbnailUrl: '', description: '', category: 'All' });
         setShowForm(false);
         fetchVideos();
       } else {
         const data = await res.json();
-        toast.error(data.error || 'Failed to publish');
+        toast.error(data.error || 'Failed to publish video');
       }
-    } catch { toast.error('Failed to publish'); }
+    } catch (error) {
+      console.error('Save error:', error);
+      toast.error('Failed to publish video');
+    }
     setSaving(false);
   };
 
@@ -349,12 +376,43 @@ export default function AdminVideosPage() {
                   <input 
                     style={S.input} 
                     value={form.mediaUrl} 
-                    onChange={e => setForm({ ...form, mediaUrl: e.target.value })} 
-                    placeholder="e.g. YouTube/Vimeo link or direct .mp4 URL"
+                    onChange={e => {
+                      const url = e.target.value;
+                      setForm({ ...form, mediaUrl: url });
+                      
+                      // Auto-generate thumbnail for YouTube URLs
+                      if (url && !form.thumbnailUrl && (url.includes('youtube.com') || url.includes('youtu.be'))) {
+                        const patterns = [
+                          /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
+                          /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+                          /youtube\.com\/shorts\/([^&\n?#]+)/,
+                          /m\.youtube\.com\/watch\?v=([^&\n?#]+)/
+                        ];
+                        
+                        for (const pattern of patterns) {
+                          const match = url.match(pattern);
+                          if (match && match[1]) {
+                            setForm(f => ({ ...f, thumbnailUrl: `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg` }));
+                            break;
+                          }
+                        }
+                      }
+                    }} 
+                    placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtu.be/... or direct .mp4 URL"
                     disabled={uploadingVideo}
                   />
                   {form.mediaUrl && !uploadingVideo && (
-                    <div style={{ fontSize: '11px', color: '#4CAF50', marginTop: '6px' }}>✅ Video source attached</div>
+                    <div style={{ fontSize: '11px', marginTop: '6px' }}>
+                      {(form.mediaUrl.includes('youtube.com') || form.mediaUrl.includes('youtu.be')) ? (
+                        <span style={{ color: '#FF6B00' }}>🎬 YouTube video detected - thumbnail will be auto-generated</span>
+                      ) : form.mediaUrl.includes('vimeo.com') ? (
+                        <span style={{ color: '#1AB7EA' }}>🎬 Vimeo video detected</span>
+                      ) : form.mediaUrl.match(/\.(mp4|webm|ogg|avi|mov)$/i) ? (
+                        <span style={{ color: '#4CAF50' }}>✅ Direct video file URL</span>
+                      ) : (
+                        <span style={{ color: '#FFC107' }}>⚠️ URL format not recognized - please verify it's a valid video link</span>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

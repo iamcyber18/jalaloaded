@@ -9,9 +9,39 @@ export default function VideoCard({ video }: { video: any }) {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  // Generate thumbnail URL for YouTube videos if no custom thumbnail
+  const getThumbnailUrl = () => {
+    if (video.thumbnailUrl) {
+      return video.thumbnailUrl;
+    }
+    
+    // Check if it's a YouTube video and generate thumbnail
+    const isYouTube = video.mediaUrl?.includes('youtube.com') || video.mediaUrl?.includes('youtu.be');
+    if (isYouTube) {
+      const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
+        /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+        /youtube\.com\/shorts\/([^&\n?#]+)/,
+        /m\.youtube\.com\/watch\?v=([^&\n?#]+)/
+      ];
+      
+      for (const pattern of patterns) {
+        const match = video.mediaUrl.match(pattern);
+        if (match && match[1]) {
+          // Try maxresdefault first, fallback to hqdefault if needed
+          return `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`;
+        }
+      }
+    }
+    
+    return null;
+  };
+
+  const thumbnailUrl = getThumbnailUrl();
+
   return (
     <Link href={`/videos/${video.slug || video._id}`} className="video-card" style={{ display: 'block', textDecoration: 'none' }}>
-      <div className="vid-thumb" style={video.thumbnailUrl ? { backgroundImage: `url(${video.thumbnailUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
+      <div className="vid-thumb" style={thumbnailUrl ? { backgroundImage: `url(${thumbnailUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
         <div className="vid-play">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         </div>

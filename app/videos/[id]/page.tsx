@@ -54,8 +54,29 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
   // Extract YouTube ID if it's a YouTube link
   let youtubeId = '';
   if (isYouTube) {
-    const match = video.mediaUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
-    youtubeId = match ? match[1] : '';
+    // Handle various YouTube URL formats including shorts
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
+      /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+      /youtube\.com\/shorts\/([^&\n?#]+)/,
+      /m\.youtube\.com\/watch\?v=([^&\n?#]+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = video.mediaUrl.match(pattern);
+      if (match && match[1]) {
+        youtubeId = match[1];
+        break;
+      }
+    }
+  }
+
+  // Check if it's a Vimeo video
+  const isVimeo = video.mediaUrl.includes('vimeo.com');
+  let vimeoId = '';
+  if (isVimeo) {
+    const match = video.mediaUrl.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+    vimeoId = match ? match[1] : '';
   }
 
   // Find some related videos
@@ -79,23 +100,57 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
             <iframe 
               width="100%" 
               height="100%" 
-              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`} 
+              src={`https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&showinfo=0&autoplay=0&controls=1`} 
               title={video.title} 
               frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
               allowFullScreen
               style={{ position: 'absolute', top: 0, left: 0 }}
+              loading="lazy"
             ></iframe>
-          ) : (
+          ) : isVimeo && vimeoId ? (
+            <iframe 
+              width="100%" 
+              height="100%" 
+              src={`https://player.vimeo.com/video/${vimeoId}?badge=0&autopause=0&player_id=0&app_id=58479&autoplay=0`} 
+              title={video.title} 
+              frameBorder="0" 
+              allow="autoplay; fullscreen; picture-in-picture" 
+              allowFullScreen
+              style={{ position: 'absolute', top: 0, left: 0 }}
+              loading="lazy"
+            ></iframe>
+          ) : video.mediaUrl ? (
             <video 
               controls 
-              autoPlay 
               poster={video.thumbnailUrl}
               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              preload="metadata"
+              controlsList="nodownload"
             >
               <source src={video.mediaUrl} type="video/mp4" />
+              <source src={video.mediaUrl} type="video/webm" />
+              <source src={video.mediaUrl} type="video/ogg" />
               Your browser does not support HTML video.
             </video>
+          ) : (
+            <div style={{ 
+              width: '100%', 
+              height: '100%', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              flexDirection: 'column', 
+              gap: '16px',
+              color: 'var(--color-text-secondary)'
+            }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+              </svg>
+              <p>Video not available</p>
+              <p style={{ fontSize: '12px', opacity: 0.6 }}>Please check the video URL</p>
+            </div>
           )}
         </div>
 
