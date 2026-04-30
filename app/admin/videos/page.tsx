@@ -207,7 +207,7 @@ export default function AdminVideosPage() {
         {/* Upload Form */}
         {showForm && (
           <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '24px', marginBottom: '32px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            <div className="admin-video-form-grid">
               
               {/* Left Column - Files */}
               <div>
@@ -216,7 +216,7 @@ export default function AdminVideosPage() {
                 {/* Thumbnail Upload */}
                 <div style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '16px' }}>
                   <div style={S.label}>Custom Thumbnail (Optional)</div>
-                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                  <div className="admin-video-thumb-row">
                     <div 
                       onClick={() => !uploadingThumb && thumbInputRef.current?.click()}
                       style={{ 
@@ -239,7 +239,7 @@ export default function AdminVideosPage() {
                 {/* Video Upload */}
                 <div style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.04)' }}>
                   <div style={S.label}>Video Source *</div>
-                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '12px' }}>
+                  <div className="admin-video-upload-row">
                     <button 
                       onClick={() => !uploadingVideo && videoInputRef.current?.click()}
                       disabled={uploadingVideo}
@@ -295,7 +295,7 @@ export default function AdminVideosPage() {
                   />
                 </div>
 
-                <div style={S.btnGroup}>
+                <div className="admin-video-btn-group">
                   <button onClick={() => setShowForm(false)} style={{ padding: '10px 20px', borderRadius: '8px', background: 'rgba(255,255,255,0.06)', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
                   <button onClick={handleSave} disabled={saving || uploadingVideo || uploadingThumb} style={{ padding: '10px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, #FF6B00, #ff8533)', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 600, cursor: 'pointer', opacity: (saving || uploadingVideo || uploadingThumb) ? 0.6 : 1 }}>
                     {saving ? 'Publishing...' : 'Publish Video'}
@@ -316,7 +316,7 @@ export default function AdminVideosPage() {
             <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>Click "New Video" to start Jalaloaded TV!</div>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+          <div className="admin-video-grid">
             {videos.map(video => (
               <div key={video._id} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ height: '140px', background: video.thumbnailUrl ? `url(${video.thumbnailUrl}) center/cover` : '#111', position: 'relative' }}>
@@ -330,7 +330,7 @@ export default function AdminVideosPage() {
                 </div>
                 <div style={{ padding: '16px' }}>
                   <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{video.title}</div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="admin-video-card-footer">
                     <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
                       <span>👁 {video.views || 0}</span>
                       <span>👍 {video.likes || 0}</span>
