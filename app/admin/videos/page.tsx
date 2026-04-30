@@ -266,6 +266,56 @@ export default function AdminVideosPage() {
     } catch { toast.error('Failed to delete'); }
   };
 
+  // Helper function to get thumbnail URL for any video platform
+  const getVideoThumbnail = (video: VideoItem) => {
+    if (video.thumbnailUrl) {
+      return video.thumbnailUrl;
+    }
+    
+    // Auto-generate thumbnail for YouTube videos
+    const isYouTube = video.mediaUrl?.includes('youtube.com') || video.mediaUrl?.includes('youtu.be');
+    if (isYouTube) {
+      const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
+        /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+        /youtube\.com\/shorts\/([^&\n?#]+)/,
+        /m\.youtube\.com\/watch\?v=([^&\n?#]+)/
+      ];
+      
+      for (const pattern of patterns) {
+        const match = video.mediaUrl.match(pattern);
+        if (match && match[1]) {
+          return `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`;
+        }
+      }
+    }
+    
+    return null;
+  };
+
+  // Helper function to handle thumbnail loading errors
+  const handleThumbnailError = (e: React.SyntheticEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    // Fallback to a gradient background if thumbnail fails to load
+    target.style.background = 'linear-gradient(135deg, #1a1a1a, #2a2a2a)';
+  };
+
+  // Helper function to get platform info
+  const getPlatformInfo = (mediaUrl: string) => {
+    if (mediaUrl.includes('youtube.com') || mediaUrl.includes('youtu.be')) {
+      return { platform: 'YouTube', icon: '🎬', color: '#FF6B00' };
+    } else if (mediaUrl.includes('facebook.com') || mediaUrl.includes('fb.watch')) {
+      return { platform: 'Facebook', icon: '📘', color: '#1877F2' };
+    } else if (mediaUrl.includes('tiktok.com')) {
+      return { platform: 'TikTok', icon: '🎵', color: '#FF0050' };
+    } else if (mediaUrl.includes('vimeo.com')) {
+      return { platform: 'Vimeo', icon: '🎬', color: '#1AB7EA' };
+    } else if (mediaUrl.match(/\.(mp4|webm|ogg|avi|mov)$/i)) {
+      return { platform: 'Direct', icon: '📹', color: '#4CAF50' };
+    }
+    return { platform: 'Unknown', icon: '❓', color: '#666' };
+  };
+
   const S = {
     row: { display: 'flex', gap: '16px', marginBottom: '16px' },
     label: { fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px', display: 'block' } as React.CSSProperties,
@@ -342,6 +392,70 @@ export default function AdminVideosPage() {
                       )}
                     </div>
                   </div>
+                  
+                  {/* Thumbnail Preview */}
+                  {form.mediaUrl && (
+                    <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Preview</div>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <div style={{ 
+                          width: '60px', 
+                          height: '40px', 
+                          borderRadius: '6px', 
+                          background: (() => {
+                            if (form.thumbnailUrl) return `url(${form.thumbnailUrl}) center/cover`;
+                            
+                            // Auto-generate preview for YouTube
+                            if (form.mediaUrl.includes('youtube.com') || form.mediaUrl.includes('youtu.be')) {
+                              const patterns = [
+                                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([^&\n?#]+)/,
+                                /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+                                /youtube\.com\/shorts\/([^&\n?#]+)/,
+                                /m\.youtube\.com\/watch\?v=([^&\n?#]+)/
+                              ];
+                              
+                              for (const pattern of patterns) {
+                                const match = form.mediaUrl.match(pattern);
+                                if (match && match[1]) {
+                                  return `url(https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg) center/cover`;
+                                }
+                              }
+                            }
+                            
+                            return 'linear-gradient(135deg, #1a1a1a, #2a2a2a)';
+                          })(),
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          {!form.thumbnailUrl && !(form.mediaUrl.includes('youtube.com') || form.mediaUrl.includes('youtu.be')) && (
+                            <span style={{ fontSize: '16px', opacity: 0.3 }}>
+                              {form.mediaUrl.includes('facebook.com') || form.mediaUrl.includes('fb.watch') ? '📘' :
+                               form.mediaUrl.includes('tiktok.com') ? '🎵' :
+                               form.mediaUrl.includes('vimeo.com') ? '🎬' : '📹'}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {form.title || 'Video Title'}
+                          </div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+                            {(() => {
+                              if (form.mediaUrl.includes('youtube.com') || form.mediaUrl.includes('youtu.be')) return '🎬 YouTube';
+                              if (form.mediaUrl.includes('facebook.com') || form.mediaUrl.includes('fb.watch')) return '📘 Facebook';
+                              if (form.mediaUrl.includes('tiktok.com')) return '🎵 TikTok';
+                              if (form.mediaUrl.includes('vimeo.com')) return '🎬 Vimeo';
+                              if (form.mediaUrl.match(/\.(mp4|webm|ogg|avi|mov)$/i)) return '📹 Direct File';
+                              return '❓ Unknown';
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Video Upload */}
@@ -477,31 +591,56 @@ export default function AdminVideosPage() {
           </div>
         ) : (
           <div className="admin-video-grid">
-            {videos.map(video => (
-              <div key={video._id} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ height: '140px', background: video.thumbnailUrl ? `url(${video.thumbnailUrl}) center/cover` : '#111', position: 'relative' }}>
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}></div>
-                  <div style={{ position: 'absolute', bottom: '10px', left: '10px', display: 'flex', gap: '6px' }}>
-                    {video.category && <span style={{ padding: '3px 8px', background: 'rgba(255,107,0,0.8)', color: '#fff', fontSize: '9px', fontWeight: 700, borderRadius: '4px', textTransform: 'uppercase' }}>{video.category}</span>}
-                  </div>
-                  <div style={{ position: 'absolute', bottom: '10px', right: '10px', fontSize: '10px', color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '2px 6px', borderRadius: '4px' }}>
-                    {new Date(video.createdAt).toLocaleDateString()}
-                  </div>
-                </div>
-                <div style={{ padding: '16px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{video.title}</div>
-                  <div className="admin-video-card-footer">
-                    <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
-                      <span>👁 {video.views || 0}</span>
-                      <span>👍 {video.likes || 0}</span>
+            {videos.map(video => {
+              const thumbnailUrl = getVideoThumbnail(video);
+              const platformInfo = getPlatformInfo(video.mediaUrl);
+              
+              return (
+                <div key={video._id} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ 
+                    height: '140px', 
+                    background: thumbnailUrl ? `url(${thumbnailUrl}) center/cover` : 'linear-gradient(135deg, #1a1a1a, #2a2a2a)', 
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {!thumbnailUrl && (
+                      <div style={{ fontSize: '32px', opacity: 0.3 }}>{platformInfo.icon}</div>
+                    )}
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}></div>
+                    <div style={{ position: 'absolute', bottom: '10px', left: '10px', display: 'flex', gap: '6px' }}>
+                      {video.category && <span style={{ padding: '3px 8px', background: 'rgba(255,107,0,0.8)', color: '#fff', fontSize: '9px', fontWeight: 700, borderRadius: '4px', textTransform: 'uppercase' }}>{video.category}</span>}
+                      <span style={{ 
+                        padding: '3px 8px', 
+                        background: platformInfo.color, 
+                        color: '#fff', 
+                        fontSize: '9px', 
+                        fontWeight: 700, 
+                        borderRadius: '4px' 
+                      }}>
+                        {platformInfo.platform}
+                      </span>
                     </div>
-                    <button onClick={() => handleDelete(video._id)} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                      Delete
-                    </button>
+                    <div style={{ position: 'absolute', bottom: '10px', right: '10px', fontSize: '10px', color: '#fff', background: 'rgba(0,0,0,0.6)', padding: '2px 6px', borderRadius: '4px' }}>
+                      {new Date(video.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div style={{ padding: '16px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{video.title}</div>
+                    <div className="admin-video-card-footer">
+                      <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+                        <span>👁 {video.views || 0}</span>
+                        <span>👍 {video.likes || 0}</span>
+                      </div>
+                      <button onClick={() => handleDelete(video._id)} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

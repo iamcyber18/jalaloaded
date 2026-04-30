@@ -18,7 +18,10 @@ export default function PrivacyPage() {
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '60px 24px' }}>
         
         {/* Header */}
-        <div style={{ marginBottom: '40px' }}>
+        <div style={{ marginBottom: '40px', textAlign: 'center' }}>
+          <Link href="/" style={{ display: 'inline-block', marginBottom: '24px' }}>
+            <img src="/images/jalaloadedlogo.png" alt="Jalaloaded Logo" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
+          </Link>
           <h1 style={{ fontFamily: '"Syne", sans-serif', fontSize: '36px', fontWeight: 800, color: 'var(--orange)', marginBottom: '8px' }}>
             Privacy Policy
           </h1>
