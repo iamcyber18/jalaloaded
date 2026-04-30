@@ -68,6 +68,7 @@ export default function AdminSidebar() {
         <NavLink href="/admin" label="New Post" active={pathname === '/admin'} onClick={closeMenu} />
         <NavLink href="/admin/posts" label={postsLabel} active={pathname === '/admin/posts'} onClick={closeMenu} />
         {session?.role === 'admin' && <NavLink href="/admin/music" label="Music" active={pathname === '/admin/music'} onClick={closeMenu} />}
+        {session?.role === 'admin' && <NavLink href="/admin/upcoming" label="Upcoming Music" active={pathname === '/admin/upcoming'} onClick={closeMenu} />}
         {session?.role === 'admin' && <NavLink href="/admin/videos" label="Videos" active={pathname === '/admin/videos'} onClick={closeMenu} />}
         {session?.role === 'admin' && <NavLink href="/admin/artists" label="Artists" active={pathname === '/admin/artists'} onClick={closeMenu} />}
 
