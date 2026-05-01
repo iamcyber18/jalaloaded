@@ -7,6 +7,7 @@ import LikeButton from '@/components/LikeButton';
 import ShareButton from '@/components/ShareButton';
 import AdvertSlider from '@/components/AdvertSlider';
 import NewsletterForm from '@/components/NewsletterForm';
+import FollowWriterButton from '@/components/FollowWriterButton';
 import Link from 'next/link';
 import { getAuthorDisplay } from '@/lib/authors';
 import { timeAgo, calculateReadTime, formatNumber } from '@/lib/utils';
@@ -313,10 +314,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
               <div>
                 <div className="bio-name">{getAuthorDisplay(post.author).name} — Writer at Jalaloaded</div>
                 <div className="bio-text">Passionately covering music, culture, street life, and everything in between.</div>
-                <button className="bio-follow">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '5px' }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  Follow {author.name}
-                </button>
+                <FollowWriterButton authorId={post.author} authorName={author.name} />
               </div>
             </div>
 
