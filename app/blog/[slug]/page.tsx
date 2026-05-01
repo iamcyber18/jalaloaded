@@ -182,12 +182,51 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                 const afterConclusion = allPhotos.filter((p: any) => p.position === 'after-conclusion');
                 
                 const mdProps = { remarkPlugins: [remarkGfm], components: { blockquote: ({children}: any) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}: any) => <p>{children}</p> } };
-                const inlineImgStyle = { maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' as const, display: 'inline-block', borderRadius: '8px' };
-                const imgWrap = { margin: '24px 0', textAlign: 'center' as const };
-                
-                const renderPhotos = (photos: any[]) => photos.map((p: any, i: number) => (
-                  <div key={i} style={imgWrap}><img src={p.url} alt="Article image" style={inlineImgStyle} /></div>
-                ));
+                const renderPhotos = (photos: any[]) => {
+                  if (!photos || photos.length === 0) return null;
+                  return (
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: photos.length === 1 ? '1fr' : photos.length === 2 ? '1fr 1fr' : '1fr 1fr',
+                      gridTemplateRows: photos.length === 1 ? 'auto' : photos.length === 2 ? '300px' : '180px 180px',
+                      gap: '8px',
+                      margin: '32px 0',
+                      justifyContent: 'center'
+                    }}>
+                      {photos.map((photo, idx) => {
+                        if (photos.length === 1) {
+                          return (
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                              <img 
+                                src={photo.url} 
+                                alt="Article image"
+                                style={{ maxWidth: '100%', maxHeight: '500px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', borderRadius: '12px' }}
+                              />
+                            </div>
+                          );
+                        }
+                        
+                        return (
+                          <div 
+                            key={idx}
+                            style={{
+                              borderRadius: '12px',
+                              overflow: 'hidden',
+                              position: 'relative',
+                              ...(photos.length === 3 && idx === 0 ? { gridRow: 'span 2' } : {})
+                            }}
+                          >
+                            <img 
+                              src={photo.url} 
+                              alt={`Article image ${idx + 1}`}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                };
 
                 // Split body into sections using '---' divider
                 const sections = content.split('\n---\n');

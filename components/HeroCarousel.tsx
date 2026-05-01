@@ -221,46 +221,7 @@ export default function HeroCarousel({ slides }: { slides: HeroCarouselSlide[] }
           )}
         </div>
 
-        {slides.length > 1 && (
-          <div className="hero-carousel-preview">
-            <div className="hero-carousel-preview-label">Feature Carousel</div>
-            <div className="hero-carousel-preview-list">
-              {slides.map((slide, index) => (
-                <button
-                  key={slide.id}
-                  type="button"
-                  className={`hero-carousel-preview-item ${index === safeActiveIndex ? 'active' : ''}`}
-                  onClick={() => handleSelectSlide(index)}
-                >
-                  <span className="hero-carousel-preview-index">{formatSlideCount(index + 1)}</span>
-                  <span className="hero-carousel-preview-body">
-                    <span className="hero-carousel-preview-tag">
-                      {slide.featured ? 'Featured' : slide.category}
-                    </span>
-                    <span className="hero-carousel-preview-title">{slide.title}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
-
-      {slides.length > 1 && (
-        <div className="hero-carousel-toolbar">
-          <div className="hero-carousel-counter">
-            {formatSlideCount(safeActiveIndex + 1)} / {formatSlideCount(slides.length)}
-          </div>
-          <div className="hero-carousel-controls">
-            <button type="button" className="hero-carousel-nav" onClick={() => stepSlides(-1)} aria-label="Previous slide">
-              <ArrowIcon direction="left" />
-            </button>
-            <button type="button" className="hero-carousel-nav" onClick={() => stepSlides(1)} aria-label="Next slide">
-              <ArrowIcon direction="right" />
-            </button>
-          </div>
-        </div>
-      )}
     </section>
   );
 }
