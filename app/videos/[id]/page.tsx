@@ -179,11 +179,29 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
     vimeoId = match ? match[1] : '';
   }
 
-  // Find some related videos
-  const relatedVideos = await Video.find({ _id: { $ne: video._id }, category: video.category || 'All' })
+  // Find the latest related videos (combining both standard videos and song videos)
+  const standardVideos = await Video.find({ _id: { $ne: video._id } })
     .sort({ createdAt: -1 })
-    .limit(4)
+    .limit(10)
     .lean();
+
+  const songsWithVideos = await Song.find({ videoUrl: { $exists: true, $ne: '' } })
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .lean();
+
+  let mappedSongs: any[] = songsWithVideos.map(song => ({
+    _id: song._id,
+    title: `${song.artist} - ${song.title} (Official Video)`,
+    thumbnailUrl: song.coverUrl,
+    createdAt: song.createdAt,
+    slug: song.slug || song._id
+  }));
+
+  const relatedVideos = [...standardVideos, ...mappedSongs]
+    .filter(v => v._id.toString() !== video._id.toString())
+    .sort((a, b) => new Date(b.createdAt as unknown as string).getTime() - new Date(a.createdAt as unknown as string).getTime())
+    .slice(0, 8);
 
   return (
     <div className="jlh min-h-screen">
@@ -343,7 +361,7 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
             <h3 style={{ fontFamily: '"Syne", sans-serif', fontSize: '20px', fontWeight: 800, marginBottom: '20px', borderBottom: '2px solid var(--orange)', display: 'inline-block', paddingBottom: '4px' }}>Up Next</h3>
             <div className="video-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
               {relatedVideos.map((rv: any) => (
-                <Link href={`/videos/${rv._id.toString()}`} key={rv._id.toString()} className="video-card" style={{ display: 'block', textDecoration: 'none' }}>
+                <Link href={`/videos/${rv.slug || rv._id.toString()}`} key={rv._id.toString()} className="video-card" style={{ display: 'block', textDecoration: 'none' }}>
                   <div className="vid-thumb" style={rv.thumbnailUrl ? { backgroundImage: `url(${rv.thumbnailUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
                     <div className="vid-play">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
