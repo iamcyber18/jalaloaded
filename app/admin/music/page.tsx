@@ -12,10 +12,13 @@ interface SongItem {
   artist: string;
   genre: string;
   year: number;
+  featured?: boolean;
   mediaUrl: string;
   streamUrl?: string;
   downloadUrl?: string;
   coverUrl?: string;
+  videoUrl?: string;
+  description?: string;
   plays: number;
   downloads: number;
   createdAt: string;
@@ -46,8 +49,16 @@ export default function AdminMusicPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+
+  const resetForm = () => {
+    setForm({ title: '', artist: '', genre: 'Afrobeats', year: new Date().getFullYear(), featured: false, mediaUrl: '', streamUrl: '', downloadUrl: '', coverUrl: '', videoUrl: '', description: '' });
+    setEditingId(null);
+  };
 
   const [form, setForm] = useState({
     title: '',
@@ -59,10 +70,12 @@ export default function AdminMusicPage() {
     streamUrl: '',
     downloadUrl: '',
     coverUrl: '',
+    videoUrl: '',
     description: '',
   });
   const [coverProgress, setCoverProgress] = useState(0);
   const [audioProgress, setAudioProgress] = useState(0);
+  const [videoProgress, setVideoProgress] = useState(0);
 
   const genres = ['Afrobeats', 'Amapiano', 'Highlife', 'R&B', 'Gospel', 'Hip-hop', 'Other'];
 
@@ -148,6 +161,20 @@ export default function AdminMusicPage() {
     setAudioProgress(0);
   };
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingVideo(true);
+    setVideoProgress(0);
+    try {
+      const data = await uploadWithProgress(file, 'video', setVideoProgress);
+      setForm(f => ({ ...f, videoUrl: data.url }));
+      toast.success('Music video uploaded!');
+    } catch { toast.error('Video upload failed'); }
+    setUploadingVideo(false);
+    setVideoProgress(0);
+  };
+
   const handleSubmit = async () => {
     if (!form.title.trim() || !form.artist.trim()) {
       toast.error('Title and artist are required');
@@ -160,17 +187,20 @@ export default function AdminMusicPage() {
 
     setSaving(true);
     try {
-      const res = await fetch('/api/songs', {
-        method: 'POST',
+      const url = editingId ? `/api/songs/${editingId}` : '/api/songs';
+      const method = editingId ? 'PUT' : 'POST';
+      
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error('Failed');
-      toast.success('Song published! 🎶');
-      setForm({ title: '', artist: '', genre: 'Afrobeats', year: new Date().getFullYear(), featured: false, mediaUrl: '', streamUrl: '', downloadUrl: '', coverUrl: '', description: '' });
+      toast.success(editingId ? 'Song updated! 🎶' : 'Song published! 🎶');
+      resetForm();
       setShowForm(false);
       fetchSongs();
-    } catch { toast.error('Failed to publish song'); }
+    } catch { toast.error(editingId ? 'Failed to update song' : 'Failed to publish song'); }
     setSaving(false);
   };
 
@@ -201,7 +231,15 @@ export default function AdminMusicPage() {
         <div className="topbar">
           <div className="page-title">Music</div>
           <div className="topbar-actions">
-            <button className="btn-publish" onClick={() => setShowForm(!showForm)}>
+            <button className="btn-publish" onClick={() => {
+              if (showForm) {
+                resetForm();
+                setShowForm(false);
+              } else {
+                resetForm();
+                setShowForm(true);
+              }
+            }}>
               {showForm ? '✕ Close' : '+ Upload Song'}
             </button>
           </div>
@@ -211,7 +249,9 @@ export default function AdminMusicPage() {
           {/* UPLOAD FORM */}
           {showForm && (
             <div style={S.card}>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '16px' }}>🎵 Upload New Song</div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '16px' }}>
+                {editingId ? '✏️ Edit Song' : '🎵 Upload New Song'}
+              </div>
 
               {/* Cover Image */}
               <div style={{ marginBottom: '16px' }}>
@@ -319,6 +359,39 @@ export default function AdminMusicPage() {
                 <input style={S.input} value={form.downloadUrl} onChange={e => setForm({ ...form, downloadUrl: e.target.value })} placeholder="Auto-filled when you upload audio, or paste a link" />
               </div>
 
+              {/* Official Music Video */}
+              <div style={{ marginBottom: '16px' }}>
+                <div style={S.label}>Official Music Video (optional)</div>
+                
+                {form.videoUrl ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(29,190,115,0.08)', border: '1px solid rgba(29,190,115,0.15)', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '16px' }}>✅</span>
+                    <span style={{ fontSize: '11px', color: '#1DBE73', fontWeight: 600, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {form.videoUrl.includes('youtube') || form.videoUrl.includes('youtu.be') ? 'YouTube Video Linked' : 'Video uploaded'}
+                    </span>
+                    <button onClick={() => setForm({ ...form, videoUrl: '' })} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                  </div>
+                ) : uploadingVideo ? (
+                  <div style={{ padding: '14px 16px', borderRadius: '10px', border: '1px solid rgba(255,107,0,0.15)', background: 'rgba(255,107,0,0.03)', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 600 }}>⏳ Uploading video...</span>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#FF6B00' }}>{videoProgress}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                      <div style={{ width: `${videoProgress}%`, height: '100%', background: 'linear-gradient(90deg, #FF6B00, #ff8533)', borderRadius: '2px', transition: 'width 0.3s' }} />
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '8px' }}>
+                    <input style={S.input} value={form.videoUrl} onChange={e => setForm({ ...form, videoUrl: e.target.value })} placeholder="Paste YouTube link here..." />
+                    <div onClick={() => videoInputRef.current?.click()} style={{ padding: '10px 16px', borderRadius: '8px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.3)', color: '#FF6B00', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                      OR UPLOAD MP4
+                    </div>
+                  </div>
+                )}
+                <input ref={videoInputRef} type="file" accept="video/mp4,video/webm" hidden onChange={handleVideoUpload} />
+              </div>
+
               {/* Description */}
               <div style={{ marginBottom: '16px' }}>
                 <div style={S.label}>Description (optional)</div>
@@ -394,11 +467,35 @@ export default function AdminMusicPage() {
                     <span>▶ {song.plays || 0}</span>
                     <span>⬇ {song.downloads || 0}</span>
                   </div>
-                  <button
-                    onClick={() => handleDelete(song._id)}
-                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: '14px', padding: '4px' }}
-                    title="Delete song"
-                  >🗑</button>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <button
+                      onClick={() => {
+                        setForm({
+                          title: song.title,
+                          artist: song.artist,
+                          genre: song.genre as any,
+                          year: song.year,
+                          featured: song.featured || false,
+                          mediaUrl: song.mediaUrl,
+                          streamUrl: song.streamUrl || '',
+                          downloadUrl: song.downloadUrl || '',
+                          coverUrl: song.coverUrl || '',
+                          videoUrl: song.videoUrl || '',
+                          description: song.description || '',
+                        });
+                        setEditingId(song._id);
+                        setShowForm(true);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      style={{ background: 'rgba(255,107,0,0.1)', border: 'none', color: '#FF6B00', cursor: 'pointer', fontSize: '14px', padding: '4px', borderRadius: '4px' }}
+                      title="Edit song"
+                    >✏️</button>
+                    <button
+                      onClick={() => handleDelete(song._id)}
+                      style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: '14px', padding: '4px' }}
+                      title="Delete song"
+                    >🗑</button>
+                  </div>
                 </div>
               ))
             )}

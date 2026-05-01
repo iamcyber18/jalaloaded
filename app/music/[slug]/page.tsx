@@ -158,6 +158,39 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
             <AudioPlayer src={song.mediaUrl} title={song.title} artist={song.artist} coverUrl={song.coverUrl} />
           </div>
         )}
+
+        {/* VIDEO PLAYER */}
+        {song.videoUrl && (
+          <div style={{ maxWidth: '800px', margin: '32px auto 0', padding: '0 24px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '14px' }}>Official Music Video</div>
+            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '16px', background: '#000', border: '1px solid rgba(255,255,255,0.06)' }}>
+              {song.videoUrl.includes('youtube') || song.videoUrl.includes('youtu.be') ? (() => {
+                const match = song.videoUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
+                const ytId = match ? match[1] : null;
+                if (ytId) {
+                  return (
+                    <iframe 
+                      src={`https://www.youtube.com/embed/${ytId}?autoplay=0&rel=0`}
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  );
+                }
+                return <div style={{ padding: '20px', color: '#fff' }}>Invalid YouTube URL</div>;
+              })() : (
+                <video 
+                  controls 
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                  poster={song.coverUrl}
+                >
+                  <source src={song.videoUrl} type={song.videoUrl.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
+                  Your browser does not support the video tag.
+                </video>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* MORE FROM ARTIST */}

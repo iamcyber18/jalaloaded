@@ -11,6 +11,7 @@ export interface ISong extends Document {
   streamUrl?: string;
   downloadUrl?: string;
   coverUrl?: string;
+  videoUrl?: string;
   duration?: number;
   fileSize?: string;
   plays: number;
@@ -37,6 +38,7 @@ const SongSchema = new Schema<ISong>(
     streamUrl: { type: String },
     downloadUrl: { type: String },
     coverUrl: { type: String },
+    videoUrl: { type: String },
     duration: { type: Number },
     fileSize: { type: String },
     plays: { type: Number, default: 0 },
