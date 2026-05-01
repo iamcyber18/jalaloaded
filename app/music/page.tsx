@@ -185,7 +185,7 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                   const isOut = new Date(track.releaseDate) <= new Date();
                   return (
                     <div key={track._id.toString()} style={{
-                      display: 'flex', alignItems: 'center', gap: '14px',
+                      display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
                       padding: '14px 16px', borderRadius: '12px',
                       background: 'rgba(255,255,255,0.02)', border: isOut ? '1px solid rgba(255,107,0,0.5)' : '1px solid rgba(255,255,255,0.03)',
                       transition: 'background 0.2s',
@@ -207,12 +207,12 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                       </div>
                       
                       {/* Track Info */}
-                      <div style={{ flex: 1, minWidth: 0, paddingRight: '16px' }}>
+                      <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {track.title}
                           </div>
-                          {!isOut && <span style={{ padding: '2px 6px', background: 'rgba(255,107,0,0.1)', color: '#FF6B00', fontSize: '8px', fontWeight: 800, borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Upcoming</span>}
+                          {!isOut && <span style={{ padding: '2px 6px', background: 'rgba(255,107,0,0.1)', color: '#FF6B00', fontSize: '8px', fontWeight: 800, borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>Upcoming</span>}
                         </div>
                         <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
                           <span style={{ color: '#FF6B00', fontWeight: 600 }}>{track.artist}</span>
@@ -224,19 +224,21 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                         )}
                       </div>
 
-                      {/* Audio Teaser */}
-                      {track.snippetUrl && !isOut && (
-                        <div style={{ flexShrink: 0, marginRight: '16px' }}>
-                          <audio controls controlsList="nodownload" style={{ height: '32px', width: '150px' }}>
-                            <source src={track.snippetUrl} type="audio/mpeg" />
-                            <source src={track.snippetUrl} type="audio/mp4" />
-                          </audio>
-                        </div>
-                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                        {/* Audio Teaser */}
+                        {track.snippetUrl && !isOut && (
+                          <div style={{ flexShrink: 0 }}>
+                            <audio controls controlsList="nodownload" style={{ height: '32px', width: '150px' }}>
+                              <source src={track.snippetUrl} type="audio/mpeg" />
+                              <source src={track.snippetUrl} type="audio/mp4" />
+                            </audio>
+                          </div>
+                        )}
 
-                      {/* Countdown Timer or Action */}
-                      <div style={{ flexShrink: 0 }}>
-                        <CountdownTimer targetDate={track.releaseDate} />
+                        {/* Countdown Timer or Action */}
+                        <div style={{ flexShrink: 0 }}>
+                          <CountdownTimer targetDate={track.releaseDate} />
+                        </div>
                       </div>
                     </div>
                   );
