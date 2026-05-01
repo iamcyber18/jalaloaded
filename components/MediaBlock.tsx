@@ -28,20 +28,30 @@ export default function MediaBlock({ mediaItems }: { mediaItems: IMediaItem[] })
           <div style={{
             display: 'grid',
             gridTemplateColumns: coverPhotos.length === 1 ? '1fr' : coverPhotos.length === 2 ? '1fr 1fr' : '1fr 1fr',
-            gridTemplateRows: coverPhotos.length <= 2 ? '300px' : '180px 180px',
-            gap: '6px'
+            gridTemplateRows: coverPhotos.length === 1 ? 'auto' : coverPhotos.length === 2 ? '300px' : '180px 180px',
+            gap: '6px',
+            justifyContent: 'center'
           }}>
             {coverPhotos.map((photo, idx) => (
               <div 
                 key={idx}
                 className="photo-slot"
-                style={coverPhotos.length === 3 && idx === 0 ? { gridRow: 'span 2' } : {}}
+                style={{
+                  ...(coverPhotos.length === 3 && idx === 0 ? { gridRow: 'span 2' } : {}),
+                  ...(coverPhotos.length === 1 ? { display: 'flex', justifyContent: 'center', background: 'transparent' } : {})
+                }}
                 onClick={() => setLightboxImage(photo.url)}
               >
                 <img 
                   src={photo.url} 
                   alt={photo.caption || `Cover photo ${idx + 1}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  style={{ 
+                    width: '100%', 
+                    height: coverPhotos.length === 1 ? 'auto' : '100%', 
+                    maxHeight: coverPhotos.length === 1 ? '400px' : 'none',
+                    objectFit: coverPhotos.length === 1 ? 'contain' : 'cover', 
+                    display: 'block' 
+                  }}
                 />
                 <div className="photo-overlay"><div className="photo-expand"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></div></div>
               </div>

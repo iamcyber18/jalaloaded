@@ -148,7 +148,7 @@ export default function HeroCarousel({ slides }: { slides: HeroCarouselSlide[] }
                 alt={slide.title}
                 fill
                 sizes="100vw"
-                style={{ objectFit: 'cover', opacity: 0.78 }}
+                style={{ objectFit: 'contain', opacity: 0.78 }}
                 priority={index === 0}
               />
             )}

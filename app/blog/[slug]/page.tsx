@@ -182,8 +182,8 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                 const afterConclusion = allPhotos.filter((p: any) => p.position === 'after-conclusion');
                 
                 const mdProps = { remarkPlugins: [remarkGfm], components: { blockquote: ({children}: any) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}: any) => <p>{children}</p> } };
-                const inlineImgStyle = { width: '100%', maxHeight: '380px', objectFit: 'cover' as const, display: 'block', borderRadius: '10px' };
-                const imgWrap = { margin: '24px 0', borderRadius: '10px', overflow: 'hidden', background: '#000' };
+                const inlineImgStyle = { maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' as const, display: 'inline-block', borderRadius: '8px' };
+                const imgWrap = { margin: '24px 0', textAlign: 'center' as const };
                 
                 const renderPhotos = (photos: any[]) => photos.map((p: any, i: number) => (
                   <div key={i} style={imgWrap}><img src={p.url} alt="Article image" style={inlineImgStyle} /></div>
