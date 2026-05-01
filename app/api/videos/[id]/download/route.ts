@@ -18,7 +18,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     
     if (!video) {
       // Fallback to Song
-      const song = await Song.findOne({ $or: [{ slug: resolvedParams.id }, { _id: mongoose.Types.ObjectId.isValid(resolvedParams.id) ? resolvedParams.id : null }] });
+      const isValidId = mongoose.Types.ObjectId.isValid(resolvedParams.id);
+      const songQuery = isValidId ? { _id: resolvedParams.id } : { slug: resolvedParams.id };
+      const song = await Song.findOne(songQuery);
       if (song && song.videoUrl) {
         video = {
           title: `${song.artist} - ${song.title} (Official Video)`,

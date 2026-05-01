@@ -27,7 +27,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     
     if (!video) {
       // Fallback to Song
-      const song = await Song.findOne({ $or: [{ slug: id }, { _id: id }] }).lean();
+      const songQuery = isValidId ? { _id: id } : { slug: id };
+      const song = await Song.findOne(songQuery).lean();
       if (song && song.videoUrl) {
         video = {
           _id: song._id,
@@ -75,8 +76,9 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
 
     if (!video) {
       // Fallback to Song
+      const songQuery = isValidId ? { _id: id } : { slug: id };
       const song = await Song.findOneAndUpdate(
-        { $or: [{ slug: id }, { _id: id }] },
+        songQuery,
         { $inc: { plays: 1 } },
         { new: true }
       ).lean();
