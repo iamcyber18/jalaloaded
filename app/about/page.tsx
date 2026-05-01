@@ -46,6 +46,14 @@ export default async function AboutPage() {
           <p style={{ marginBottom: '20px' }}>
             Born from a passion to amplify voices and highlight the rawest talent, our platform bridges the gap between mainstream media and underground culture. Whether you're here to discover the next big artist, catch up on the latest trends, or read thought-provoking editorials, Jalaloaded is your ultimate destination.
           </p>
+
+          <h3 style={{ fontFamily: '"Syne", sans-serif', fontSize: '18px', fontWeight: 800, color: 'var(--color-text-primary)', marginTop: '32px', marginBottom: '16px' }}>What We Do</h3>
+          <ul style={{ paddingLeft: '20px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <li><strong style={{ color: 'var(--orange)' }}>Music Streaming & Promotion:</strong> We host and distribute the freshest tracks, giving both rising stars and established artists a platform to be heard.</li>
+            <li><strong style={{ color: 'var(--orange)' }}>Video Hosting:</strong> From exclusive street interviews and official music videos to comedy skits and highlights, our TV section is always loaded.</li>
+            <li><strong style={{ color: 'var(--orange)' }}>Editorial & News:</strong> In-depth articles covering the latest gist, entertainment news, lifestyle trends, and sports updates.</li>
+          </ul>
+
           <p>
             Our commitment is to keep you loaded with premium, unfiltered content that resonates with the streets and the world at large. Welcome to the movement.
           </p>
