@@ -11,6 +11,7 @@ import PostCard from '@/components/PostCard';
 import MusicCard from '@/components/MusicCard';
 import VideoCard from '@/components/VideoCard';
 import NewsletterForm from '@/components/NewsletterForm';
+import AdvertSlider from '@/components/AdvertSlider';
 import { ensurePublishedAtBackfill } from '@/lib/postPublishing';
 
 export const dynamic = 'force-dynamic';
@@ -51,7 +52,6 @@ type HomeAdvert = {
   title: string;
   imageUrl: string;
   linkUrl: string;
-  placement: string;
 };
 
 function dedupePosts(posts: HomePost[]) {
@@ -122,15 +122,12 @@ async function getHomepageData() {
     carouselPosts,
     songs,
     videos,
-    adverts: activeAdverts,
+    adverts: activeAdverts.map(ad => ({ ...ad, _id: ad._id.toString() })),
   };
 }
 
 export default async function Home() {
   const { latestPosts, recentPosts, carouselPosts, songs, videos, adverts } = await getHomepageData();
-
-  const homepageAdverts = adverts.filter(ad => ad.placement === 'homepage');
-  const sidebarAdverts = adverts.filter(ad => ad.placement === 'sidebar');
 
   const breakingNews = recentPosts.slice(0, 3);
   const heroSlides: HeroCarouselSlide[] = carouselPosts.map((post) => ({
@@ -178,12 +175,9 @@ export default async function Home() {
             ))}
           </div>
 
-          {homepageAdverts.length > 0 && (
+          {adverts.length > 0 && (
             <div style={{ marginTop: '30px', marginBottom: '10px' }}>
-              <a href={`/api/adverts/${homepageAdverts[0]._id.toString()}/click`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', borderRadius: '12px', overflow: 'hidden' }}>
-                <img src={homepageAdverts[0].imageUrl} alt={homepageAdverts[0].title} style={{ width: '100%', height: 'auto', display: 'block' }} />
-              </a>
-              <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', textAlign: 'right', marginTop: '4px', textTransform: 'uppercase' }}>Advertisement</div>
+              <AdvertSlider adverts={adverts} seedOffset={0} />
             </div>
           )}
 
@@ -231,12 +225,9 @@ export default async function Home() {
         </div>
 
         <div className="sidebar">
-          {sidebarAdverts.length > 0 && (
+          {adverts.length > 0 && (
             <div className="s-card" style={{ padding: 0, overflow: 'hidden', background: 'transparent', border: 'none' }}>
-              <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', textAlign: 'right', marginBottom: '4px', textTransform: 'uppercase' }}>Advertisement</div>
-              <a href={`/api/adverts/${sidebarAdverts[0]._id.toString()}/click`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', borderRadius: '12px', overflow: 'hidden' }}>
-                <img src={sidebarAdverts[0].imageUrl} alt={sidebarAdverts[0].title} style={{ width: '100%', height: 'auto', display: 'block' }} />
-              </a>
+              <AdvertSlider adverts={adverts} seedOffset={1} />
             </div>
           )}
 

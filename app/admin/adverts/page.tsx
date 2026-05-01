@@ -25,7 +25,6 @@ type AdvertFormState = {
   title: string;
   imageUrl: string;
   linkUrl: string;
-  placement: string;
   advertiser: string;
   isActive: boolean;
   startDate: string;
@@ -44,7 +43,6 @@ export default function AdvertsPage() {
     title: '',
     imageUrl: '',
     linkUrl: '',
-    placement: 'blog-inline',
     advertiser: '',
     isActive: true,
     startDate: '',
@@ -74,7 +72,7 @@ export default function AdvertsPage() {
   }, []);
 
   const resetForm = () => {
-    setForm({ title: '', imageUrl: '', linkUrl: '', placement: 'blog-inline', advertiser: '', isActive: true, startDate: '', endDate: '' });
+    setForm({ title: '', imageUrl: '', linkUrl: '', advertiser: '', isActive: true, startDate: '', endDate: '' });
     setEditingId(null);
     setShowForm(false);
   };
@@ -150,7 +148,6 @@ export default function AdvertsPage() {
       title: ad.title,
       imageUrl: ad.imageUrl,
       linkUrl: ad.linkUrl,
-      placement: ad.placement,
       advertiser: ad.advertiser,
       isActive: ad.isActive,
       startDate: ad.startDate ? ad.startDate.split('T')[0] : '',
@@ -271,18 +268,7 @@ export default function AdvertsPage() {
               />
             </div>
 
-            <div className="ad-field">
-              <label className="ad-label-text">Placement</label>
-              <select
-                className="ad-input"
-                value={form.placement}
-                onChange={e => setForm({ ...form, placement: e.target.value })}
-              >
-                <option value="blog-inline">Blog (In-Article)</option>
-                <option value="sidebar">Sidebar</option>
-                <option value="homepage">Homepage</option>
-              </select>
-            </div>
+
 
             <div className="ad-field">
               <label className="ad-label-text">Status</label>
@@ -358,7 +344,7 @@ export default function AdvertsPage() {
                     {ad.clicks}
                   </div>
                   <div className="ad-stat" style={{ color: 'var(--orange)' }}>
-                    {ad.placement}
+                    Global
                   </div>
                 </div>
                 <div className="ad-card-actions">

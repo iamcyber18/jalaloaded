@@ -5,7 +5,7 @@ import MediaBlock from '@/components/MediaBlock';
 import CommentSection from '@/components/CommentSection';
 import LikeButton from '@/components/LikeButton';
 import ShareButton from '@/components/ShareButton';
-import AdBanner from '@/components/AdBanner';
+import AdvertSlider from '@/components/AdvertSlider';
 import NewsletterForm from '@/components/NewsletterForm';
 import Link from 'next/link';
 import { getAuthorDisplay } from '@/lib/authors';
@@ -76,7 +76,6 @@ async function getPost(slug: string) {
   // Get random active inline ads
   const now = new Date();
   const allAds = await Advert.find({
-    placement: 'blog-inline',
     isActive: true,
     $or: [
       { startDate: { $exists: false }, endDate: { $exists: false } },
@@ -85,10 +84,6 @@ async function getPost(slug: string) {
       { startDate: { $exists: false }, endDate: { $gte: now } },
     ]
   }).lean();
-
-  // Shuffle and pick up to 2
-  const shuffledAds = allAds.sort(() => 0.5 - Math.random());
-  const selectedAds = shuffledAds.slice(0, 2);
 
   // Get trending posts (most viewed, excluding current)
   const trending = await Post.find({
@@ -106,7 +101,7 @@ async function getPost(slug: string) {
   return { 
     post: JSON.parse(JSON.stringify(post)), 
     related: JSON.parse(JSON.stringify(related)),
-    adverts: JSON.parse(JSON.stringify(selectedAds)),
+    adverts: JSON.parse(JSON.stringify(allAds)),
     trending: JSON.parse(JSON.stringify(trending)),
     categories: JSON.parse(JSON.stringify(categories))
   };
@@ -122,9 +117,6 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
 
   const { post, related, adverts, trending, categories } = data;
   const author = getAuthorDisplay(post.author);
-  
-  const ad1 = adverts && adverts.length > 0 ? adverts[0] : null;
-  const ad2 = adverts && adverts.length > 1 ? adverts[1] : null;
 
   return (
     <div className="jlh min-h-screen">
@@ -205,10 +197,10 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                     <>
                       <ReactMarkdown {...mdProps}>{sections[0]}</ReactMarkdown>
                       {renderPhotos(afterIntro)}
-                      {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
+                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={0} /></div>}
                       <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
                       {renderPhotos(afterMain)}
-                      {ad2 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad2} /></div>}
+                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={1} /></div>}
                       <ReactMarkdown {...mdProps}>{sections.slice(2).join('\n---\n')}</ReactMarkdown>
                       {renderPhotos(afterConclusion)}
                     </>
@@ -220,11 +212,11 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                     <>
                       <ReactMarkdown {...mdProps}>{sections[0]}</ReactMarkdown>
                       {renderPhotos(afterIntro)}
-                      {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
+                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={0} /></div>}
                       <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
                       {renderPhotos(afterMain)}
                       {renderPhotos(afterConclusion)}
-                      {ad2 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad2} /></div>}
+                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={1} /></div>}
                     </>
                   );
                 }
@@ -237,11 +229,11 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                     <>
                       <ReactMarkdown {...mdProps}>{blocks.slice(0, mid).join('\n\n')}</ReactMarkdown>
                       {renderPhotos(afterIntro)}
-                      {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
+                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={0} /></div>}
                       <ReactMarkdown {...mdProps}>{blocks.slice(mid).join('\n\n')}</ReactMarkdown>
                       {renderPhotos(afterMain)}
                       {renderPhotos(afterConclusion)}
-                      {ad2 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad2} /></div>}
+                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={1} /></div>}
                     </>
                   );
                 }
@@ -252,7 +244,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                     {renderPhotos(afterIntro)}
                     {renderPhotos(afterMain)}
                     {renderPhotos(afterConclusion)}
-                    {ad1 && <div style={{ margin: '32px 0' }}><AdBanner ad={ad1} /></div>}
+                    {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={0} /></div>}
                   </>
                 );
               })()}
@@ -320,6 +312,12 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
 
         {/* SIDEBAR */}
         <div className="sidebar">
+          {adverts.length > 0 && (
+            <div className="s-card" style={{ padding: 0, overflow: 'hidden', background: 'transparent', border: 'none' }}>
+              <AdvertSlider adverts={adverts} seedOffset={2} />
+            </div>
+          )}
+
           <div className="s-card">
             <div className="s-title"><div className="s-line"></div>Trending Now</div>
             <div id="sb-trending">

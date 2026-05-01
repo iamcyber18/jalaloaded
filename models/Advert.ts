@@ -4,7 +4,7 @@ export interface IAdvert extends Document {
   title: string;
   imageUrl: string;
   linkUrl: string;
-  placement: 'blog-inline' | 'sidebar' | 'homepage';
+  placement: string;
   isActive: boolean;
   clicks: number;
   impressions: number;
@@ -20,7 +20,7 @@ const AdvertSchema = new Schema<IAdvert>(
     title: { type: String, required: true },
     imageUrl: { type: String, required: true },
     linkUrl: { type: String, required: true },
-    placement: { type: String, enum: ['blog-inline', 'sidebar', 'homepage'], default: 'blog-inline' },
+    placement: { type: String, default: 'global' },
     isActive: { type: Boolean, default: true },
     clicks: { type: Number, default: 0 },
     impressions: { type: Number, default: 0 },
