@@ -232,6 +232,17 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
               <p style={{ fontSize: '12px', opacity: 0.6 }}>Please check the video URL</p>
             </div>
           )}
+
+          {/* Download Video Button */}
+          {video.mediaUrl && !isYouTube && !isFacebook && !isTikTok && !isVimeo && (
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-start', padding: '0 24px' }}>
+              <a href={`/api/videos/${video._id.toString()}/download`} target="_blank" rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px', fontWeight: 600, textDecoration: 'none', transition: 'background 0.2s' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download Video
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Video Info */}
