@@ -16,7 +16,7 @@ export default function TrackAction({ songId, action, href, children, className,
     if (action === 'download' && isDownload) {
       // Use the download API which embeds cover art + forces download
       e.preventDefault();
-      window.open(`/api/songs/${songId}/download`, '_blank');
+      window.open(href || `/api/songs/${songId}/download`, '_blank');
       return;
     }
 
