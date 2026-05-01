@@ -72,52 +72,63 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                 <div style={{ fontSize: '18px', fontWeight: 800, fontFamily: '"Bebas Neue", sans-serif', color: 'var(--orange)', letterSpacing: '1px' }}>Upcoming Drops</div>
                 <div style={{ marginLeft: '12px', height: '1px', background: 'var(--color-border-tertiary)', flex: 1 }}></div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {upcomingTracks.map((track: any) => {
                   const isOut = new Date(track.releaseDate) <= new Date();
                   return (
-                    <div key={track._id.toString()} style={{ 
-                      background: 'var(--color-background-secondary)', 
-                      borderRadius: '16px', 
-                      overflow: 'hidden', 
-                      border: isOut ? '1px solid rgba(255,107,0,0.5)' : '1px solid var(--color-border-tertiary)',
-                      display: 'flex',
-                      flexDirection: 'column'
+                    <div key={track._id.toString()} style={{
+                      display: 'flex', alignItems: 'center', gap: '14px',
+                      padding: '14px 16px', borderRadius: '12px',
+                      background: 'rgba(255,255,255,0.02)', border: isOut ? '1px solid rgba(255,107,0,0.5)' : '1px solid rgba(255,255,255,0.03)',
+                      transition: 'background 0.2s',
                     }}>
-                      <div style={{ 
-                        height: '160px', 
-                        background: track.coverUrl ? `url(${track.coverUrl}) center/cover` : 'var(--color-background-tertiary)', 
-                        position: 'relative' 
+                      
+                      {/* Status/Icon */}
+                      <div style={{ fontSize: '12px', color: isOut ? '#1DBE73' : '#FF6B00', fontWeight: 800, width: '24px', textAlign: 'center', flexShrink: 0 }}>
+                        {isOut ? '▶' : '⏳'}
+                      </div>
+
+                      {/* Cover Art */}
+                      <div style={{
+                        width: '52px', height: '52px', borderRadius: '10px', overflow: 'hidden',
+                        background: track.coverUrl ? `url(${track.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,107,0,0.05))',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        border: '1px solid rgba(255,255,255,0.04)', flexShrink: 0
                       }}>
-                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%)' }}></div>
-                        <div style={{ position: 'absolute', top: '12px', left: '12px' }}>
-                          <span style={{ padding: '4px 10px', background: isOut ? '#1DBE73' : 'rgba(255,107,0,0.9)', color: '#fff', fontSize: '9px', fontWeight: 800, borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                            {isOut ? 'Available Now' : 'Upcoming'}
-                          </span>
-                        </div>
+                        {!track.coverUrl && <span style={{ fontSize: '18px', opacity: 0.4 }}>🎵</span>}
                       </div>
                       
-                      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                        <h2 style={{ fontFamily: '"Syne", sans-serif', fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {track.title}
-                        </h2>
-                        <h3 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--orange)', marginBottom: '12px' }}>
-                          {track.artist}
-                        </h3>
-
-                        {track.snippetUrl && !isOut && (
-                          <div style={{ marginBottom: '16px' }}>
-                            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px', fontWeight: 700 }}>Audio Teaser</div>
-                            <audio controls controlsList="nodownload" style={{ height: '32px', width: '100%' }}>
-                              <source src={track.snippetUrl} type="audio/mpeg" />
-                              <source src={track.snippetUrl} type="audio/mp4" />
-                            </audio>
+                      {/* Track Info */}
+                      <div style={{ flex: 1, minWidth: 0, paddingRight: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {track.title}
+                          </div>
+                          {!isOut && <span style={{ padding: '2px 6px', background: 'rgba(255,107,0,0.1)', color: '#FF6B00', fontSize: '8px', fontWeight: 800, borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Upcoming</span>}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
+                          <span style={{ color: '#FF6B00', fontWeight: 600 }}>{track.artist}</span> • {new Date(track.releaseDate).toLocaleDateString()}
+                        </div>
+                        {track.description && (
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '3px', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {track.description}
                           </div>
                         )}
+                      </div>
 
-                        <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                          <CountdownTimer targetDate={track.releaseDate} />
+                      {/* Audio Teaser */}
+                      {track.snippetUrl && !isOut && (
+                        <div style={{ flexShrink: 0, marginRight: '16px' }}>
+                          <audio controls controlsList="nodownload" style={{ height: '32px', width: '150px' }}>
+                            <source src={track.snippetUrl} type="audio/mpeg" />
+                            <source src={track.snippetUrl} type="audio/mp4" />
+                          </audio>
                         </div>
+                      )}
+
+                      {/* Countdown Timer or Action */}
+                      <div style={{ flexShrink: 0 }}>
+                        <CountdownTimer targetDate={track.releaseDate} />
                       </div>
                     </div>
                   );

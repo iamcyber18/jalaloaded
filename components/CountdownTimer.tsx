@@ -35,35 +35,28 @@ export default function CountdownTimer({ targetDate }: { targetDate: string }) {
     return () => clearInterval(timer);
   }, [targetDate]);
 
-  if (!timeLeft) return <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', minHeight: '60px' }}>Loading countdown...</div>;
+  if (!timeLeft) return <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', width: '80px', textAlign: 'center' }}>...</div>;
 
   if (timeLeft.isOut) {
     return (
-      <div style={{ padding: '16px', background: 'rgba(255,107,0,0.1)', borderRadius: '12px', border: '1px solid rgba(255,107,0,0.3)', textAlign: 'center' }}>
-        <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--orange)', textTransform: 'uppercase', letterSpacing: '2px' }}>
-          Available Now!
+      <div style={{ padding: '6px 12px', background: 'rgba(29,190,115,0.1)', borderRadius: '8px', border: '1px solid rgba(29,190,115,0.2)', textAlign: 'center' }}>
+        <div style={{ fontSize: '10px', fontWeight: 800, color: '#1DBE73', textTransform: 'uppercase', letterSpacing: '1px' }}>
+          Available Now
         </div>
       </div>
     );
   }
 
-  const TimeBlock = ({ value, label }: { value: number, label: string }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'rgba(255,255,255,0.04)', padding: '12px', borderRadius: '8px', minWidth: '60px', border: '1px solid rgba(255,255,255,0.05)' }}>
-      <div style={{ fontSize: '24px', fontWeight: 800, color: '#fff', fontFamily: '"Syne", sans-serif' }}>
-        {value.toString().padStart(2, '0')}
-      </div>
-      <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--color-text-secondary)', marginTop: '4px', fontWeight: 600 }}>
-        {label}
-      </div>
-    </div>
-  );
+  const pad = (n: number) => n.toString().padStart(2, '0');
 
   return (
-    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-      <TimeBlock value={timeLeft.days} label="Days" />
-      <TimeBlock value={timeLeft.hours} label="Hours" />
-      <TimeBlock value={timeLeft.minutes} label="Mins" />
-      <TimeBlock value={timeLeft.seconds} label="Secs" />
+    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.04)', padding: '6px 10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--orange)' }}>
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', fontFamily: '"Syne", sans-serif', letterSpacing: '0.5px' }}>
+        {timeLeft.days > 0 ? `${timeLeft.days}d ` : ''}{pad(timeLeft.hours)}:{pad(timeLeft.minutes)}:{pad(timeLeft.seconds)}
+      </div>
     </div>
   );
 }
