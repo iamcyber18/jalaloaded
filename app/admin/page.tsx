@@ -72,6 +72,12 @@ export default function AdminPage() {
     setIsSubmitting(true);
 
     try {
+      let finalTags = [...tagPills];
+      if (form.tags.trim()) {
+        const leftoverTags = form.tags.split(',').map(t => t.trim()).filter(Boolean);
+        finalTags = [...new Set([...finalTags, ...leftoverTags])];
+      }
+
       const res = await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,7 +91,7 @@ export default function AdminPage() {
           category: form.category,
           allowComments: form.allowComments,
           featured: form.featured,
-          tags: tagPills,
+          tags: finalTags,
           media,
           status
         })

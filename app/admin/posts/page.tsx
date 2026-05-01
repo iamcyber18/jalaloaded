@@ -253,6 +253,12 @@ export default function AdminPostsPage() {
     setSaving(true);
 
     try {
+      let finalTags = [...tagPills];
+      if (editor.tagInput.trim()) {
+        const leftoverTags = editor.tagInput.split(',').map(t => t.trim()).filter(Boolean);
+        finalTags = [...new Set([...finalTags, ...leftoverTags])];
+      }
+
       const res = await fetch(`/api/posts/${selectedPost._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -264,7 +270,7 @@ export default function AdminPostsPage() {
           conclusion: editor.conclusion,
           author: editor.author,
           category: editor.category,
-          tags: tagPills,
+          tags: finalTags,
           media,
           status: editor.status,
           allowComments: editor.allowComments,
