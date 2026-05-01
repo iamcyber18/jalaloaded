@@ -37,10 +37,12 @@ type HomePost = {
 
 type HomeSong = {
   _id: LeanId;
+  createdAt: Date | string;
 };
 
 type HomeVideo = {
   _id: LeanId;
+  createdAt: Date | string;
 };
 
 function dedupePosts(posts: HomePost[]) {
@@ -62,15 +64,38 @@ async function getHomepageData() {
   await dbConnect();
   await ensurePublishedAtBackfill();
 
-  const [featuredPosts, recentPosts, songs, videos] = await Promise.all([
+  const [featuredPosts, recentPosts, songs, standardVideos] = await Promise.all([
     Post.find({ status: 'published', featured: true })
       .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1, _id: -1 })
       .limit(4)
       .lean<HomePost[]>(),
     Post.find({ status: 'published' }).sort({ publishedAt: -1, createdAt: -1, _id: -1 }).limit(10).lean<HomePost[]>(),
-    Song.find().sort({ plays: -1, _id: -1 }).limit(3).lean<HomeSong[]>(),
+    Song.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeSong[]>(),
     Video.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeVideo[]>(),
   ]);
+
+  // Mix Song videos into Video feed for homepage
+  const songsWithVideos = await Song.find({ videoUrl: { $exists: true, $ne: '' } }).sort({ createdAt: -1 }).limit(6).lean();
+  const mappedSongs = songsWithVideos.map(song => ({
+    _id: song._id,
+    title: `${song.artist} - ${song.title} (Official Video)`,
+    mediaUrl: song.videoUrl,
+    thumbnailUrl: song.coverUrl,
+    duration: song.duration || 0,
+    description: song.description,
+    author: 'jalal',
+    views: song.plays,
+    likes: song.likes,
+    category: 'Music Videos',
+    createdAt: song.createdAt,
+    updatedAt: song.updatedAt,
+    isSongVideo: true,
+    slug: song.slug || song._id
+  }));
+
+  const videos = [...standardVideos, ...mappedSongs]
+    .sort((a, b) => new Date(b.createdAt as unknown as string).getTime() - new Date(a.createdAt as unknown as string).getTime())
+    .slice(0, 6);
 
   // Carousel ONLY shows posts explicitly marked as "featured" by admin.
   // If no posts are featured, show the single most recent post as a fallback hero.
