@@ -5,6 +5,8 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
+import Song from '@/models/Song';
+
 async function getVideos(page: number, category?: string) {
   await dbConnect();
   
@@ -16,16 +18,41 @@ async function getVideos(page: number, category?: string) {
      query.category = category;
   }
 
-  const videos = await Video.find(query)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean();
+  // Fetch standard videos
+  const videos = await Video.find(query).lean();
 
-  const total = await Video.countDocuments(query);
+  // Fetch songs with videos if category matches
+  let mappedSongs: any[] = [];
+  if (!category || category === 'All' || category === 'Music Videos') {
+    const songsWithVideos = await Song.find({ videoUrl: { $exists: true, $ne: '' } }).lean();
+    mappedSongs = songsWithVideos.map(song => ({
+      _id: song._id,
+      title: `${song.artist} - ${song.title} (Official Video)`,
+      mediaUrl: song.videoUrl,
+      thumbnailUrl: song.coverUrl,
+      duration: song.duration || 0,
+      description: song.description,
+      author: 'jalal',
+      views: song.plays,
+      likes: song.likes,
+      category: 'Music Videos',
+      createdAt: song.createdAt,
+      updatedAt: song.updatedAt,
+      isSongVideo: true,
+      slug: song.slug || song._id
+    }));
+  }
+
+  // Combine and sort
+  const allCombined = [...videos, ...mappedSongs]
+    .sort((a, b) => new Date(b.createdAt as unknown as string).getTime() - new Date(a.createdAt as unknown as string).getTime());
+
+  // Paginate manually
+  const paginatedVideos = allCombined.slice(skip, skip + limit);
+  const total = allCombined.length;
 
   return {
-    videos: JSON.parse(JSON.stringify(videos)),
+    videos: JSON.parse(JSON.stringify(paginatedVideos)),
     totalPages: Math.ceil(total / limit),
     currentPage: page
   };
