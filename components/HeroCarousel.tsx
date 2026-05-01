@@ -143,14 +143,24 @@ export default function HeroCarousel({ slides }: { slides: HeroCarouselSlide[] }
           <div className="hero-img-bg">
             <div className="hero-pattern"></div>
             {slide.imageUrl && (
-              <Image
-                src={slide.imageUrl}
-                alt={slide.title}
-                fill
-                sizes="100vw"
-                style={{ objectFit: 'contain', opacity: 0.78 }}
-                priority={index === 0}
-              />
+              <>
+                <Image
+                  src={slide.imageUrl}
+                  alt=""
+                  fill
+                  sizes="100vw"
+                  style={{ objectFit: 'cover', opacity: 0.4, filter: 'blur(30px)', transform: 'scale(1.1)' }}
+                  priority={index === 0}
+                />
+                <Image
+                  src={slide.imageUrl}
+                  alt={slide.title}
+                  fill
+                  sizes="100vw"
+                  style={{ objectFit: 'contain', opacity: 0.95 }}
+                  priority={index === 0}
+                />
+              </>
             )}
           </div>
           <div className="hero-overlay"></div>

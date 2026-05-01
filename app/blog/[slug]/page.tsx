@@ -221,15 +221,17 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
 
                 // Single section fallback
                 const blocks = content.split('\n\n');
-                if (blocks.length > 3) {
-                  const mid = Math.floor(blocks.length / 2);
+                if (blocks.length >= 3) {
+                  const third = Math.max(1, Math.floor(blocks.length / 3));
+                  const twoThirds = third * 2;
                   return (
                     <>
-                      <ReactMarkdown {...mdProps}>{blocks.slice(0, mid).join('\n\n')}</ReactMarkdown>
+                      <ReactMarkdown {...mdProps}>{blocks.slice(0, third).join('\n\n')}</ReactMarkdown>
                       {renderPhotos(afterIntro)}
                       {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={0} /></div>}
-                      <ReactMarkdown {...mdProps}>{blocks.slice(mid).join('\n\n')}</ReactMarkdown>
+                      <ReactMarkdown {...mdProps}>{blocks.slice(third, twoThirds).join('\n\n')}</ReactMarkdown>
                       {renderPhotos(afterMain)}
+                      <ReactMarkdown {...mdProps}>{blocks.slice(twoThirds).join('\n\n')}</ReactMarkdown>
                       {renderPhotos(afterConclusion)}
                     </>
                   );
