@@ -9,6 +9,8 @@ import ShareButton from '@/components/ShareButton';
 import { timeAgo } from '@/lib/utils';
 import FacebookVideoPlayer from '@/components/FacebookVideoPlayer';
 
+import mongoose from 'mongoose';
+
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -16,7 +18,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   await dbConnect();
 
   try {
-    let video = await Video.findById(id).lean();
+    let video = null;
+    const isValidId = mongoose.Types.ObjectId.isValid(id);
+    
+    if (isValidId) {
+      video = await Video.findById(id).lean();
+    }
+    
     if (!video) {
       // Fallback to Song
       const song = await Song.findOne({ $or: [{ slug: id }, { _id: id }] }).lean();
@@ -52,16 +60,18 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   await dbConnect();
   
-  let video;
+  let video = null;
   let isSongVideo = false;
   try {
-    // We increment view count client-side or on API fetch to avoid double counting,
-    // but doing it here is also fine for simple SSR tracking. Let's do it here.
-    video = await Video.findByIdAndUpdate(
-      id,
-      { $inc: { views: 1 } },
-      { new: true }
-    ).lean();
+    const isValidId = mongoose.Types.ObjectId.isValid(id);
+    
+    if (isValidId) {
+      video = await Video.findByIdAndUpdate(
+        id,
+        { $inc: { views: 1 } },
+        { new: true }
+      ).lean();
+    }
 
     if (!video) {
       // Fallback to Song

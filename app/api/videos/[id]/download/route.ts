@@ -2,18 +2,23 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Video from '@/models/Video';
 import Song from '@/models/Song';
+import mongoose from 'mongoose';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
     await dbConnect();
 
-    let video: any = await Video.findById(resolvedParams.id);
+    let video: any = null;
     let isSong = false;
+    
+    if (mongoose.Types.ObjectId.isValid(resolvedParams.id)) {
+      video = await Video.findById(resolvedParams.id);
+    }
     
     if (!video) {
       // Fallback to Song
-      const song = await Song.findById(resolvedParams.id);
+      const song = await Song.findOne({ $or: [{ slug: resolvedParams.id }, { _id: mongoose.Types.ObjectId.isValid(resolvedParams.id) ? resolvedParams.id : null }] });
       if (song && song.videoUrl) {
         video = {
           title: `${song.artist} - ${song.title} (Official Video)`,
