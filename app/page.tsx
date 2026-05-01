@@ -2,6 +2,7 @@ import dbConnect from '@/lib/mongodb';
 import Post from '@/models/Post';
 import Song from '@/models/Song';
 import Video from '@/models/Video';
+import Advert from '@/models/Advert';
 import Link from 'next/link';
 
 import HeroCarousel, { type HeroCarouselSlide } from '@/components/HeroCarousel';
@@ -45,6 +46,14 @@ type HomeVideo = {
   createdAt: Date | string;
 };
 
+type HomeAdvert = {
+  _id: LeanId;
+  title: string;
+  imageUrl: string;
+  linkUrl: string;
+  placement: string;
+};
+
 function dedupePosts(posts: HomePost[]) {
   const seen = new Set<string>();
 
@@ -64,7 +73,7 @@ async function getHomepageData() {
   await dbConnect();
   await ensurePublishedAtBackfill();
 
-  const [featuredPosts, recentPosts, songs, standardVideos] = await Promise.all([
+  const [featuredPosts, recentPosts, songs, standardVideos, activeAdverts] = await Promise.all([
     Post.find({ status: 'published', featured: true })
       .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1, _id: -1 })
       .limit(4)
@@ -72,6 +81,7 @@ async function getHomepageData() {
     Post.find({ status: 'published' }).sort({ publishedAt: -1, createdAt: -1, _id: -1 }).limit(10).lean<HomePost[]>(),
     Song.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeSong[]>(),
     Video.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeVideo[]>(),
+    Advert.find({ isActive: true }).lean<HomeAdvert[]>(),
   ]);
 
   // Mix Song videos into Video feed for homepage
@@ -112,11 +122,15 @@ async function getHomepageData() {
     carouselPosts,
     songs,
     videos,
+    adverts: activeAdverts,
   };
 }
 
 export default async function Home() {
-  const { latestPosts, recentPosts, carouselPosts, songs, videos } = await getHomepageData();
+  const { latestPosts, recentPosts, carouselPosts, songs, videos, adverts } = await getHomepageData();
+
+  const homepageAdverts = adverts.filter(ad => ad.placement === 'homepage');
+  const sidebarAdverts = adverts.filter(ad => ad.placement === 'sidebar');
 
   const breakingNews = recentPosts.slice(0, 3);
   const heroSlides: HeroCarouselSlide[] = carouselPosts.map((post) => ({
@@ -164,6 +178,15 @@ export default async function Home() {
             ))}
           </div>
 
+          {homepageAdverts.length > 0 && (
+            <div style={{ marginTop: '30px', marginBottom: '10px' }}>
+              <a href={`/api/adverts/${homepageAdverts[0]._id.toString()}/click`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', borderRadius: '12px', overflow: 'hidden' }}>
+                <img src={homepageAdverts[0].imageUrl} alt={homepageAdverts[0].title} style={{ width: '100%', height: 'auto', display: 'block' }} />
+              </a>
+              <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', textAlign: 'right', marginTop: '4px', textTransform: 'uppercase' }}>Advertisement</div>
+            </div>
+          )}
+
           <div className="sec-hdr">
             <div className="sec-title">
               <div className="sec-line"></div>
@@ -208,6 +231,15 @@ export default async function Home() {
         </div>
 
         <div className="sidebar">
+          {sidebarAdverts.length > 0 && (
+            <div className="s-card" style={{ padding: 0, overflow: 'hidden', background: 'transparent', border: 'none' }}>
+              <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', textAlign: 'right', marginBottom: '4px', textTransform: 'uppercase' }}>Advertisement</div>
+              <a href={`/api/adverts/${sidebarAdverts[0]._id.toString()}/click`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', borderRadius: '12px', overflow: 'hidden' }}>
+                <img src={sidebarAdverts[0].imageUrl} alt={sidebarAdverts[0].title} style={{ width: '100%', height: 'auto', display: 'block' }} />
+              </a>
+            </div>
+          )}
+
           <div className="s-card">
             <div className="s-title">
               <div className="s-line"></div>
