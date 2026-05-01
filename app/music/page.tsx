@@ -6,6 +6,8 @@ import TrackAction from '@/components/TrackAction';
 import FeaturedCarousel from '@/components/FeaturedCarousel';
 import LikeButton from '@/components/LikeButton';
 import ShareButton from '@/components/ShareButton';
+import UpcomingMusic from '@/models/UpcomingMusic';
+import CountdownTimer from '@/components/CountdownTimer';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,18 +21,21 @@ async function getMusicData(genre?: string) {
   const totalPlays = await Song.aggregate([{ $group: { _id: null, total: { $sum: '$plays' } } }]);
   const totalDownloads = await Song.aggregate([{ $group: { _id: null, total: { $sum: '$downloads' } } }]);
 
+  const upcomingTracks = await UpcomingMusic.find().sort({ releaseDate: 1 }).lean();
+
   return {
     songs: JSON.parse(JSON.stringify(songs)),
     featuredSongs: JSON.parse(JSON.stringify(featuredSongs)),
     totalPlays: totalPlays[0]?.total || 0,
     totalDownloads: totalDownloads[0]?.total || 0,
+    upcomingTracks: JSON.parse(JSON.stringify(upcomingTracks)),
   };
 }
 
 export default async function MusicPage({ searchParams }: { searchParams: Promise<{ genre?: string }> }) {
   const resolvedParams = await searchParams;
   const currentGenre = resolvedParams.genre || 'All';
-  const { songs, featuredSongs, totalPlays, totalDownloads } = await getMusicData(currentGenre);
+  const { songs, featuredSongs, totalPlays, totalDownloads, upcomingTracks } = await getMusicData(currentGenre);
 
   const genres = ['All', 'Afrobeats', 'Amapiano', 'Highlife', 'R&B', 'Gospel', 'Hip-hop', 'Other'];
 
@@ -59,6 +64,67 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
       {/* MAIN CONTENT */}
       <div className="page" style={{ maxWidth: '100%' }}>
         <div style={{ minWidth: 0 }}>
+
+          {/* UPCOMING DROPS */}
+          {currentGenre === 'All' && upcomingTracks.length > 0 && (
+            <div style={{ marginBottom: '40px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ fontSize: '18px', fontWeight: 800, fontFamily: '"Bebas Neue", sans-serif', color: 'var(--orange)', letterSpacing: '1px' }}>Upcoming Drops</div>
+                <div style={{ marginLeft: '12px', height: '1px', background: 'var(--color-border-tertiary)', flex: 1 }}></div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                {upcomingTracks.map((track: any) => {
+                  const isOut = new Date(track.releaseDate) <= new Date();
+                  return (
+                    <div key={track._id.toString()} style={{ 
+                      background: 'var(--color-background-secondary)', 
+                      borderRadius: '16px', 
+                      overflow: 'hidden', 
+                      border: isOut ? '1px solid rgba(255,107,0,0.5)' : '1px solid var(--color-border-tertiary)',
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}>
+                      <div style={{ 
+                        height: '160px', 
+                        background: track.coverUrl ? `url(${track.coverUrl}) center/cover` : 'var(--color-background-tertiary)', 
+                        position: 'relative' 
+                      }}>
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%)' }}></div>
+                        <div style={{ position: 'absolute', top: '12px', left: '12px' }}>
+                          <span style={{ padding: '4px 10px', background: isOut ? '#1DBE73' : 'rgba(255,107,0,0.9)', color: '#fff', fontSize: '9px', fontWeight: 800, borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                            {isOut ? 'Available Now' : 'Upcoming'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <h2 style={{ fontFamily: '"Syne", sans-serif', fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {track.title}
+                        </h2>
+                        <h3 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--orange)', marginBottom: '12px' }}>
+                          {track.artist}
+                        </h3>
+
+                        {track.snippetUrl && !isOut && (
+                          <div style={{ marginBottom: '16px' }}>
+                            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px', fontWeight: 700 }}>Audio Teaser</div>
+                            <audio controls controlsList="nodownload" style={{ height: '32px', width: '100%' }}>
+                              <source src={track.snippetUrl} type="audio/mpeg" />
+                              <source src={track.snippetUrl} type="audio/mp4" />
+                            </audio>
+                          </div>
+                        )}
+
+                        <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                          <CountdownTimer targetDate={track.releaseDate} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* GENRE FILTERS */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px', alignItems: 'center' }}>
