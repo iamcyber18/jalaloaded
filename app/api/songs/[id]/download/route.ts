@@ -67,20 +67,27 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Song not found' }, { status: 404 });
     }
 
-    const audioUrl = song.downloadUrl || song.mediaUrl;
-    if (!audioUrl) {
-      return NextResponse.json({ error: 'No audio file' }, { status: 404 });
+    const { searchParams } = new URL(request.url);
+    const isVideoDownload = searchParams.get('type') === 'video';
+
+    const targetUrl = isVideoDownload ? song.videoUrl : (song.downloadUrl || song.mediaUrl);
+    if (!targetUrl) {
+      return NextResponse.json({ error: isVideoDownload ? 'No video file' : 'No audio file' }, { status: 404 });
     }
 
-    // Fetch the audio file
-    const audioRes = await fetch(audioUrl);
-    if (!audioRes.ok) {
-      return NextResponse.json({ error: 'Failed to fetch audio' }, { status: 500 });
+    if (isVideoDownload && (targetUrl.includes('youtube.com') || targetUrl.includes('youtu.be'))) {
+      return NextResponse.json({ error: 'Cannot download YouTube videos directly' }, { status: 400 });
     }
 
-    let audioBuffer = Buffer.from(await audioRes.arrayBuffer());
-    const contentType = audioRes.headers.get('content-type') || 'audio/mpeg';
-    const isMP3 = contentType.includes('mpeg') || audioUrl.includes('.mp3');
+    // Fetch the target file
+    const fileRes = await fetch(targetUrl);
+    if (!fileRes.ok) {
+      return NextResponse.json({ error: 'Failed to fetch file' }, { status: 500 });
+    }
+
+    let fileBuffer = Buffer.from(await fileRes.arrayBuffer());
+    const contentType = fileRes.headers.get('content-type') || (isVideoDownload ? 'video/mp4' : 'audio/mpeg');
+    const isMP3 = !isVideoDownload && (contentType.includes('mpeg') || targetUrl.includes('.mp3'));
 
     if (isMP3) {
       try {
@@ -104,7 +111,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           album: 'Jalaloaded',
           year: String(song.year || new Date().getFullYear()),
           genre: song.genre,
-          comment: { language: 'eng', text: song.description || 'Downloaded from Jalaloaded' },
+          comment: { language: 'eng', text: song.description || 'Downloaded from Jalaloaded.com' },
         };
 
         if (finalCoverBuffer) {
@@ -116,9 +123,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           };
         }
 
-        const taggedBuffer = NodeID3.update(tags, audioBuffer);
+        const taggedBuffer = NodeID3.update(tags, fileBuffer);
         if (taggedBuffer) {
-          audioBuffer = Buffer.from(taggedBuffer);
+          fileBuffer = Buffer.from(taggedBuffer);
         }
       } catch (e) {
         console.error('ID3 embed error:', e);
@@ -126,16 +133,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 
     // Build filename
-    const ext = isMP3 ? '.mp3' : audioUrl.includes('.wav') ? '.wav' : audioUrl.includes('.ogg') ? '.ogg' : '.mp3';
-    const safeName = `${song.artist} - ${song.title}`.replace(/[^a-zA-Z0-9\s\-_.]/g, '').trim();
+    const ext = isVideoDownload ? (targetUrl.includes('.webm') ? '.webm' : '.mp4') : (isMP3 ? '.mp3' : targetUrl.includes('.wav') ? '.wav' : targetUrl.includes('.ogg') ? '.ogg' : '.mp3');
+    const baseName = isVideoDownload ? `[Jalaloaded.com] ${song.artist} - ${song.title} (Official Music Video)` : `[Jalaloaded.com] ${song.artist} - ${song.title}`;
+    const safeName = baseName.replace(/[^a-zA-Z0-9\s\-_.[\]()]/g, '').trim();
     const filename = `${safeName}${ext}`;
 
-    return new NextResponse(audioBuffer, {
+    return new NextResponse(fileBuffer, {
       status: 200,
       headers: {
         'Content-Type': contentType,
         'Content-Disposition': `attachment; filename="${filename}"`,
-        'Content-Length': String(audioBuffer.length),
+        'Content-Length': String(fileBuffer.length),
       },
     });
   } catch (error) {
