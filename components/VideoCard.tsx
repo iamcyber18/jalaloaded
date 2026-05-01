@@ -42,9 +42,10 @@ export default function VideoCard({ video }: { video: any }) {
   };
 
   const thumbnailUrl = getThumbnailUrl();
+  const targetHref = video.isSongVideo ? `/music/${video.slug || video._id}` : `/videos/${video.slug || video._id}`;
 
   return (
-    <Link href={`/videos/${video.slug || video._id}`} className="video-card" style={{ display: 'block', textDecoration: 'none' }}>
+    <Link href={targetHref} className="video-card" style={{ display: 'block', textDecoration: 'none' }}>
       <div className="vid-thumb" style={thumbnailUrl ? { backgroundImage: `url(${thumbnailUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
         <div className="vid-play">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
