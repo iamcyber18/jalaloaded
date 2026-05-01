@@ -20,11 +20,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   try {
     let video = null;
     const isValidId = mongoose.Types.ObjectId.isValid(id);
-    
+
     if (isValidId) {
       video = await Video.findById(id).lean();
     }
-    
+
     if (!video) {
       // Fallback to Song
       const songQuery = isValidId ? { _id: id } : { slug: id };
@@ -60,12 +60,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function VideoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await dbConnect();
-  
+
   let video = null;
   let isSongVideo = false;
   try {
     const isValidId = mongoose.Types.ObjectId.isValid(id);
-    
+
     if (isValidId) {
       video = await Video.findByIdAndUpdate(
         id,
@@ -112,7 +112,7 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
   const isFacebook = video.mediaUrl.includes('facebook.com') || video.mediaUrl.includes('fb.watch');
   const isTikTok = video.mediaUrl.includes('tiktok.com');
   const isVimeo = video.mediaUrl.includes('vimeo.com');
-  
+
   // Extract YouTube ID if it's a YouTube link
   let youtubeId = '';
   if (isYouTube) {
@@ -123,7 +123,7 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
       /youtube\.com\/shorts\/([^&\n?#]+)/,
       /m\.youtube\.com\/watch\?v=([^&\n?#]+)/
     ];
-    
+
     for (const pattern of patterns) {
       const match = video.mediaUrl.match(pattern);
       if (match && match[1]) {
@@ -143,7 +143,7 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
       /fb\.watch\/([^/?]+)/,
       /facebook\.com\/.*\/posts\/(\d+)/
     ];
-    
+
     for (const pattern of patterns) {
       const match = video.mediaUrl.match(pattern);
       if (match && match[1]) {
@@ -162,7 +162,7 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
       /tiktok\.com\/.*\/video\/(\d+)/,
       /vm\.tiktok\.com\/([^/?]+)/
     ];
-    
+
     for (const pattern of patterns) {
       const match = video.mediaUrl.match(pattern);
       if (match && match[1]) {
@@ -206,22 +206,22 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="jlh min-h-screen">
       <div className="page" style={{ gridTemplateColumns: '1fr', maxWidth: '1000px', margin: '0 auto', padding: '24px' }}>
-        
+
         <Link href="/videos" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--orange)', fontSize: '13px', fontWeight: 600, textDecoration: 'none', marginBottom: '24px' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
           Back to Videos
         </Link>
 
         {/* Video Player */}
         <div style={{ width: '100%', background: '#000', borderRadius: '16px', overflow: 'hidden', marginBottom: '24px', position: 'relative', aspectRatio: '16/9', border: '1px solid var(--color-border-tertiary)' }}>
           {isYouTube && youtubeId ? (
-            <iframe 
-              width="100%" 
-              height="100%" 
-              src={`https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&showinfo=0&autoplay=0&controls=1`} 
-              title={video.title} 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1&showinfo=0&autoplay=0&controls=1`}
+              title={video.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               style={{ position: 'absolute', top: 0, left: 0 }}
               loading="lazy"
@@ -229,28 +229,28 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
           ) : isFacebook ? (
             <FacebookVideoPlayer videoUrl={video.mediaUrl} title={video.title} />
           ) : isTikTok ? (
-            <div style={{ 
-              width: '100%', 
-              height: '100%', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              flexDirection: 'column', 
+            <div style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
               gap: '16px',
               background: '#000',
               color: '#fff'
             }}>
               <div style={{ fontSize: '24px' }}>🎵</div>
               <p>TikTok Video</p>
-              <a 
-                href={video.mediaUrl} 
-                target="_blank" 
+              <a
+                href={video.mediaUrl}
+                target="_blank"
                 rel="noopener noreferrer"
-                style={{ 
-                  padding: '12px 24px', 
-                  background: '#ff0050', 
-                  color: '#fff', 
-                  textDecoration: 'none', 
+                style={{
+                  padding: '12px 24px',
+                  background: '#ff0050',
+                  color: '#fff',
+                  textDecoration: 'none',
                   borderRadius: '8px',
                   fontSize: '14px',
                   fontWeight: 600
@@ -263,20 +263,20 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
               </p>
             </div>
           ) : isVimeo && vimeoId ? (
-            <iframe 
-              width="100%" 
-              height="100%" 
-              src={`https://player.vimeo.com/video/${vimeoId}?badge=0&autopause=0&player_id=0&app_id=58479&autoplay=0`} 
-              title={video.title} 
-              frameBorder="0" 
-              allow="autoplay; fullscreen; picture-in-picture" 
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://player.vimeo.com/video/${vimeoId}?badge=0&autopause=0&player_id=0&app_id=58479&autoplay=0`}
+              title={video.title}
+              frameBorder="0"
+              allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
               style={{ position: 'absolute', top: 0, left: 0 }}
               loading="lazy"
             ></iframe>
           ) : video.mediaUrl ? (
-            <video 
-              controls 
+            <video
+              controls
               poster={video.thumbnailUrl}
               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               preload="metadata"
@@ -288,13 +288,13 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
               Your browser does not support HTML video.
             </video>
           ) : (
-            <div style={{ 
-              width: '100%', 
-              height: '100%', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              flexDirection: 'column', 
+            <div style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
               gap: '16px',
               color: 'var(--color-text-secondary)'
             }}>
@@ -312,7 +312,7 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
             <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-start', padding: '0 24px' }}>
               <a href={`/api/videos/${video._id.toString()}/download`} target="_blank" rel="noopener noreferrer"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px', fontWeight: 600, textDecoration: 'none', transition: 'background 0.2s' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
                 Download Video
               </a>
             </div>
@@ -323,10 +323,10 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
         <div style={{ background: 'var(--color-background-secondary)', padding: '24px', borderRadius: '16px', border: '1px solid var(--color-border-tertiary)', marginBottom: '40px' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
             {video.category && (
-               <span style={{ padding: '4px 12px', borderRadius: '20px', background: 'rgba(255,107,0,0.1)', color: 'var(--orange)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>{video.category}</span>
+              <span style={{ padding: '4px 12px', borderRadius: '20px', background: 'rgba(255,107,0,0.1)', color: 'var(--orange)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>{video.category}</span>
             )}
             <span style={{ padding: '4px 12px', borderRadius: '20px', background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-secondary)', fontSize: '11px', fontWeight: 600 }}>
-               {timeAgo(video.createdAt)}
+              {timeAgo(video.createdAt)}
             </span>
           </div>
 
@@ -337,7 +337,7 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--color-border-tertiary)', paddingTop: '16px', flexWrap: 'wrap', gap: '16px' }}>
             <div style={{ display: 'flex', gap: '16px', color: 'var(--color-text-secondary)', fontSize: '14px', fontWeight: 500 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                 {video.views || 0} Views
               </span>
             </div>
@@ -364,7 +364,7 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
                 <Link href={`/videos/${rv.slug || rv._id.toString()}`} key={rv._id.toString()} className="video-card" style={{ display: 'block', textDecoration: 'none' }}>
                   <div className="vid-thumb" style={rv.thumbnailUrl ? { backgroundImage: `url(${rv.thumbnailUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
                     <div className="vid-play">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3" /></svg>
                     </div>
                   </div>
                   <div className="vid-title">{rv.title}</div>
