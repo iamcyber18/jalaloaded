@@ -4,6 +4,8 @@ import Song from '@/models/Song';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import TrackAction from '@/components/TrackAction';
+import UpcomingMusic from '@/models/UpcomingMusic';
+import CountdownTimer from '@/components/CountdownTimer';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
@@ -40,6 +42,10 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
     .sort({ createdAt: -1 })
     .lean();
 
+  const upcomingTracks = await UpcomingMusic.find({ artist: artist.name })
+    .sort({ releaseDate: 1 })
+    .lean();
+
   return (
     <div className="jlh artist-page" style={{ minHeight: '100vh', paddingBottom: '40px' }}>
       <div className="artist-container">
@@ -64,6 +70,77 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
               {artist.bio && <p className="artist-bio">{artist.bio}</p>}
             </div>
           </div>
+
+          {/* Upcoming Drops */}
+          {upcomingTracks.length > 0 && (
+            <div style={{ marginTop: '30px', marginBottom: '30px' }}>
+              <h2 className="artist-section-title">Upcoming Drops</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {upcomingTracks.map((track: any) => {
+                  const isOut = new Date(track.releaseDate) <= new Date();
+                  return (
+                    <div key={track._id.toString()} style={{
+                      display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
+                      padding: '14px 16px', borderRadius: '12px',
+                      background: 'rgba(255,255,255,0.02)', border: isOut ? '1px solid rgba(255,107,0,0.5)' : '1px solid rgba(255,255,255,0.03)',
+                      transition: 'background 0.2s',
+                    }}>
+                      
+                      {/* Status/Icon */}
+                      <div style={{ fontSize: '12px', color: isOut ? '#1DBE73' : '#FF6B00', fontWeight: 800, width: '24px', textAlign: 'center', flexShrink: 0 }}>
+                        {isOut ? '▶' : '⏳'}
+                      </div>
+
+                      {/* Cover Art */}
+                      <div style={{
+                        width: '52px', height: '52px', borderRadius: '10px', overflow: 'hidden',
+                        background: track.coverUrl ? `url(${track.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,107,0,0.05))',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        border: '1px solid rgba(255,255,255,0.04)', flexShrink: 0
+                      }}>
+                        {!track.coverUrl && <span style={{ fontSize: '18px', opacity: 0.4 }}>🎵</span>}
+                      </div>
+                      
+                      {/* Track Info */}
+                      <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {track.title}
+                          </div>
+                          {!isOut && <span style={{ padding: '2px 6px', background: 'rgba(255,107,0,0.1)', color: '#FF6B00', fontSize: '8px', fontWeight: 800, borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>Upcoming</span>}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
+                          <span style={{ color: '#FF6B00', fontWeight: 600 }}>{track.artist}</span>
+                        </div>
+                        {track.description && (
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '3px', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {track.description}
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                        {/* Audio Teaser */}
+                        {track.snippetUrl && !isOut && (
+                          <div style={{ flexShrink: 0 }}>
+                            <audio controls controlsList="nodownload" style={{ height: '32px', width: '150px' }}>
+                              <source src={track.snippetUrl} type="audio/mpeg" />
+                              <source src={track.snippetUrl} type="audio/mp4" />
+                            </audio>
+                          </div>
+                        )}
+
+                        {/* Countdown Timer or Action */}
+                        <div style={{ flexShrink: 0 }}>
+                          <CountdownTimer targetDate={track.releaseDate} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Discography */}
           <h2 className="artist-section-title">Latest Releases</h2>
