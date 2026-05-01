@@ -1,13 +1,28 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Video from '@/models/Video';
+import Song from '@/models/Song';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
     await dbConnect();
 
-    const video = await Video.findById(resolvedParams.id);
+    let video: any = await Video.findById(resolvedParams.id);
+    let isSong = false;
+    
+    if (!video) {
+      // Fallback to Song
+      const song = await Song.findById(resolvedParams.id);
+      if (song && song.videoUrl) {
+        video = {
+          title: `${song.artist} - ${song.title} (Official Video)`,
+          mediaUrl: song.videoUrl
+        };
+        isSong = true;
+      }
+    }
+
     if (!video) {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     }

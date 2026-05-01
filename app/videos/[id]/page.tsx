@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/mongodb';
 import Video from '@/models/Video';
+import Song from '@/models/Song';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -15,7 +16,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   await dbConnect();
 
   try {
-    const video = await Video.findById(id).lean();
+    let video = await Video.findById(id).lean();
+    if (!video) {
+      // Fallback to Song
+      const song = await Song.findOne({ $or: [{ slug: id }, { _id: id }] }).lean();
+      if (song && song.videoUrl) {
+        video = {
+          _id: song._id,
+          title: `${song.artist} - ${song.title} (Official Video)`,
+          description: song.description,
+          thumbnailUrl: song.coverUrl,
+          mediaUrl: song.videoUrl,
+        } as any;
+      }
+    }
+
     if (!video) return { title: 'Video Not Found' };
 
     return {
@@ -38,6 +53,7 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
   await dbConnect();
   
   let video;
+  let isSongVideo = false;
   try {
     // We increment view count client-side or on API fetch to avoid double counting,
     // but doing it here is also fine for simple SSR tracking. Let's do it here.
@@ -46,8 +62,36 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
       { $inc: { views: 1 } },
       { new: true }
     ).lean();
+
+    if (!video) {
+      // Fallback to Song
+      const song = await Song.findOneAndUpdate(
+        { $or: [{ slug: id }, { _id: id }] },
+        { $inc: { plays: 1 } },
+        { new: true }
+      ).lean();
+
+      if (song && song.videoUrl) {
+        video = {
+          _id: song._id,
+          title: `${song.artist} - ${song.title} (Official Video)`,
+          mediaUrl: song.videoUrl,
+          thumbnailUrl: song.coverUrl,
+          duration: song.duration,
+          description: song.description,
+          author: 'jalal',
+          views: song.plays,
+          likes: song.likes,
+          category: 'Music Videos',
+          createdAt: song.createdAt,
+          updatedAt: song.updatedAt,
+          slug: song.slug || song._id
+        } as any;
+        isSongVideo = true;
+      }
+    }
   } catch {
-    notFound();
+    // Invalid ID format might throw, handled by notFound below
   }
 
   if (!video) notFound();
