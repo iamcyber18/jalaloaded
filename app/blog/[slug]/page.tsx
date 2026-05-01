@@ -200,7 +200,6 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                       {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={0} /></div>}
                       <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
                       {renderPhotos(afterMain)}
-                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={1} /></div>}
                       <ReactMarkdown {...mdProps}>{sections.slice(2).join('\n---\n')}</ReactMarkdown>
                       {renderPhotos(afterConclusion)}
                     </>
@@ -216,7 +215,6 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                       <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
                       {renderPhotos(afterMain)}
                       {renderPhotos(afterConclusion)}
-                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={1} /></div>}
                     </>
                   );
                 }
@@ -233,7 +231,6 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                       <ReactMarkdown {...mdProps}>{blocks.slice(mid).join('\n\n')}</ReactMarkdown>
                       {renderPhotos(afterMain)}
                       {renderPhotos(afterConclusion)}
-                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={1} /></div>}
                     </>
                   );
                 }

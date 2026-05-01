@@ -16,7 +16,7 @@ interface AdvertSliderProps {
   seedOffset?: number; // Optional offset so multiple sliders on the same page don't look identical
 }
 
-export default function AdvertSlider({ adverts, interval = 15000, seedOffset = 0 }: AdvertSliderProps) {
+export default function AdvertSlider({ adverts, interval = 5000, seedOffset = 0 }: AdvertSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(seedOffset % (adverts.length || 1));
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function AdvertSlider({ adverts, interval = 15000, seedOffset = 0
             <img 
               src={ad.imageUrl} 
               alt={ad.title} 
-              style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }} 
+              style={{ width: '100%', maxHeight: '300px', display: 'block', objectFit: 'cover', objectPosition: 'center' }} 
             />
           </div>
         ))}
