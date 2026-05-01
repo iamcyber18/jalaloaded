@@ -32,30 +32,35 @@ export default function MediaBlock({ mediaItems }: { mediaItems: IMediaItem[] })
             gap: '6px',
             justifyContent: 'center'
           }}>
-            {coverPhotos.map((photo, idx) => (
-              <div 
-                key={idx}
-                className="photo-slot"
-                style={{
-                  ...(coverPhotos.length === 3 && idx === 0 ? { gridRow: 'span 2' } : {}),
-                  ...(coverPhotos.length === 1 ? { display: 'flex', justifyContent: 'center', background: 'transparent' } : {})
-                }}
-                onClick={() => setLightboxImage(photo.url)}
-              >
-                <img 
-                  src={photo.url} 
-                  alt={photo.caption || `Cover photo ${idx + 1}`}
-                  style={{ 
-                    width: '100%', 
-                    height: coverPhotos.length === 1 ? 'auto' : '100%', 
-                    maxHeight: coverPhotos.length === 1 ? '400px' : 'none',
-                    objectFit: coverPhotos.length === 1 ? 'contain' : 'cover', 
-                    display: 'block' 
-                  }}
-                />
-                <div className="photo-overlay"><div className="photo-expand"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></div></div>
-              </div>
-            ))}
+            {coverPhotos.map((photo, idx) => {
+              if (coverPhotos.length === 1) {
+                return (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'center', width: '100%' }} onClick={() => setLightboxImage(photo.url)}>
+                    <img 
+                      src={photo.url} 
+                      alt={photo.caption || `Cover photo ${idx + 1}`}
+                      style={{ maxWidth: '100%', maxHeight: '450px', width: 'auto', height: 'auto', objectFit: 'contain', display: 'block', borderRadius: '12px' }}
+                    />
+                  </div>
+                );
+              }
+              
+              return (
+                <div 
+                  key={idx}
+                  className="photo-slot"
+                  style={coverPhotos.length === 3 && idx === 0 ? { gridRow: 'span 2' } : {}}
+                  onClick={() => setLightboxImage(photo.url)}
+                >
+                  <img 
+                    src={photo.url} 
+                    alt={photo.caption || `Cover photo ${idx + 1}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                  <div className="photo-overlay"><div className="photo-expand"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></div></div>
+                </div>
+              );
+            })}
           </div>
           {coverPhotos[0]?.caption && <div className="photo-caption">{coverPhotos[0].caption}</div>}
         </div>
