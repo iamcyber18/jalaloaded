@@ -7,8 +7,8 @@ export default function LaunchCountdown() {
   const [timeLeft, setTimeLeft] = useState<{ m: number; s: number } | null>(null);
   const [isLaunched, setIsLaunched] = useState(false);
 
-  // Set the launch time: 2026-05-02T14:23:00 (approx 2 mins from current request)
-  const LAUNCH_DATE = new Date('2026-05-02T14:23:00+01:00').getTime();
+  // Set the launch time: May 3, 2026, at 12:00 PM
+  const LAUNCH_DATE = new Date('2026-05-03T12:00:00+01:00').getTime();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -19,9 +19,11 @@ export default function LaunchCountdown() {
         clearInterval(timer);
         setIsLaunched(true);
       } else {
+        const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((distance % (1000 * 60)) / 1000);
-        setTimeLeft({ m, s });
+        setTimeLeft({ d, h, m, s } as any);
       }
     }, 1000);
 
@@ -72,17 +74,28 @@ export default function LaunchCountdown() {
       </div>
 
       {timeLeft ? (
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '30px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '80px', fontWeight: 900, fontFamily: '"Bebas Neue", sans-serif', color: '#FF6B00', lineHeight: 1 }}>
-              {timeLeft.m.toString().padStart(2, '0')}
+            <div style={{ fontSize: '70px', fontWeight: 900, fontFamily: '"Bebas Neue", sans-serif', color: '#FF6B00', lineHeight: 1 }}>
+              {(timeLeft as any).d.toString().padStart(2, '0')}
+            </div>
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginTop: '4px' }}>Days</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '70px', fontWeight: 900, fontFamily: '"Bebas Neue", sans-serif', color: '#FF6B00', lineHeight: 1 }}>
+              {(timeLeft as any).h.toString().padStart(2, '0')}
+            </div>
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginTop: '4px' }}>Hours</div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '70px', fontWeight: 900, fontFamily: '"Bebas Neue", sans-serif', color: '#FF6B00', lineHeight: 1 }}>
+              {(timeLeft as any).m.toString().padStart(2, '0')}
             </div>
             <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginTop: '4px' }}>Minutes</div>
           </div>
-          <div style={{ fontSize: '60px', fontWeight: 900, color: 'rgba(255,255,255,0.1)', marginBottom: '14px' }}>:</div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '80px', fontWeight: 900, fontFamily: '"Bebas Neue", sans-serif', color: '#FF6B00', lineHeight: 1 }}>
-              {timeLeft.s.toString().padStart(2, '0')}
+            <div style={{ fontSize: '70px', fontWeight: 900, fontFamily: '"Bebas Neue", sans-serif', color: '#FF6B00', lineHeight: 1 }}>
+              {(timeLeft as any).s.toString().padStart(2, '0')}
             </div>
             <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginTop: '4px' }}>Seconds</div>
           </div>
