@@ -74,16 +74,24 @@ export default function AdminSidebar() {
 
         <div className="nav-section">Manage</div>
         {session?.role === 'admin' && <NavLink href="/admin/newsletter" label="Newsletter" active={pathname === '/admin/newsletter'} onClick={closeMenu} />}
-        {session?.role === 'admin' && <NavLink href="/admin/users" label="Sub Admins" active={pathname === '/admin/users'} onClick={closeMenu} />}
+        {session?.role === 'admin' && <NavLink href="/admin/users" label="Team" active={pathname === '/admin/users'} onClick={closeMenu} />}
         {session?.role === 'admin' && <NavLink href="/admin/adverts" label="Adverts" active={pathname === '/admin/adverts'} onClick={closeMenu} />}
-        {isSubAdmin && <NavLink href="/admin/account" label="Change Password" active={pathname === '/admin/account'} onClick={closeMenu} />}
+        <NavLink href="/admin/account" label="Account Settings" active={pathname === '/admin/account'} onClick={closeMenu} />
 
         <div className="author-area">
           <div className="author-row">
-            <div className="av">{profileInitials}</div>
+            <div 
+              className="av" 
+              style={{ 
+                background: (session as any)?.profileImageUrl ? `url(${(session as any).profileImageUrl}) center/cover` : 'var(--orange)',
+                color: (session as any)?.profileImageUrl ? 'transparent' : '#fff'
+              }}
+            >
+              {!(session as any)?.profileImageUrl && profileInitials}
+            </div>
             <div>
               <div className="av-name">{profileName}</div>
-              <div className="av-role">{isSubAdmin ? 'Sub-admin' : 'Administrator'}</div>
+              <div className="av-role">{session?.role === 'admin' ? 'Administrator' : 'Sub-admin'}</div>
             </div>
           </div>
           <button className="logout-btn" onClick={handleLogout}>
