@@ -262,7 +262,8 @@ export default async function Home() {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
               {['Afrobeats', 'Football', 'AFCON', 'Lagos', 'Fashion', 'Music', 'Film', 'Gist', 'Naija', 'Sport'].map(
                 (tag) => (
-                  <span
+                  <Link
+                    href={`/blog?tag=${tag}`}
                     key={tag}
                     style={{
                       padding: '4px 10px',
@@ -272,10 +273,11 @@ export default async function Home() {
                       color: 'var(--color-text-secondary)',
                       cursor: 'pointer',
                       transition: 'all 0.15s',
+                      textDecoration: 'none'
                     }}
                   >
                     {tag}
-                  </span>
+                  </Link>
                 )
               )}
             </div>

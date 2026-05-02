@@ -18,16 +18,20 @@ type BlogPost = {
   views?: number;
 };
 
-async function getPosts(page: number, category?: string) {
+async function getPosts(page: number, category?: string, tag?: string) {
   await dbConnect();
   await ensurePublishedAtBackfill();
 
   const limit = 12;
   const skip = (page - 1) * limit;
-  const query: { status: 'published'; category?: string } = { status: 'published' };
+  const query: any = { status: 'published' };
 
   if (category && category !== 'All') {
     query.category = category;
+  }
+  
+  if (tag) {
+    query.tags = { $regex: new RegExp(`^${tag}$`, 'i') };
   }
 
   const posts = await Post.find(query)
@@ -48,13 +52,14 @@ async function getPosts(page: number, category?: string) {
 export default async function BlogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; category?: string }>;
+  searchParams: Promise<{ page?: string; category?: string; tag?: string }>;
 }) {
   const resolvedParams = await searchParams;
   const page = typeof resolvedParams.page === 'string' ? parseInt(resolvedParams.page) : 1;
   const category = resolvedParams.category || 'All';
+  const tag = resolvedParams.tag || '';
 
-  const { posts, totalPages, currentPage } = await getPosts(page, category);
+  const { posts, totalPages, currentPage } = await getPosts(page, category, tag);
 
   const categories = ['All', 'Music', 'Sports', 'Fashion', 'Lifestyle', 'News', 'Opinion', 'Events'];
 
@@ -62,8 +67,14 @@ export default async function BlogPage({
     <div className="jlh min-h-screen">
       <div className="page" style={{ gridTemplateColumns: '1fr', maxWidth: '1240px', margin: '0 auto', padding: '40px 24px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>
-          <h1 style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '48px', letterSpacing: '2px', color: 'var(--color-text-primary)' }}>THE GIST & STORIES</h1>
-          <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', fontFamily: '"Lora", serif', marginTop: '12px', lineHeight: '1.6' }}>Dive into the latest happenings, from street trends to global news. Pick a category or browse all.</p>
+          <h1 style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '48px', letterSpacing: '2px', color: 'var(--color-text-primary)', textTransform: 'uppercase' }}>
+            {tag ? `Posts tagged "${tag}"` : 'THE GIST & STORIES'}
+          </h1>
+          <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', fontFamily: '"Lora", serif', marginTop: '12px', lineHeight: '1.6' }}>
+            {tag 
+              ? `Browsing all articles under the tag ${tag}.` 
+              : 'Dive into the latest happenings, from street trends to global news. Pick a category or browse all.'}
+          </p>
         </div>
 
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '32px', justifyContent: 'center' }}>
