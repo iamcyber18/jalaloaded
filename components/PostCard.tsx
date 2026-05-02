@@ -17,6 +17,7 @@ type PostCardPost = {
   slug: string;
   title: string;
   views?: number;
+  authorProfilePic?: string | null;
 };
 
 export default function PostCard({ post }: { post: PostCardPost }) {
@@ -55,7 +56,15 @@ export default function PostCard({ post }: { post: PostCardPost }) {
         <div className="post-time">{timeAgo(publishedOn)}</div>
         <div className="post-footer" style={{ marginTop: '8px' }}>
           <div className="post-author">
-            <div className="post-av" style={{ background: '#FF6B00', color: '#fff' }}>{author.initials}</div>
+            <div 
+              className="post-av" 
+              style={{ 
+                background: post.authorProfilePic ? `url(${post.authorProfilePic}) center/cover` : '#FF6B00', 
+                color: post.authorProfilePic ? 'transparent' : '#fff' 
+              }}
+            >
+              {!post.authorProfilePic && author.initials}
+            </div>
             <span className="post-av-name">{author.name}</span>
           </div>
           <div className="post-stats">

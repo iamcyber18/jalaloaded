@@ -15,6 +15,7 @@ export type HeroCarouselSlide = {
   imageUrl?: string | null;
   slug: string;
   title: string;
+  authorProfilePic?: string | null;
 };
 
 function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
@@ -190,7 +191,15 @@ export default function HeroCarousel({ slides }: { slides: HeroCarouselSlide[] }
           <div className="hero-title">{currentSlide.title}</div>
 
           <div className="hero-meta">
-            <div className="hero-av">{currentAuthor?.initials || 'JA'}</div>
+            <div 
+              className="hero-av"
+              style={{ 
+                background: currentSlide.authorProfilePic ? `url(${currentSlide.authorProfilePic}) center/cover` : 'var(--orange)',
+                color: currentSlide.authorProfilePic ? 'transparent' : '#fff'
+              }}
+            >
+              {!currentSlide.authorProfilePic && (currentAuthor?.initials || 'JA')}
+            </div>
             <span className="hero-author">By {currentAuthor?.name || 'Jalal'}</span>
             <span className="hero-date">{timeAgo(currentSlide.createdAt)} &bull; 5 min read</span>
           </div>

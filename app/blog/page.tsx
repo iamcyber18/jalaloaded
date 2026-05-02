@@ -34,16 +34,43 @@ async function getPosts(page: number, category?: string, tag?: string) {
     query.tags = { $regex: new RegExp(`^${tag}$`, 'i') };
   }
 
-  const posts = await Post.find(query)
-    .sort({ publishedAt: -1, createdAt: -1, _id: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean<BlogPost[]>();
+  const [posts, admins] = await Promise.all([
+    Post.find(query)
+      .sort({ publishedAt: -1, createdAt: -1, _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean<BlogPost[]>(),
+    (await import('@/models/AdminUser')).default.find({}).select('displayName username profileImageUrl role').lean()
+  ]);
+
+  // Create a profile pic mapping
+  const profileMap: Record<string, string> = {};
+  const mainAdmin = (admins as any[]).find(a => a.role === 'admin');
+  
+  (admins as any[]).forEach(a => {
+    if (a.profileImageUrl) {
+      profileMap[a.displayName.toLowerCase()] = a.profileImageUrl;
+      profileMap[a.username.toLowerCase()] = a.profileImageUrl;
+    }
+  });
+
+  // Handle generic mapping for "Admin", "Main Admin", etc.
+  if (mainAdmin?.profileImageUrl) {
+    const genericNames = ['admin', 'main admin', 'administrator'];
+    genericNames.forEach(name => {
+      if (!profileMap[name]) profileMap[name] = mainAdmin.profileImageUrl;
+    });
+  }
+
+  const enrichedPosts = posts.map(post => ({
+    ...post,
+    authorProfilePic: profileMap[post?.author?.toLowerCase() || ''] || null
+  }));
 
   const total = await Post.countDocuments(query);
 
   return {
-    posts: JSON.parse(JSON.stringify(posts)),
+    posts: JSON.parse(JSON.stringify(enrichedPosts)),
     totalPages: Math.ceil(total / limit),
     currentPage: page,
   };

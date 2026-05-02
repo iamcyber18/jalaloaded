@@ -73,7 +73,7 @@ async function getHomepageData() {
   await dbConnect();
   await ensurePublishedAtBackfill();
 
-  const [featuredPosts, recentPosts, songs, standardVideos, activeAdverts] = await Promise.all([
+  const [featuredPosts, recentPosts, songs, standardVideos, activeAdverts, admins] = await Promise.all([
     Post.find({ status: 'published', featured: true })
       .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1, _id: -1 })
       .limit(6)
@@ -82,7 +82,35 @@ async function getHomepageData() {
     Song.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeSong[]>(),
     Video.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeVideo[]>(),
     Advert.find({ isActive: true }).lean<HomeAdvert[]>(),
+    (await import('@/models/AdminUser')).default.find({}).select('displayName username profileImageUrl role').lean()
   ]);
+
+  // Create a profile pic mapping
+  const profileMap: Record<string, string> = {};
+  const mainAdmin = (admins as any[]).find(a => a.role === 'admin');
+  
+  (admins as any[]).forEach(a => {
+    if (a.profileImageUrl) {
+      profileMap[a.displayName.toLowerCase()] = a.profileImageUrl;
+      profileMap[a.username.toLowerCase()] = a.profileImageUrl;
+    }
+  });
+
+  // Handle generic mapping for "Admin", "Main Admin", etc.
+  if (mainAdmin?.profileImageUrl) {
+    const genericNames = ['admin', 'main admin', 'administrator'];
+    genericNames.forEach(name => {
+      if (!profileMap[name]) profileMap[name] = mainAdmin.profileImageUrl;
+    });
+  }
+
+  const enrichPost = (post: HomePost) => ({
+    ...post,
+    authorProfilePic: profileMap[post.author.toLowerCase()] || null
+  });
+
+  const enrichedFeatured = featuredPosts.map(enrichPost);
+  const enrichedRecent = recentPosts.map(enrichPost);
 
   // Mix Song videos into Video feed for homepage
   const songsWithVideos = await Song.find({ videoUrl: { $exists: true, $ne: '' } }).sort({ createdAt: -1 }).limit(6).lean();
@@ -103,18 +131,15 @@ async function getHomepageData() {
     slug: song.slug || song._id
   }));
 
-  const videos = [...standardVideos, ...mappedSongs]
-    .sort((a, b) => new Date(b.createdAt as unknown as string).getTime() - new Date(a.createdAt as unknown as string).getTime())
-    .slice(0, 6);
+  const allVideos = [...standardVideos, ...mappedSongs]
+    .sort((a, b) => new Date(b.createdAt as unknown as string).getTime() - new Date(a.createdAt as unknown as string).getTime());
 
-  // Carousel ONLY shows posts explicitly marked as "featured" by admin.
-  // If no posts are featured, show the single most recent post as a fallback hero.
-  const carouselPosts = featuredPosts.length > 0
-    ? dedupePosts(featuredPosts).slice(0, 6)
-    : dedupePosts(recentPosts).slice(0, 1);
+  // Prepare carousel and latest posts using ENRICHED lists
+  const carouselPosts = enrichedFeatured.length > 0
+    ? dedupePosts(enrichedFeatured).slice(0, 6)
+    : dedupePosts(enrichedRecent).slice(0, 1);
   
-  // Always show the 8 most recent posts in the grid below the hero.
-  const latestPosts = recentPosts.slice(0, 8);
+  const latestPosts = enrichedRecent.slice(0, 8);
 
   // Fetch popular tags dynamically
   const tagsAggregation = await Post.aggregate([
@@ -127,12 +152,12 @@ async function getHomepageData() {
   const popularTags = tagsAggregation.map(t => t._id);
 
   return {
-    latestPosts,
-    recentPosts,
-    carouselPosts,
-    songs,
-    videos,
-    adverts: activeAdverts.map(ad => ({ ...ad, _id: ad._id.toString() })),
+    carouselPosts: JSON.parse(JSON.stringify(carouselPosts)),
+    latestPosts: JSON.parse(JSON.stringify(latestPosts)),
+    recentPosts: JSON.parse(JSON.stringify(enrichedRecent)),
+    songs: JSON.parse(JSON.stringify(songs)),
+    videos: JSON.parse(JSON.stringify(allVideos)),
+    adverts: JSON.parse(JSON.stringify(activeAdverts)),
     popularTags,
   };
 }
