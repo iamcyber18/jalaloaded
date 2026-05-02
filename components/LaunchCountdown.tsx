@@ -14,9 +14,9 @@ export default function LaunchCountdown() {
   // Set the launch time: May 3, 2026, at 12:00 PM
   const LAUNCH_DATE = new Date('2026-05-03T12:00:00+01:00').getTime();
 
-  // Bypass ONLY for admin paths (login, dashboard, etc.)
+  // Bypass for admin paths or if an admin is logged in
   const isAdminPath = pathname?.startsWith('/admin');
-  const shouldBypass = isAdminPath;
+  const shouldBypass = isAdminPath || (!!session && !sessionLoading);
 
   useEffect(() => {
     const timer = setInterval(() => {
