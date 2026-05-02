@@ -71,71 +71,9 @@ export default function AdminVideosPage() {
     setLoading(false);
   };
 
-  const uploadWithProgress = (file: File, fileType: string, onProgress: (p: number) => void): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      // Validate file size (50MB limit for videos, 10MB for images)
-      const maxSize = fileType === 'video' ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        reject(new Error(`File too large. Max size: ${fileType === 'video' ? '50MB' : '10MB'}`));
-        return;
-      }
-
-      // Validate file type
-      const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/quicktime'];
-      const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-      
-      if (fileType === 'video' && !validVideoTypes.includes(file.type)) {
-        reject(new Error('Invalid video format. Supported: MP4, WebM, OGG, AVI, MOV'));
-        return;
-      }
-      
-      if (fileType === 'image' && !validImageTypes.includes(file.type)) {
-        reject(new Error('Invalid image format. Supported: JPEG, PNG, GIF, WebP'));
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', fileType);
-
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/upload');
-      
-      // Set timeout (5 minutes for videos, 2 minutes for images)
-      xhr.timeout = fileType === 'video' ? 300000 : 120000;
-
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const pct = Math.round((e.loaded / e.total) * 100);
-          onProgress(pct);
-        }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try { 
-            const response = JSON.parse(xhr.responseText);
-            if (response.error) {
-              reject(new Error(response.error));
-            } else {
-              resolve(response);
-            }
-          }
-          catch { reject(new Error('Invalid server response')); }
-        } else {
-          try {
-            const errorResponse = JSON.parse(xhr.responseText);
-            reject(new Error(errorResponse.error || `Upload failed with status ${xhr.status}`));
-          } catch {
-            reject(new Error(`Upload failed with status ${xhr.status}`));
-          }
-        }
-      };
-
-      xhr.ontimeout = () => reject(new Error('Upload timeout. Please try with a smaller file.'));
-      xhr.onerror = () => reject(new Error('Network error. Please check your connection.'));
-      xhr.send(formData);
-    });
+  const uploadWithProgress = async (file: File, fileType: string, onProgress: (p: number) => void): Promise<any> => {
+    const { uploadAdminAsset } = await import('@/lib/adminUpload');
+    return uploadAdminAsset(file, fileType as 'image' | 'video', onProgress);
   };
 
   const handleThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

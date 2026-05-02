@@ -103,34 +103,9 @@ export default function AdminMusicPage() {
   };
 
 
-  const uploadWithProgress = (file: File, fileType: string, onProgress: (p: number) => void): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', fileType);
-
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/upload');
-
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const pct = Math.round((e.loaded / e.total) * 100);
-          onProgress(pct);
-        }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try { resolve(JSON.parse(xhr.responseText)); }
-          catch { reject(new Error('Invalid response')); }
-        } else {
-          reject(new Error(`Upload failed: ${xhr.status}`));
-        }
-      };
-
-      xhr.onerror = () => reject(new Error('Network error'));
-      xhr.send(formData);
-    });
+  const uploadWithProgress = async (file: File, fileType: string, onProgress: (p: number) => void): Promise<any> => {
+    const { uploadAdminAsset } = await import('@/lib/adminUpload');
+    return uploadAdminAsset(file, fileType as 'image' | 'video', onProgress);
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
