@@ -1,14 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { useAdminSession } from './useAdminSession';
+import { usePathname } from 'next/navigation';
 
 export default function LaunchCountdown() {
-  const [timeLeft, setTimeLeft] = useState<{ m: number; s: number } | null>(null);
+  const { session, loading: sessionLoading } = useAdminSession();
+  const pathname = usePathname();
+  const [timeLeft, setTimeLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
   const [isLaunched, setIsLaunched] = useState(false);
 
   // Set the launch time: May 3, 2026, at 12:00 PM
   const LAUNCH_DATE = new Date('2026-05-03T12:00:00+01:00').getTime();
+
+  // Bypass for admins or admin paths
+  const isAdminPath = pathname?.startsWith('/admin');
+  const shouldBypass = isAdminPath || (!!session && !sessionLoading);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -30,7 +36,7 @@ export default function LaunchCountdown() {
     return () => clearInterval(timer);
   }, []);
 
-  if (isLaunched) return null;
+  if (isLaunched || shouldBypass) return null;
 
   return (
     <div style={{
