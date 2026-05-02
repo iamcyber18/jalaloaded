@@ -110,11 +110,21 @@ async function getHomepageData() {
   // Carousel ONLY shows posts explicitly marked as "featured" by admin.
   // If no posts are featured, show the single most recent post as a fallback hero.
   const carouselPosts = featuredPosts.length > 0
-    ? dedupePosts(featuredPosts).slice(0, 4)
+    ? dedupePosts(featuredPosts).slice(0, 6)
     : dedupePosts(recentPosts).slice(0, 1);
   
-  // Always show the 6 most recent posts in the grid below the hero.
-  const latestPosts = recentPosts.slice(0, 6);
+  // Always show the 8 most recent posts in the grid below the hero.
+  const latestPosts = recentPosts.slice(0, 8);
+
+  // Fetch popular tags dynamically
+  const tagsAggregation = await Post.aggregate([
+    { $match: { status: 'published', tags: { $exists: true, $not: { $size: 0 } } } },
+    { $unwind: "$tags" },
+    { $group: { _id: "$tags", count: { $sum: 1 } } },
+    { $sort: { count: -1 } },
+    { $limit: 15 }
+  ]);
+  const popularTags = tagsAggregation.map(t => t._id);
 
   return {
     latestPosts,
@@ -123,11 +133,12 @@ async function getHomepageData() {
     songs,
     videos,
     adverts: activeAdverts.map(ad => ({ ...ad, _id: ad._id.toString() })),
+    popularTags,
   };
 }
 
 export default async function Home() {
-  const { latestPosts, recentPosts, carouselPosts, songs, videos, adverts } = await getHomepageData();
+  const { latestPosts, recentPosts, carouselPosts, songs, videos, adverts, popularTags } = await getHomepageData();
 
   const breakingNews = recentPosts.slice(0, 3);
   const heroSlides: HeroCarouselSlide[] = carouselPosts.map((post) => ({
@@ -260,7 +271,7 @@ export default async function Home() {
               Popular Tags
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-              {['Afrobeats', 'Football', 'AFCON', 'Lagos', 'Fashion', 'Music', 'Film', 'Gist', 'Naija', 'Sport'].map(
+              {popularTags.length > 0 ? popularTags.map(
                 (tag) => (
                   <Link
                     href={`/blog?tag=${tag}`}
@@ -279,6 +290,8 @@ export default async function Home() {
                     {tag}
                   </Link>
                 )
+              ) : (
+                <div style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>No tags yet</div>
               )}
             </div>
           </div>
