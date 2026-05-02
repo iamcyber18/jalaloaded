@@ -53,7 +53,7 @@ export async function GET() {
     const flattened = results.flat();
 
     const TOP_TEAMS = [
-      'Arsenal', 'Chelsea', 'Liverpool', 'Man City', 'Man United', 'Tottenham', 'Spurs',
+      'Arsenal', 'Chelsea', 'Liverpool', 'Man City', 'Manchester City', 'Man United', 'Manchester United', 'Man Utd', 'Tottenham', 'Spurs',
       'Real Madrid', 'Barcelona', 'Atlético Madrid', 'Atletico Madrid', 'Athletic Club', 'Sevilla',
       'Bayern', 'Dortmund', 'Leverkusen', 'RB Leipzig',
       'PSG', 'Juventus', 'AC Milan', 'Inter Milan', 'Napoli', 'Roma'
@@ -61,7 +61,9 @@ export async function GET() {
 
     const isTopTeam = (teamName: string) => {
       const lower = teamName.toLowerCase();
-      return TOP_TEAMS.some(t => lower.includes(t));
+      // Check if the team name contains any of our top team keywords
+      // OR if any of our keywords are contained within the team name
+      return TOP_TEAMS.some(t => lower.includes(t) || t.includes(lower));
     };
 
     // Sort priority
