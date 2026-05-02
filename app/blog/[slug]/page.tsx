@@ -237,7 +237,6 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                     <>
                       <ReactMarkdown {...mdProps}>{sections[0]}</ReactMarkdown>
                       {renderPhotos(afterIntro)}
-                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={0} /></div>}
                       <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
                       {renderPhotos(afterMain)}
                       <ReactMarkdown {...mdProps}>{sections.slice(2).join('\n---\n')}</ReactMarkdown>
@@ -251,7 +250,6 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                     <>
                       <ReactMarkdown {...mdProps}>{sections[0]}</ReactMarkdown>
                       {renderPhotos(afterIntro)}
-                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={0} /></div>}
                       <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
                       {renderPhotos(afterMain)}
                       {renderPhotos(afterConclusion)}
@@ -268,7 +266,6 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                     <>
                       <ReactMarkdown {...mdProps}>{blocks.slice(0, third).join('\n\n')}</ReactMarkdown>
                       {renderPhotos(afterIntro)}
-                      {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={0} /></div>}
                       <ReactMarkdown {...mdProps}>{blocks.slice(third, twoThirds).join('\n\n')}</ReactMarkdown>
                       {renderPhotos(afterMain)}
                       <ReactMarkdown {...mdProps}>{blocks.slice(twoThirds).join('\n\n')}</ReactMarkdown>
@@ -283,11 +280,17 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                     {renderPhotos(afterIntro)}
                     {renderPhotos(afterMain)}
                     {renderPhotos(afterConclusion)}
-                    {adverts.length > 0 && <div style={{ margin: '32px 0' }}><AdvertSlider adverts={adverts} seedOffset={0} /></div>}
                   </>
                 );
               })()}
             </div>
+
+            {/* ADVERTS */}
+            {adverts.length > 0 && (
+              <div style={{ marginTop: '40px', marginBottom: '20px' }}>
+                <AdvertSlider adverts={adverts} seedOffset={0} />
+              </div>
+            )}
 
             {/* TAGS */}
             <div className="tags-row">
