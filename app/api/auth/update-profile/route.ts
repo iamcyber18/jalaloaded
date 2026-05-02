@@ -7,27 +7,36 @@ export async function POST(request: Request) {
   try {
     const session = await getSession();
 
-    if (!session || !session.userId || session.userId === 'env-admin') {
-      return NextResponse.json({ error: 'Unauthorized or using environment admin.' }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { profileImageUrl, displayName } = await request.json();
 
     await dbConnect();
     
-    const updateData: any = {};
-    if (profileImageUrl !== undefined) updateData.profileImageUrl = profileImageUrl;
-    if (displayName) updateData.displayName = displayName;
-
-    const user = await AdminUser.findByIdAndUpdate(
-      session.userId,
-      { $set: updateData },
-      { new: true }
-    );
+    let user;
+    if (session.userId && session.userId !== 'env-admin') {
+      user = await AdminUser.findById(session.userId);
+    } else {
+      user = await AdminUser.findOne({ username: session.username.toLowerCase() });
+    }
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+      // Create record if it doesn't exist (emergency onboard)
+      user = await AdminUser.create({
+        username: session.username.toLowerCase(),
+        displayName: session.displayName,
+        passwordHash: 'environment-protected',
+        role: session.role,
+        active: true,
+        createdByUsername: 'system'
+      });
     }
+
+    if (profileImageUrl !== undefined) user.profileImageUrl = profileImageUrl;
+    if (displayName) user.displayName = displayName;
+    await user.save();
 
     return NextResponse.json({
       success: true,
