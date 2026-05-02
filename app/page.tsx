@@ -76,9 +76,9 @@ async function getHomepageData() {
   const [featuredPosts, recentPosts, songs, standardVideos, activeAdverts] = await Promise.all([
     Post.find({ status: 'published', featured: true })
       .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1, _id: -1 })
-      .limit(4)
+      .limit(6)
       .lean<HomePost[]>(),
-    Post.find({ status: 'published' }).sort({ publishedAt: -1, createdAt: -1, _id: -1 }).limit(10).lean<HomePost[]>(),
+    Post.find({ status: 'published' }).sort({ publishedAt: -1, createdAt: -1, _id: -1 }).limit(8).lean<HomePost[]>(),
     Song.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeSong[]>(),
     Video.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeVideo[]>(),
     Advert.find({ isActive: true }).lean<HomeAdvert[]>(),
