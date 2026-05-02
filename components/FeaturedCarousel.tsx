@@ -39,10 +39,10 @@ export default function FeaturedCarousel({ songs }: { songs: FeaturedSong[] }) {
     setCurrent(c => (c - 1 + songs.length) % songs.length);
   }, [songs.length]);
 
-  // Auto-slide every 5s
+  // Auto-slide every 4s
   useEffect(() => {
     if (paused || songs.length <= 1) return;
-    const timer = setInterval(next, 5000);
+    const timer = setInterval(next, 4000);
     return () => clearInterval(timer);
   }, [paused, next, songs.length]);
 
@@ -51,8 +51,6 @@ export default function FeaturedCarousel({ songs }: { songs: FeaturedSong[] }) {
 
   return (
     <div
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
       style={{
         position: 'relative', overflow: 'hidden',
         background: 'linear-gradient(135deg, rgba(255,107,0,0.12) 0%, rgba(0,0,0,0) 60%)',
