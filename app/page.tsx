@@ -186,11 +186,7 @@ export default async function Home() {
             ))}
           </div>
 
-          {adverts.length > 0 && (
-            <div style={{ marginTop: '30px', marginBottom: '10px' }}>
-              <AdvertSlider adverts={adverts} seedOffset={0} />
-            </div>
-          )}
+
 
           <div className="sec-hdr">
             <div className="sec-title">
