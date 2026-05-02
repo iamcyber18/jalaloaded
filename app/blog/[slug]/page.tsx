@@ -67,6 +67,28 @@ async function getPost(slug: string) {
 
   if (!post) return null;
 
+  // Fetch author profile pic if available
+  let authorProfilePic = null;
+  try {
+    const AdminUser = (await import('@/models/AdminUser')).default;
+    const authorUser = await AdminUser.findOne({ 
+      $or: [
+        { displayName: post.author },
+        { username: post.author.toLowerCase() }
+      ]
+    }).select('profileImageUrl').lean();
+    
+    if (authorUser?.profileImageUrl) {
+      authorProfilePic = authorUser.profileImageUrl;
+    }
+  } catch (err) {
+    console.error('Error fetching author profile:', err);
+  }
+
+  const postWithAuthor = { ...post, authorProfilePic };
+
+  if (!post) return null;
+
   // Get related posts (same category, excluding current)
   const related = await Post.find({
     category: post.category,
@@ -100,7 +122,7 @@ async function getPost(slug: string) {
   ]);
 
   return { 
-    post: JSON.parse(JSON.stringify(post)), 
+    post: JSON.parse(JSON.stringify(postWithAuthor)), 
     related: JSON.parse(JSON.stringify(related)),
     adverts: JSON.parse(JSON.stringify(allAds)),
     trending: JSON.parse(JSON.stringify(trending)),
@@ -140,7 +162,15 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
               <div className="post-title">{post.title}</div>
               <div className="post-meta">
                 <div className="author-chip">
-                  <div className="av" style={{ background: 'var(--orange)' }}>{author.initials}</div>
+                  <div 
+                    className="av" 
+                    style={{ 
+                      background: post.authorProfilePic ? `url(${post.authorProfilePic}) center/cover` : 'var(--orange)',
+                      color: post.authorProfilePic ? 'transparent' : '#fff'
+                    }}
+                  >
+                    {!post.authorProfilePic && author.initials}
+                  </div>
                   <div className="av-info">
                     <div className="av-name">{author.name}</div>
                     <div className="av-role">Writer &bull; Jalaloaded</div>

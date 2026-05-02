@@ -4,7 +4,8 @@ export interface IAdminUser extends Document {
   username: string;
   displayName: string;
   passwordHash: string;
-  role: 'sub-admin';
+  role: 'admin' | 'sub-admin';
+  profileImageUrl?: string;
   active: boolean;
   createdByUsername: string;
   lastLoginAt?: Date;
@@ -17,7 +18,8 @@ const AdminUserSchema = new Schema<IAdminUser>(
     username: { type: String, required: true, unique: true, lowercase: true, trim: true },
     displayName: { type: String, required: true, trim: true },
     passwordHash: { type: String, required: true },
-    role: { type: String, enum: ['sub-admin'], default: 'sub-admin' },
+    role: { type: String, enum: ['admin', 'sub-admin'], default: 'sub-admin' },
+    profileImageUrl: { type: String },
     active: { type: Boolean, default: true },
     createdByUsername: { type: String, required: true, trim: true },
     lastLoginAt: { type: Date },
