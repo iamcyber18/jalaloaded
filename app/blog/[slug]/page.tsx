@@ -152,7 +152,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
   }
 
   const { post, related, adverts, trending, categories } = data;
-  const author = getAuthorDisplay(post.author);
+  const author = getAuthorDisplay(post.author, post.authorProfilePic);
 
   return (
     <div className="jlh min-h-screen">
@@ -356,9 +356,17 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
 
             {/* AUTHOR BIO */}
             <div className="author-bio">
-              <div className="bio-av">{author.initials}</div>
+              <div 
+                className="bio-av"
+                style={{ 
+                  background: post.authorProfilePic ? `url(${post.authorProfilePic}) center/cover` : 'var(--orange)',
+                  color: post.authorProfilePic ? 'transparent' : '#fff'
+                }}
+              >
+                {!post.authorProfilePic && author.initials}
+              </div>
               <div>
-                <div className="bio-name">{getAuthorDisplay(post.author).name} — Writer at Jalaloaded</div>
+                <div className="bio-name">{author.name} — Writer at Jalaloaded</div>
                 <div className="bio-text">Passionately covering music, culture, street life, and everything in between.</div>
                 <FollowWriterButton authorId={post.author} authorName={author.name} />
               </div>

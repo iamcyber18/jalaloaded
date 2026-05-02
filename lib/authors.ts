@@ -1,19 +1,21 @@
-export function getAuthorDisplay(author?: string) {
+export function getAuthorDisplay(author?: string, profileImageUrl?: string | null) {
   const normalizedAuthor = author?.trim();
 
+  let name = normalizedAuthor || 'Jalal';
+  
   if (!normalizedAuthor) {
-    return { name: 'Jalal', initials: 'JA' };
+    name = 'Jalal';
+  } else if (normalizedAuthor.toLowerCase() === 'co-friend') {
+    name = 'Co-friend';
+  } else if (['admin', 'main admin', 'administrator'].includes(normalizedAuthor.toLowerCase())) {
+    name = 'Cyber';
+  } else {
+    name = normalizedAuthor
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   }
-
-  if (normalizedAuthor.toLowerCase() === 'co-friend') {
-    return { name: 'Co-friend', initials: 'CO' };
-  }
-
-  const name = normalizedAuthor
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
 
   const initials =
     name
@@ -23,5 +25,5 @@ export function getAuthorDisplay(author?: string) {
       .map((part) => part.charAt(0).toUpperCase())
       .join('') || name.slice(0, 2).toUpperCase();
 
-  return { name, initials };
+  return { name, initials, profileImageUrl };
 }
