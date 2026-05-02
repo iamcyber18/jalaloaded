@@ -49,18 +49,7 @@ type EditorState = {
 
 const categories = ['General', 'Music', 'Sports', 'Lifestyle', 'Politics', 'Entertainment', 'Fashion', 'News', 'Opinion', 'Events'];
 
-const emptyEditor: EditorState = {
-  title: '',
-  introduction: '',
-  mainContent: '',
-  conclusion: '',
-  author: 'jalal',
-  category: 'General',
-  status: 'published',
-  allowComments: true,
-  featured: false,
-  tagInput: '',
-};
+
 
 function buildBody(editor: EditorState) {
   let body = '';
@@ -126,7 +115,21 @@ function createEditorState(post: AdminPost) {
 }
 
 export default function AdminPostsPage() {
-  const { session } = useAdminSession();
+  const { session, loading: sessionLoading } = useAdminSession();
+  const defaultAuthor = session?.role === 'admin' ? 'cyber' : (session?.displayName || session?.username || 'Admin');
+
+  const emptyEditor: EditorState = {
+    title: '',
+    introduction: '',
+    mainContent: '',
+    conclusion: '',
+    author: defaultAuthor,
+    category: 'General',
+    status: 'published',
+    allowComments: true,
+    featured: false,
+    tagInput: '',
+  };
   const [posts, setPosts] = useState<AdminPost[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editor, setEditor] = useState<EditorState>(emptyEditor);

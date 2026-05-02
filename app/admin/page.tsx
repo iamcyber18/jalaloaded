@@ -27,7 +27,7 @@ export default function AdminPage() {
   const [tagPills, setTagPills] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const { session } = useAdminSession();
-  const activeAuthor = session?.displayName || session?.username || form.author || 'Admin';
+  const activeAuthor = session?.role === 'admin' ? 'cyber' : (session?.displayName || session?.username || form.author || 'Admin');
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === ',' || e.key === 'Enter') {
