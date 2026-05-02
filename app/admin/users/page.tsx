@@ -90,6 +90,23 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleDelete = async (userId: string) => {
+    if (!window.confirm('Are you sure you want to delete this team member? This action cannot be undone.')) return;
+
+    try {
+      const res = await fetch(`/api/admin-users?id=${userId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setUsers(users.filter(u => u._id !== userId));
+        toast.success('Account deleted.');
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to delete account.');
+      }
+    } catch {
+      toast.error('Something went wrong.');
+    }
+  };
+
   return (
     <div className="jl">
       <AdminSidebar />
@@ -176,9 +193,15 @@ export default function AdminUsersPage() {
                           <span>added by {user.createdByUsername}</span>
                           <span>{timeAgo(user.createdAt)}</span>
                         </div>
-                        <div className="post-row-footer">
+                        <div className="post-row-footer" style={{ justifyContent: 'space-between' }}>
                           <span className="post-row-slug">{user.active ? 'active' : 'inactive'}</span>
-                          <div className="post-row-stats">
+                          <div className="post-row-stats" style={{ gap: '12px' }}>
+                            <button 
+                              onClick={() => handleDelete(user._id)}
+                              style={{ background: 'none', border: 'none', color: '#ff4444', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              DELETE
+                            </button>
                             <span>{user.lastLoginAt ? `last login ${timeAgo(user.lastLoginAt)}` : 'never'}</span>
                           </div>
                         </div>

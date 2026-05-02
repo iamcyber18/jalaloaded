@@ -81,7 +81,7 @@ export default function AdminAccountPage() {
     }
   };
 
-  const isEnvAdmin = session?.userId === 'env-admin';
+  const isEnvAdmin = session?.username === 'jalal'; // Or whoever the main admin is in ENV
 
   return (
     <div className="jl">
@@ -122,7 +122,7 @@ export default function AdminAccountPage() {
                         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                         border: '3px solid #000'
                       }}>
-                        <input type="file" accept="image/*" hidden onChange={handleProfileUpload} disabled={isEnvAdmin} />
+                        <input type="file" accept="image/*" hidden onChange={handleProfileUpload} />
                         <span style={{ fontSize: '14px' }}>📸</span>
                       </label>
                     </div>

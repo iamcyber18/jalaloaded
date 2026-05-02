@@ -98,3 +98,36 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to create sub-admin.' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await getSession();
+
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('id');
+
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
+    }
+
+    if (userId === session.userId) {
+      return NextResponse.json({ error: 'You cannot delete yourself.' }, { status: 400 });
+    }
+
+    await dbConnect();
+    const result = await AdminUser.findByIdAndDelete(userId);
+
+    if (!result) {
+      return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Admin user delete error:', error);
+    return NextResponse.json({ error: 'Failed to delete account.' }, { status: 500 });
+  }
+}

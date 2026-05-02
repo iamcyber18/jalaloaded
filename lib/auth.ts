@@ -50,11 +50,26 @@ export async function authenticateUser(username: string, password: string) {
   const normalizedUsername = normalizeUsername(username);
 
   if (normalizedUsername === normalizeUsername(ADMIN_USERNAME) && password === ADMIN_PASSWORD) {
+    await dbConnect();
+    let user = await AdminUser.findOne({ username: normalizedUsername });
+    
+    if (!user) {
+      // Create a database record for the environment admin to support profile pics
+      user = await AdminUser.create({
+        username: normalizedUsername,
+        displayName: ADMIN_DISPLAY_NAME,
+        passwordHash: 'environment-protected', // Password is still verified against ENV
+        role: 'admin',
+        active: true,
+        createdByUsername: 'system',
+      });
+    }
+
     return {
-      username: ADMIN_USERNAME,
-      displayName: ADMIN_DISPLAY_NAME,
+      username: user.username,
+      displayName: user.displayName,
       role: 'admin' as const,
-      userId: 'env-admin',
+      userId: user._id.toString(),
     };
   }
 
