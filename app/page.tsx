@@ -185,7 +185,7 @@ export default async function Home() {
           <div className="break-label">LATEST</div>
           <div style={{ overflow: 'hidden', flex: 1 }}>
             <span className="break-text">
-              {breakingNews.map((post) => `${post.title}`).join(' \u00a0\u00a0\u2022\u00a0\u00a0 ')}
+              {breakingNews.map((post: any) => `${post.title}`).join(' \u00a0\u00a0\u2022\u00a0\u00a0 ')}
             </span>
           </div>
         </div>
