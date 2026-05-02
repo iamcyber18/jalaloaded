@@ -71,10 +71,23 @@ async function getPost(slug: string) {
   let authorProfilePic = null;
   try {
     const AdminUser = (await import('@/models/AdminUser')).default;
+    
+    // Create a list of names to search for
+    const searchNames = [post.author];
+    
+    // If it's a generic name, also search for the main admin's real name
+    if (['admin', 'main admin', 'administrator'].includes(post.author.toLowerCase())) {
+      const mainAdmin = await AdminUser.findOne({ role: 'admin' }).select('displayName username').lean();
+      if (mainAdmin) {
+        searchNames.push(mainAdmin.displayName);
+        searchNames.push(mainAdmin.username);
+      }
+    }
+
     const authorUser = await AdminUser.findOne({ 
       $or: [
-        { displayName: post.author },
-        { username: post.author.toLowerCase() }
+        { displayName: { $in: searchNames } },
+        { username: { $in: searchNames.map(s => s.toLowerCase()) } }
       ]
     }).select('profileImageUrl').lean();
     
