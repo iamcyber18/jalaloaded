@@ -131,3 +131,37 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Failed to delete account.' }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const session = await getSession();
+
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { userId } = await request.json();
+
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
+    }
+
+    await dbConnect();
+    const newPasswordHash = await hashPassword('0987654321');
+    
+    const user = await AdminUser.findByIdAndUpdate(
+      userId,
+      { $set: { passwordHash: newPasswordHash } },
+      { new: true }
+    );
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Admin user reset error:', error);
+    return NextResponse.json({ error: 'Failed to reset password.' }, { status: 500 });
+  }
+}

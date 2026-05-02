@@ -90,6 +90,27 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleResetPassword = async (userId: string) => {
+    if (!window.confirm('Reset this user\'s password to "0987654321"?')) return;
+
+    try {
+      const res = await fetch('/api/admin-users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (res.ok) {
+        toast.success('Password reset to 0987654321');
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to reset password.');
+      }
+    } catch {
+      toast.error('Something went wrong.');
+    }
+  };
+
   const handleDelete = async (userId: string) => {
     if (!window.confirm('Are you sure you want to delete this team member? This action cannot be undone.')) return;
 
@@ -196,6 +217,12 @@ export default function AdminUsersPage() {
                         <div className="post-row-footer" style={{ justifyContent: 'space-between' }}>
                           <span className="post-row-slug">{user.active ? 'active' : 'inactive'}</span>
                           <div className="post-row-stats" style={{ gap: '12px' }}>
+                            <button 
+                              onClick={() => handleResetPassword(user._id)}
+                              style={{ background: 'none', border: 'none', color: '#fbbf24', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              RESET PASS
+                            </button>
                             <button 
                               onClick={() => handleDelete(user._id)}
                               style={{ background: 'none', border: 'none', color: '#ff4444', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
