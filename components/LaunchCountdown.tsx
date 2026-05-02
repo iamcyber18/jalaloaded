@@ -41,7 +41,7 @@ export default function LaunchCountdown() {
   if (isLaunched || shouldBypass) return null;
 
   return (
-    <div style={{
+    <div className="launch-overlay" style={{
       position: 'fixed',
       top: 0,
       left: 0,
@@ -55,10 +55,11 @@ export default function LaunchCountdown() {
       justifyContent: 'center',
       textAlign: 'center',
       color: '#fff',
-      fontFamily: '"DM Sans", sans-serif'
+      fontFamily: '"DM Sans", sans-serif',
+      padding: '20px'
     }}>
       {/* Background Glow */}
-      <div style={{
+      <div className="glow-bg" style={{
         position: 'absolute',
         width: '600px',
         height: '600px',
@@ -66,53 +67,54 @@ export default function LaunchCountdown() {
         zIndex: -1
       }} />
 
-      <div style={{ marginBottom: '40px', animation: 'pulse 3s infinite ease-in-out' }}>
+      <div className="launch-logo-container" style={{ marginBottom: '40px', animation: 'pulse 3s infinite ease-in-out' }}>
         <Image 
           src="/images/jalaloadedlogo.png" 
           alt="Jalaloaded Logo" 
           width={300} 
           height={96} 
+          className="launch-logo"
           style={{ objectFit: 'contain' }}
           priority 
         />
       </div>
 
-      <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '4px', marginBottom: '24px' }}>
+      <div className="launch-kicker" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '4px', marginBottom: '24px' }}>
         Get Ready For The Launch
       </div>
 
       {timeLeft ? (
-        <div style={{ display: 'flex', gap: '30px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '70px', fontWeight: 900, fontFamily: '"Bebas Neue", sans-serif', color: '#FF6B00', lineHeight: 1 }}>
+        <div className="countdown-grid" style={{ display: 'flex', gap: '30px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div className="time-block">
+            <div className="time-num">
               {(timeLeft as any).d.toString().padStart(2, '0')}
             </div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginTop: '4px' }}>Days</div>
+            <div className="time-label">Days</div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '70px', fontWeight: 900, fontFamily: '"Bebas Neue", sans-serif', color: '#FF6B00', lineHeight: 1 }}>
+          <div className="time-block">
+            <div className="time-num">
               {(timeLeft as any).h.toString().padStart(2, '0')}
             </div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginTop: '4px' }}>Hours</div>
+            <div className="time-label">Hours</div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '70px', fontWeight: 900, fontFamily: '"Bebas Neue", sans-serif', color: '#FF6B00', lineHeight: 1 }}>
+          <div className="time-block">
+            <div className="time-num">
               {(timeLeft as any).m.toString().padStart(2, '0')}
             </div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginTop: '4px' }}>Minutes</div>
+            <div className="time-label">Minutes</div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '70px', fontWeight: 900, fontFamily: '"Bebas Neue", sans-serif', color: '#FF6B00', lineHeight: 1 }}>
+          <div className="time-block">
+            <div className="time-num">
               {(timeLeft as any).s.toString().padStart(2, '0')}
             </div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginTop: '4px' }}>Seconds</div>
+            <div className="time-label">Seconds</div>
           </div>
         </div>
       ) : (
         <div style={{ fontSize: '24px', fontWeight: 700 }}>Starting now...</div>
       )}
 
-      <div style={{ marginTop: '60px', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
+      <div className="launch-footer" style={{ marginTop: '60px', fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
         © 2026 JALALOADED • THE VIBE IS ALMOST HERE
       </div>
 
@@ -120,6 +122,30 @@ export default function LaunchCountdown() {
         @keyframes pulse {
           0%, 100% { transform: scale(1); opacity: 1; }
           50% { transform: scale(1.02); opacity: 0.9; }
+        }
+
+        .time-block { text-align: center; }
+        .time-num { 
+          font-size: 70px; 
+          font-weight: 900; 
+          font-family: "Bebas Neue", sans-serif; 
+          color: #FF6B00; 
+          line-height: 1; 
+        }
+        .time-label { 
+          font-size: 10px; 
+          color: rgba(255,255,255,0.3); 
+          text-transform: uppercase; 
+          marginTop: 4px; 
+          letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+          .launch-logo { width: 220px !important; height: auto !important; }
+          .launch-kicker { font-size: 11px !important; letter-spacing: 2px !important; }
+          .time-num { font-size: 48px !important; }
+          .countdown-grid { gap: 15px !important; }
+          .glow-bg { width: 300px !important; height: 300px !important; }
         }
       `}</style>
     </div>
