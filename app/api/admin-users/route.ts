@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { username, displayName, password } = await request.json();
+    const { username, displayName, password, role = 'sub-admin' } = await request.json();
 
     if (!username || !displayName || !password) {
       return NextResponse.json({ error: 'Username, display name, and password are required.' }, { status: 400 });
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       username: normalizedUsername,
       displayName: displayName.trim(),
       passwordHash,
-      role: 'sub-admin',
+      role: (role === 'admin') ? 'admin' : 'sub-admin',
       active: true,
       createdByUsername: session.username,
     });
