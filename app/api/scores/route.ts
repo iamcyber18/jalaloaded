@@ -52,16 +52,36 @@ export async function GET() {
     const results = await Promise.all(promises);
     const flattened = results.flat();
 
-    // Sort priority
-    const getPriority = (status: string) => {
-       if (status === 'LIVE') return 1;
-       if (status === 'PRE') return 2;
-       return 3; // FT
+    const TOP_TEAMS = [
+      'Arsenal', 'Chelsea', 'Liverpool', 'Man City', 'Man United', 'Tottenham', 'Spurs',
+      'Real Madrid', 'Barcelona', 'Atlético Madrid', 'Atletico Madrid', 'Athletic Club', 'Sevilla',
+      'Bayern', 'Dortmund', 'Leverkusen', 'RB Leipzig',
+      'PSG', 'Juventus', 'AC Milan', 'Inter Milan', 'Napoli', 'Roma'
+    ].map(t => t.toLowerCase());
+
+    const isTopTeam = (teamName: string) => {
+      const lower = teamName.toLowerCase();
+      return TOP_TEAMS.some(t => lower.includes(t));
     };
 
-    flattened.sort((a, b) => getPriority(a.status) - getPriority(b.status));
+    // Sort priority
+    const getPriority = (score: any) => {
+       // Primary: Status (LIVE > PRE > FT)
+       let base = 0;
+       if (score.status === 'LIVE') base = 0;
+       else if (score.status === 'PRE') base = 10;
+       else base = 20;
 
-    // Limit to 25 matches so the ticker isn't overwhelmingly long
+       // Secondary: Top Team (Big teams move closer to the front within their status group)
+       const isBigMatch = isTopTeam(score.h) || isTopTeam(score.a) || score.league === 'UCL';
+       if (!isBigMatch) base += 5;
+
+       return base;
+    };
+
+    flattened.sort((a, b) => getPriority(a) - getPriority(b));
+
+    // Limit to 30 matches
     const finalScores = flattened.slice(0, 30);
 
     return NextResponse.json({ scores: finalScores });
