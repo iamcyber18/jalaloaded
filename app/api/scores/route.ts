@@ -68,17 +68,24 @@ export async function GET() {
 
     // Sort priority
     const getPriority = (score: any) => {
-       // Primary: Status (LIVE > PRE > FT)
-       let base = 0;
-       if (score.status === 'LIVE') base = 0;
-       else if (score.status === 'PRE') base = 10;
-       else base = 20;
-
-       // Secondary: Top Team (Big teams move closer to the front within their status group)
        const isBigMatch = isTopTeam(score.h) || isTopTeam(score.a) || score.league === 'UCL';
-       if (!isBigMatch) base += 5;
+       
+       // Priority levels:
+       // 1. LIVE Big Match
+       // 2. PRE Big Match
+       // 3. LIVE Small Match
+       // 4. PRE Small Match
+       // 5. FT Big Match
+       // 6. FT Small Match
 
-       return base;
+       if (score.status === 'LIVE') {
+         return isBigMatch ? 1 : 3;
+       }
+       if (score.status === 'PRE') {
+         return isBigMatch ? 2 : 4;
+       }
+       // Finished matches
+       return isBigMatch ? 5 : 6;
     };
 
     flattened.sort((a, b) => getPriority(a) - getPriority(b));
