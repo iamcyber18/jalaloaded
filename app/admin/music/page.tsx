@@ -341,10 +341,10 @@ export default function AdminMusicPage() {
                   </div>
                 ) : (
                   <div onClick={() => audioInputRef.current?.click()} style={S.uploadBtn}>
-                    🎧 Click to upload audio file (MP3, WAV, OGG)
+                    🎧 Click to upload audio file (MP3, WAV, OGG, MPEG)
                   </div>
                 )}
-                <input ref={audioInputRef} type="file" accept="audio/*" hidden onChange={handleAudioUpload} />
+                <input ref={audioInputRef} type="file" accept="audio/*,.mpeg,video/mpeg" hidden onChange={handleAudioUpload} />
               </div>
 
               {/* Stream URL */}
@@ -385,11 +385,11 @@ export default function AdminMusicPage() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '8px' }}>
                     <input style={S.input} value={form.videoUrl} onChange={e => setForm({ ...form, videoUrl: e.target.value })} placeholder="Paste YouTube link here..." />
                     <div onClick={() => videoInputRef.current?.click()} style={{ padding: '10px 16px', borderRadius: '8px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.3)', color: '#FF6B00', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                      OR UPLOAD MP4
+                      OR UPLOAD MP4/MPEG
                     </div>
                   </div>
                 )}
-                <input ref={videoInputRef} type="file" accept="video/mp4,video/webm" hidden onChange={handleVideoUpload} />
+                <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,.mpeg,video/mpeg" hidden onChange={handleVideoUpload} />
               </div>
 
               {/* Description */}

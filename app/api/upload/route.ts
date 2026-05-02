@@ -30,12 +30,15 @@ export async function POST(request: Request) {
     }
 
     // File type validation
-    const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/quicktime'];
+    const validVideoTypes = [
+      'video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/quicktime', 'video/mpeg',
+      'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/x-m4a', 'audio/mp4'
+    ];
     const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     
     if (type === 'video' && !validVideoTypes.includes(file.type)) {
       return NextResponse.json({ 
-        error: 'Invalid video format. Supported formats: MP4, WebM, OGG, AVI, MOV' 
+        error: 'Invalid format. Supported formats: MP4, WebM, OGG, AVI, MOV, MPEG, MP3, WAV, M4A' 
       }, { status: 400 });
     }
     
