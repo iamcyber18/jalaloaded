@@ -52,23 +52,6 @@ export async function GET() {
     const results = await Promise.all(promises);
     const flattened = results.flat();
 
-    const TOP_TEAMS = [
-      'Arsenal', 'Chelsea', 'Liverpool', 'Man City', 'Man United', 'Tottenham', 'Spurs',
-      'Real Madrid', 'Barcelona', 'Atlético Madrid', 'Atletico Madrid', 'Athletic Club', 'Sevilla',
-      'Bayern', 'Dortmund', 'Leverkusen', 'RB Leipzig',
-      'PSG', 'Juventus', 'AC Milan', 'Inter Milan', 'Napoli', 'Roma'
-    ].map(t => t.toLowerCase());
-
-    const isTopTeam = (teamName: string) => {
-      const lower = teamName.toLowerCase();
-      return TOP_TEAMS.some(t => lower.includes(t));
-    };
-
-    const filteredScores = flattened.filter(score => {
-      if (score.league === 'UCL') return true;
-      return isTopTeam(score.h) || isTopTeam(score.a);
-    });
-
     // Sort priority
     const getPriority = (status: string) => {
        if (status === 'LIVE') return 1;
@@ -76,9 +59,12 @@ export async function GET() {
        return 3; // FT
     };
 
-    filteredScores.sort((a, b) => getPriority(a.status) - getPriority(b.status));
+    flattened.sort((a, b) => getPriority(a.status) - getPriority(b.status));
 
-    return NextResponse.json({ scores: filteredScores });
+    // Limit to 25 matches so the ticker isn't overwhelmingly long
+    const finalScores = flattened.slice(0, 30);
+
+    return NextResponse.json({ scores: finalScores });
   } catch (err) {
     console.error('ESPN API error:', err);
     return NextResponse.json({ scores: [] }, { status: 500 });
