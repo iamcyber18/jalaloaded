@@ -207,7 +207,7 @@ export default async function Home() {
             </Link>
           </div>
           <div className="posts-grid">
-            {latestPosts.map((post) => (
+            {latestPosts.map((post: any) => (
               <PostCard key={post._id.toString()} post={post} />
             ))}
           </div>
@@ -225,7 +225,7 @@ export default async function Home() {
           </div>
           <div className="music-section">
             <div className="music-scroll">
-              {songs.map((song) => (
+              {songs.map((song: any) => (
                 <MusicCard key={song._id.toString()} song={song} />
               ))}
             </div>
@@ -241,7 +241,7 @@ export default async function Home() {
             </Link>
           </div>
           <div className="video-grid">
-            {videos.map((video) => (
+            {videos.map((video: any) => (
               <VideoCard key={video._id.toString()} video={video} />
             ))}
           </div>
@@ -270,7 +270,7 @@ export default async function Home() {
               Trending Now
             </div>
             <div>
-              {latestPosts.slice(0, 5).map((post, index) => (
+              {latestPosts.slice(0, 5).map((post: any, index: number) => (
                 <Link
                   href={`/blog/${post.slug}`}
                   key={post._id.toString()}
@@ -294,7 +294,7 @@ export default async function Home() {
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
               {popularTags.length > 0 ? popularTags.map(
-                (tag) => (
+                (tag: string) => (
                   <Link
                     href={`/blog?tag=${tag}`}
                     key={tag}

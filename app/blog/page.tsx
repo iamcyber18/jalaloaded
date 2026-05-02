@@ -105,7 +105,7 @@ export default async function BlogPage({
         </div>
 
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '32px', justifyContent: 'center' }}>
-          {categories.map((cat) => (
+          {categories.map((cat: string) => (
             <Link
               key={cat}
               href={cat !== 'All' ? `/blog?category=${cat}` : '/blog'}
@@ -138,7 +138,7 @@ export default async function BlogPage({
 
         {totalPages > 1 && (
           <div style={{ marginTop: '48px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-            {Array.from({ length: totalPages }).map((_, i) => (
+            {Array.from({ length: totalPages }).map((_: any, i: number) => (
               <Link
                 key={i}
                 href={`/blog?page=${i + 1}${category !== 'All' ? '&category=' + category : ''}`}
