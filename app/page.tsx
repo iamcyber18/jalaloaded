@@ -166,15 +166,16 @@ export default async function Home() {
   const { latestPosts, recentPosts, carouselPosts, songs, videos, adverts, popularTags } = await getHomepageData();
 
   const breakingNews = recentPosts.slice(0, 3);
-  const heroSlides: HeroCarouselSlide[] = carouselPosts.map((post) => ({
+  const heroSlides: HeroCarouselSlide[] = carouselPosts.map((post: any) => ({
     author: post.author,
     category: post.category,
     createdAt: new Date(post.publishedAt || post.createdAt).toISOString(),
     featured: Boolean(post.featured),
     id: post._id.toString(),
-    imageUrl: post.media?.find((mediaItem) => mediaItem.type === 'photo')?.url || null,
+    imageUrl: post.media?.find((mediaItem: any) => mediaItem.type === 'photo')?.url || null,
     slug: post.slug,
     title: post.title,
+    authorProfilePic: post.authorProfilePic,
   }));
 
   return (
