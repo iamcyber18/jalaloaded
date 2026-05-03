@@ -147,14 +147,14 @@ export default function AdminDashboardPage() {
                     <Link href="/admin/music" className="btn-draft" style={{ textDecoration: 'none', textAlign: 'center', padding: '12px' }}>
                       🎵 Manage Music
                     </Link>
-                    <Link href="/admin/artists" className="btn-draft" style={{ textDecoration: 'none', textAlign: 'center', padding: '12px' }}>
-                      🎤 Manage Artists
-                    </Link>
                     <Link href="/admin/newsletter" className="btn-draft" style={{ textDecoration: 'none', textAlign: 'center', padding: '12px' }}>
                       📧 Newsletter
                     </Link>
-                    <Link href="/admin/users" className="btn-draft" style={{ textDecoration: 'none', textAlign: 'center', padding: '12px' }}>
-                      👥 Sub Admins
+                    <Link href="/admin/artists" className="btn-draft" style={{ textDecoration: 'none', textAlign: 'center', padding: '12px' }}>
+                      👨‍🎤 Manage Artists
+                    </Link>
+                    <Link href="/admin/live" className="btn-publish" style={{ textDecoration: 'none', textAlign: 'center', padding: '12px', background: 'linear-gradient(135deg, #ff0000, #c00000)' }}>
+                      🔴 Start Live Stream
                     </Link>
                   </>
                 )}
@@ -164,8 +164,26 @@ export default function AdminDashboardPage() {
                     🔐 Change Password
                   </Link>
                 )}
-              </div>
             </div>
+
+            {/* Live Stream Status Card */}
+            {!isSubAdmin && (
+              <div className="post-list-card" style={{ border: '1px solid rgba(255,0,0,0.2)', background: 'rgba(255,0,0,0.02)' }}>
+                <div className="side-title" style={{ color: '#ff4444', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff4444', animation: 'blink 1s infinite' }}></div>
+                   Live Streaming
+                </div>
+                <div style={{ marginTop: '16px' }}>
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', lineHeight: '1.5' }}>
+                    Broadcast live sessions from YouTube or Facebook to your audience.
+                  </p>
+                  <Link href="/admin/live" style={{ display: 'block', marginTop: '16px', background: 'rgba(255,255,255,0.05)', color: '#fff', padding: '10px', borderRadius: '8px', textAlign: 'center', fontSize: '12px', fontWeight: 600, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    Open Live Control Panel
+                  </Link>
+                </div>
+                <style jsx>{` @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } } `}</style>
+              </div>
+            )}
 
             {/* Recent Posts */}
             <div className="post-list-card">
