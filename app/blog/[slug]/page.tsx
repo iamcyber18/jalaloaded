@@ -172,7 +172,7 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
             {/* HEADER */}
             <div className="article-header">
               <div className="post-cat">{post.category}</div>
-              <div className="post-title">{post.title}</div>
+              <div className="article-title">{post.title}</div>
               <div className="post-meta">
                 <div className="author-chip">
                   <div 
