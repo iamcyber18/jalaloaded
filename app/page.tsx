@@ -184,20 +184,20 @@ export default async function Home() {
   return (
     <div className="jlh min-h-screen">
       {activeLive && activeLive.length > 0 && (
-        <div style={{ background: '#FF0000', color: '#fff', display: 'flex', flexDirection: 'column' }}>
-          {activeLive.map((stream: any) => (
+        <div style={{ background: '#FF0000', color: '#fff', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', padding: '6px' }}>
+          {activeLive.map((stream: any, i: number) => (
             <div key={stream._id} style={{ 
-              padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', 
-              position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.1)' 
+              padding: '6px 20px', display: 'flex', alignItems: 'center', gap: '12px', 
+              position: 'relative', overflow: 'hidden', borderRight: i < activeLive.length - 1 ? '1px solid rgba(255,255,255,0.2)' : 'none'
             }}>
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)', animation: 'shimmer 2s infinite' }}></div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', zIndex: 1 }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', animation: 'blink 1s infinite' }}></div>
-                <span style={{ fontWeight: 800, fontSize: '10px', letterSpacing: '1px' }}>LIVE</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', zIndex: 1 }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fff', animation: 'blink 1s infinite' }}></div>
+                <span style={{ fontWeight: 800, fontSize: '9px', letterSpacing: '1px' }}>LIVE</span>
               </div>
-              <div style={{ fontWeight: 700, fontSize: '13px', zIndex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '400px' }}>{stream.title}</div>
+              <div style={{ fontWeight: 700, fontSize: '12px', zIndex: 1, whiteSpace: 'nowrap' }}>{stream.title}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', zIndex: 1 }}>
-                <Link href={`/live?v=${stream._id}`} style={{ background: '#fff', color: '#FF0000', padding: '4px 14px', borderRadius: '20px', fontSize: '10px', fontWeight: 800, textDecoration: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}>
+                <Link href={`/live?v=${stream._id}`} style={{ background: '#fff', color: '#FF0000', padding: '3px 12px', borderRadius: '20px', fontSize: '9px', fontWeight: 800, textDecoration: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>
                   WATCH
                 </Link>
                 <ShareButton 
