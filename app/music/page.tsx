@@ -23,7 +23,7 @@ async function getMusicData(genre?: string) {
 
   const upcomingTracks = await UpcomingMusic.find().sort({ releaseDate: 1 }).lean();
 
-  const mostPlayedSong = await Song.findOne({}).sort({ plays: -1 }).lean();
+  const topSongs = await Song.find({}).sort({ plays: -1 }).limit(5).lean();
 
   return {
     songs: JSON.parse(JSON.stringify(songs)),
@@ -31,14 +31,14 @@ async function getMusicData(genre?: string) {
     totalPlays: totalPlays[0]?.total || 0,
     totalDownloads: totalDownloads[0]?.total || 0,
     upcomingTracks: JSON.parse(JSON.stringify(upcomingTracks)),
-    mostPlayedSong: mostPlayedSong ? JSON.parse(JSON.stringify(mostPlayedSong)) : null,
+    topSongs: JSON.parse(JSON.stringify(topSongs)),
   };
 }
 
 export default async function MusicPage({ searchParams }: { searchParams: Promise<{ genre?: string }> }) {
   const resolvedParams = await searchParams;
   const currentGenre = resolvedParams.genre || 'All';
-  const { songs, featuredSongs, totalPlays, totalDownloads, upcomingTracks, mostPlayedSong } = await getMusicData(currentGenre);
+  const { songs, featuredSongs, totalPlays, totalDownloads, upcomingTracks, topSongs } = await getMusicData(currentGenre);
 
   const genres = ['All', 'Afrobeats', 'Amapiano', 'Highlife', 'R&B', 'Gospel', 'Hip-hop', 'Other'];
 
@@ -253,36 +253,35 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
 
         {/* SIDEBAR */}
         <div className="sidebar">
-          {/* Most Played Song */}
-          {mostPlayedSong && (
-            <div className="s-card" style={{ background: 'linear-gradient(135deg, rgba(255,107,0,0.1), rgba(0,0,0,0.3))', border: '1px solid rgba(255,107,0,0.2)' }}>
-              <div className="s-title" style={{ color: '#FF6B00' }}>
-                <div className="s-line2" style={{ background: '#FF6B00' }}></div>
-                Most Played
-              </div>
-              <Link href={`/music/${mostPlayedSong.slug || mostPlayedSong._id}`} style={{ textDecoration: 'none' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '10px' }}>
-                  <div style={{ 
-                    width: '100%', height: '180px', borderRadius: '12px', overflow: 'hidden', 
-                    background: mostPlayedSong.coverUrl ? `url(${mostPlayedSong.coverUrl}) center/cover` : 'linear-gradient(135deg, #FF6B00, #c84b00)',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.3)', position: 'relative'
-                  }}>
-                    <div style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: '20px', fontSize: '10px', color: '#fff', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                       <svg width="10" height="10" viewBox="0 0 24 24" fill="#FF6B00"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                       {formatNumber(mostPlayedSong.plays)} PLAYS
+          {/* Most Played Songs List */}
+          <div className="s-card">
+            <div className="s-title"><div className="s-line2"></div>Most Played</div>
+            <div>
+              {topSongs.map((song: any, i: number) => (
+                <Link key={song._id.toString()} href={`/music/${song.slug || song._id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: i < topSongs.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 800, color: i < 3 ? '#FF6B00' : 'rgba(255,255,255,0.15)', width: '20px', textAlign: 'center' }}>
+                      {i + 1}
+                    </div>
+                    <div style={{
+                      width: '40px', height: '40px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0,
+                      background: song.coverUrl ? `url(${song.coverUrl}) center/cover` : 'linear-gradient(135deg, #FF6B00, #c84b00)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      {!song.coverUrl && <span style={{ fontSize: '14px' }}>🎵</span>}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '2px' }}>{song.artist} • {formatNumber(song.plays || 0)} plays</div>
                     </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>{mostPlayedSong.title}</div>
-                    <div style={{ fontSize: '12px', color: '#FF6B00', fontWeight: 600 }}>{mostPlayedSong.artist}</div>
-                  </div>
-                  <div style={{ background: 'rgba(255,107,0,0.1)', padding: '10px', borderRadius: '8px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#FF6B00', border: '1px solid rgba(255,107,0,0.1)' }}>
-                    PLAY NOW
-                  </div>
-                </div>
-              </Link>
+                </Link>
+              ))}
+              {topSongs.length === 0 && (
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', padding: '12px 0' }}>No songs yet.</div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Most Downloaded */}
           <div className="s-card">
