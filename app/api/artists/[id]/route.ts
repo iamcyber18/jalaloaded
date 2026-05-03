@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Artist from '@/models/Artist';
 import { deleteCloudinaryFiles } from '@/lib/cloudinary';
+import Song from '@/models/Song';
+import Video from '@/models/Video';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -9,14 +11,30 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     await dbConnect();
     const body = await request.json();
 
-    if (body.name) {
-      body.slug = body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const oldArtist = await Artist.findById(id);
+    if (!oldArtist) return NextResponse.json({ error: 'Artist not found' }, { status: 404 });
+
+    const oldName = oldArtist.name;
+    const newName = body.name;
+
+    if (newName) {
+      body.slug = newName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     }
 
     const artist = await Artist.findByIdAndUpdate(id, body, { new: true });
-    if (!artist) return NextResponse.json({ error: 'Artist not found' }, { status: 404 });
+    
+    // If name changed, update all songs and videos that reference the old name
+    if (newName && oldName !== newName) {
+      await Promise.all([
+        Song.updateMany({ artist: oldName }, { artist: newName }),
+        // Check videos if they have an artist field (some models might not have it explicitly but let's be safe)
+        Video.updateMany({ artist: oldName }, { artist: newName })
+      ]);
+    }
+
     return NextResponse.json(artist);
-  } catch {
+  } catch (error) {
+    console.error('Update artist error:', error);
     return NextResponse.json({ error: 'Failed to update artist' }, { status: 500 });
   }
 }
