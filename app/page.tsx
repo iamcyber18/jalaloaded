@@ -193,10 +193,6 @@ export default async function Home() {
           <Link href="/live" style={{ background: '#fff', color: '#FF0000', padding: '4px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: 800, textDecoration: 'none', zIndex: 1, boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}>
             WATCH LIVE
           </Link>
-          <style jsx>{`
-            @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-            @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-          `}</style>
         </div>
       )}
       {breakingNews.length > 0 && (

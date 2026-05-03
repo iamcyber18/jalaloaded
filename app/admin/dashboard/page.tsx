@@ -181,7 +181,6 @@ export default function AdminDashboardPage() {
                     Open Live Control Panel
                   </Link>
                 </div>
-                <style jsx>{` @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } } `}</style>
               </div>
             )}
 
