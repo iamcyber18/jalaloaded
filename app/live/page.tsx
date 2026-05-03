@@ -20,15 +20,15 @@ export default async function LivePage() {
 
   return (
     <div className="jlh min-h-screen">
-      <div className="page" style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 24px' }}>
-        <div style={{ marginBottom: '32px' }}>
+      <div className="live-container">
+        <div className="live-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: activeStream ? '#ff0000' : '#444', animation: activeStream ? 'pulse 2s infinite' : 'none' }}></div>
              <span style={{ fontSize: '13px', fontWeight: 800, color: activeStream ? '#ff0000' : 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                {activeStream ? 'Live Now' : 'Currently Offline'}
              </span>
           </div>
-          <h1 style={{ fontFamily: '"Syne", sans-serif', fontSize: '36px', fontWeight: 800, color: '#fff' }}>
+          <h1 className="live-title">
             {activeStream ? activeStream.title : 'Jalaloaded Live Session'}
           </h1>
         </div>

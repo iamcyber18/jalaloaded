@@ -1323,3 +1323,35 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
   70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
 }
+
+/* LIVE PAGE STYLES */
+.live-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 24px;
+}
+
+.live-header {
+  margin-bottom: 40px;
+}
+
+.live-title {
+  font-family: "Syne", sans-serif;
+  font-size: 48px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+  margin-top: 12px;
+}
+
+@media (max-width: 768px) {
+  .live-container {
+    padding: 30px 16px;
+  }
+  .live-title {
+    font-size: 32px;
+  }
+  .live-header {
+    margin-bottom: 24px;
+  }
+}
