@@ -21,6 +21,7 @@ export default function Navbar() {
     { href: '/blog', label: 'Blog' },
     { href: '/music', label: 'Music' },
     { href: '/videos', label: 'Videos' },
+    { href: '/live', label: 'Live' },
     { href: '/about', label: 'About' },
   ];
 
