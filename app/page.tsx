@@ -11,6 +11,7 @@ import PostCard from '@/components/PostCard';
 import MusicCard from '@/components/MusicCard';
 import VideoCard from '@/components/VideoCard';
 import NewsletterForm from '@/components/NewsletterForm';
+import ShareButton from '@/components/ShareButton';
 import AdvertSlider from '@/components/AdvertSlider';
 import { ensurePublishedAtBackfill } from '@/lib/postPublishing';
 
