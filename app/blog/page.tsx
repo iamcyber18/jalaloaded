@@ -88,7 +88,7 @@ export default async function BlogPage({
 
   const { posts, totalPages, currentPage } = await getPosts(page, category, tag);
 
-  const categories = ['All', 'Music', 'Sports', 'Fashion', 'Lifestyle', 'News', 'Opinion', 'Events'];
+  const categories = ['All', 'Music', 'Sports', 'Fashion', 'Lifestyle', 'News', 'Opinion', 'Events', 'Business', 'Health and Wellbeing', 'Sciences', 'Technology'];
 
   return (
     <div className="jlh min-h-screen">
