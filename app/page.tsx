@@ -200,11 +200,6 @@ export default async function Home() {
                 <Link href={`/live?v=${stream._id}`} style={{ background: '#fff', color: '#FF0000', padding: '3px 12px', borderRadius: '20px', fontSize: '9px', fontWeight: 800, textDecoration: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>
                   WATCH
                 </Link>
-                <ShareButton 
-                  title={stream.title} 
-                  url={`${typeof window !== 'undefined' ? window.location.origin : ''}/live?v=${stream._id}`} 
-                  mini 
-                />
               </div>
             </div>
           ))}
