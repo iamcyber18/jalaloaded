@@ -83,7 +83,7 @@ async function getHomepageData() {
     Video.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeVideo[]>(),
     Advert.find({ isActive: true }).lean<HomeAdvert[]>(),
     (await import('@/models/AdminUser')).default.find({}).select('displayName username profileImageUrl role').lean(),
-    (await import('@/models/LiveStream')).default.findOne({ isActive: true }).lean()
+    (await import('@/models/LiveStream')).default.find({ isActive: true }).lean()
   ]);
 
   // Create a profile pic mapping
@@ -159,7 +159,7 @@ async function getHomepageData() {
     songs: JSON.parse(JSON.stringify(songs)),
     videos: JSON.parse(JSON.stringify(allVideos)),
     adverts: JSON.parse(JSON.stringify(activeAdverts)),
-    activeLive: activeLive ? JSON.parse(JSON.stringify(activeLive)) : null,
+    activeLive: JSON.parse(JSON.stringify(activeLive)),
     popularTags,
   };
 }
@@ -182,17 +182,31 @@ export default async function Home() {
 
   return (
     <div className="jlh min-h-screen">
-      {activeLive && (
-        <div style={{ background: '#FF0000', color: '#fff', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)', animation: 'shimmer 2s infinite' }}></div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', zIndex: 1 }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', animation: 'blink 1s infinite' }}></div>
-            <span style={{ fontWeight: 800, fontSize: '12px', letterSpacing: '1px' }}>LIVE NOW</span>
-          </div>
-          <div style={{ fontWeight: 700, fontSize: '14px', zIndex: 1 }}>{activeLive.title}</div>
-          <Link href="/live" style={{ background: '#fff', color: '#FF0000', padding: '4px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: 800, textDecoration: 'none', zIndex: 1, boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}>
-            WATCH LIVE
-          </Link>
+      {activeLive && activeLive.length > 0 && (
+        <div style={{ background: '#FF0000', color: '#fff', display: 'flex', flexDirection: 'column' }}>
+          {activeLive.map((stream: any) => (
+            <div key={stream._id} style={{ 
+              padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', 
+              position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.1)' 
+            }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)', animation: 'shimmer 2s infinite' }}></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', zIndex: 1 }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', animation: 'blink 1s infinite' }}></div>
+                <span style={{ fontWeight: 800, fontSize: '10px', letterSpacing: '1px' }}>LIVE</span>
+              </div>
+              <div style={{ fontWeight: 700, fontSize: '13px', zIndex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '400px' }}>{stream.title}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', zIndex: 1 }}>
+                <Link href={`/live?v=${stream._id}`} style={{ background: '#fff', color: '#FF0000', padding: '4px 14px', borderRadius: '20px', fontSize: '10px', fontWeight: 800, textDecoration: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}>
+                  WATCH
+                </Link>
+                <ShareButton 
+                  title={stream.title} 
+                  url={`${typeof window !== 'undefined' ? window.location.origin : ''}/live?v=${stream._id}`} 
+                  mini 
+                />
+              </div>
+            </div>
+          ))}
         </div>
       )}
       {breakingNews.length > 0 && (

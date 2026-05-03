@@ -1,6 +1,7 @@
 import dbConnect from '@/lib/mongodb';
 import LiveStream, { ILiveStream } from '@/models/LiveStream';
 import Link from 'next/link';
+import ShareButton from '@/components/ShareButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,11 +65,14 @@ export default async function LivePage({ searchParams }: { searchParams: Promise
                     ></iframe>
                   )}
                 </div>
-                <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)' }}>
-                   <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#fff', marginBottom: '12px' }}>{selectedStream.title}</h2>
-                   <p style={{ color: 'var(--color-text-secondary)', fontSize: '15px', lineHeight: '1.6' }}>
-                     {selectedStream.description || 'Welcome to our live stream! Stay tuned for the best vibes and updates.'}
-                   </p>
+                <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px' }}>
+                   <div style={{ flex: 1 }}>
+                     <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#fff', marginBottom: '12px' }}>{selectedStream.title}</h2>
+                     <p style={{ color: 'var(--color-text-secondary)', fontSize: '15px', lineHeight: '1.6' }}>
+                       {selectedStream.description || 'Welcome to our live stream! Stay tuned for the best vibes and updates.'}
+                     </p>
+                   </div>
+                   <ShareButton title={selectedStream.title} />
                 </div>
               </div>
             </div>
@@ -79,22 +83,28 @@ export default async function LivePage({ searchParams }: { searchParams: Promise
                 <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: '16px', letterSpacing: '1px' }}>Switch Channels</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {activeStreams.map(stream => (
-                    <Link 
-                      key={stream._id.toString()} 
-                      href={`/live?v=${stream._id}`}
-                      style={{ 
-                        textDecoration: 'none', 
-                        background: selectedStream._id.toString() === stream._id.toString() ? 'rgba(255,107,0,0.1)' : 'rgba(255,255,255,0.03)',
-                        border: selectedStream._id.toString() === stream._id.toString() ? '1px solid #FF6B00' : '1px solid rgba(255,255,255,0.06)',
-                        padding: '12px', borderRadius: '12px', display: 'flex', gap: '12px', alignItems: 'center', transition: '0.2s'
-                      }}
-                    >
-                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff0000', animation: 'blink 1s infinite', flexShrink: 0 }}></div>
-                       <div style={{ flex: 1, minWidth: 0 }}>
-                         <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{stream.title}</div>
-                         <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>{stream.platform} Channel</div>
-                       </div>
-                    </Link>
+                    <div key={stream._id.toString()} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <Link 
+                        href={`/live?v=${stream._id}`}
+                        style={{ 
+                          flex: 1, textDecoration: 'none', 
+                          background: selectedStream._id.toString() === stream._id.toString() ? 'rgba(255,107,0,0.1)' : 'rgba(255,255,255,0.03)',
+                          border: selectedStream._id.toString() === stream._id.toString() ? '1px solid #FF6B00' : '1px solid rgba(255,255,255,0.06)',
+                          padding: '12px', borderRadius: '12px', display: 'flex', gap: '12px', alignItems: 'center', transition: '0.2s'
+                        }}
+                      >
+                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff0000', animation: 'blink 1s infinite', flexShrink: 0 }}></div>
+                         <div style={{ flex: 1, minWidth: 0 }}>
+                           <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{stream.title}</div>
+                           <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>{stream.platform} Channel</div>
+                         </div>
+                      </Link>
+                      <ShareButton 
+                        title={stream.title} 
+                        url={`${typeof window !== 'undefined' ? window.location.origin : ''}/live?v=${stream._id}`} 
+                        mini 
+                      />
+                    </div>
                   ))}
                 </div>
               </div>

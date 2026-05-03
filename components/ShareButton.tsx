@@ -2,11 +2,17 @@
 
 import { useState } from 'react';
 
-export default function ShareButton({ title }: { title: string }) {
+interface Props {
+  title: string;
+  url?: string;
+  mini?: boolean;
+}
+
+export default function ShareButton({ title, url: customUrl, mini }: Props) {
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const url = customUrl || window.location.href;
 
     if (navigator.share) {
       try {
@@ -21,6 +27,28 @@ export default function ShareButton({ title }: { title: string }) {
       setTimeout(() => setCopied(false), 2000);
     } catch {}
   };
+
+  if (mini) {
+    return (
+      <button
+        onClick={handleShare}
+        title="Share"
+        style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          width: '32px', height: '32px', borderRadius: '50%',
+          background: copied ? '#1DBE73' : 'rgba(255,255,255,0.2)', 
+          border: 'none', color: '#fff', cursor: 'pointer',
+          transition: 'all 0.2s', padding: 0
+        }}
+      >
+        {copied ? (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        )}
+      </button>
+    );
+  }
 
   return (
     <button
