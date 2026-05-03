@@ -160,6 +160,17 @@ export default function AdminLivePage() {
                 />
               </div>
 
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: '8px', textTransform: 'uppercase' }}>Description (Optional)</label>
+                <textarea 
+                  className="ad-input" 
+                  style={{ width: '100%', background: 'rgba(0,0,0,0.2)', height: '80px', paddingTop: '10px' }}
+                  value={form.description}
+                  onChange={e => setForm({...form, description: e.target.value})}
+                  placeholder="Tell your audience what this stream is about..."
+                />
+              </div>
+
               <button 
                 type="submit" 
                 disabled={saving}

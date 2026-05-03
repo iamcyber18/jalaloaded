@@ -23,10 +23,6 @@ export async function POST(request: Request) {
     await dbConnect();
     const body = await request.json();
     
-    // If setting to active, deactivate others
-    if (body.isActive) {
-      await LiveStream.updateMany({}, { isActive: false });
-    }
 
     const stream = await LiveStream.create(body);
     return NextResponse.json(stream, { status: 201 });
@@ -46,9 +42,6 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { id, ...updates } = body;
 
-    if (updates.isActive) {
-      await LiveStream.updateMany({ _id: { $ne: id } }, { isActive: false });
-    }
 
     const stream = await LiveStream.findByIdAndUpdate(id, updates, { new: true });
     return NextResponse.json(stream);

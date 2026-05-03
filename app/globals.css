@@ -1355,3 +1355,7 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
     margin-bottom: 24px;
   }
 }
+
+@media (max-width: 900px) {
+  .live-grid { grid-template-columns: 1fr !important; }
+}
