@@ -19,7 +19,7 @@ export interface IPost extends Document {
   mainContent?: string;
   conclusion?: string;
   author: string;
-  category: 'General' | 'Music' | 'Sports' | 'Fashion' | 'Lifestyle' | 'News' | 'Opinion' | 'Events' | 'Politics' | 'Entertainment';
+  category: 'General' | 'Music' | 'Sports' | 'Fashion' | 'Lifestyle' | 'News' | 'Opinion' | 'Events' | 'Politics' | 'Entertainment' | 'Business' | 'Health and Wellbeing' | 'Sciences' | 'Technology';
   tags: string[];
   media: IMediaItem[];
   status: 'draft' | 'published';
@@ -59,7 +59,7 @@ const PostSchema = new Schema<IPost>(
     createdByRole: { type: String, enum: ['admin', 'sub-admin'] },
     category: {
       type: String,
-      enum: ['General', 'Music', 'Sports', 'Fashion', 'Lifestyle', 'News', 'Opinion', 'Events', 'Politics', 'Entertainment'],
+      enum: ['General', 'Music', 'Sports', 'Fashion', 'Lifestyle', 'News', 'Opinion', 'Events', 'Politics', 'Entertainment', 'Business', 'Health and Wellbeing', 'Sciences', 'Technology'],
       default: 'General',
     },
     tags: [{ type: String }],
