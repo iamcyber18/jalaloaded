@@ -164,6 +164,7 @@ export default function AdminDashboardPage() {
                     🔐 Change Password
                   </Link>
                 )}
+              </div>
             </div>
 
             {/* Live Stream Status Card */}
