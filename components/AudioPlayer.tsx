@@ -8,10 +8,12 @@ interface Props {
   artist: string;
   coverUrl?: string;
   autoPlay?: boolean;
+  songId?: string;
 }
 
-export default function AudioPlayer({ src, title, artist, coverUrl, autoPlay }: Props) {
+export default function AudioPlayer({ src, title, artist, coverUrl, autoPlay, songId }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const trackedRef = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -23,9 +25,24 @@ export default function AudioPlayer({ src, title, artist, coverUrl, autoPlay }: 
     }
   }, [autoPlay]);
 
+  const trackPlay = () => {
+    if (!songId || trackedRef.current) return;
+    trackedRef.current = true;
+    fetch(`/api/songs/${songId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'play' }),
+    }).catch(() => {});
+  };
+
   const toggle = () => {
     if (!audioRef.current) return;
-    if (playing) { audioRef.current.pause(); } else { audioRef.current.play(); }
+    if (playing) { 
+      audioRef.current.pause(); 
+    } else { 
+      audioRef.current.play(); 
+      trackPlay();
+    }
     setPlaying(!playing);
   };
 

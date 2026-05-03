@@ -54,9 +54,6 @@ async function getSong(slug: string) {
   const moreSongs = await Song.find({ artist: song.artist, _id: { $ne: song._id } })
     .sort({ createdAt: -1 }).limit(4).lean();
 
-  // Increment plays
-  await Song.findByIdAndUpdate(song._id, { $inc: { plays: 1 } });
-
   return {
     song: JSON.parse(JSON.stringify(song)),
     moreSongs: JSON.parse(JSON.stringify(moreSongs)),
@@ -155,7 +152,7 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
         {/* AUDIO PLAYER */}
         {song.mediaUrl && (
           <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px' }}>
-            <AudioPlayer src={song.mediaUrl} title={song.title} artist={song.artist} coverUrl={song.coverUrl} />
+            <AudioPlayer src={song.mediaUrl} title={song.title} artist={song.artist} coverUrl={song.coverUrl} songId={song._id} />
           </div>
         )}
 

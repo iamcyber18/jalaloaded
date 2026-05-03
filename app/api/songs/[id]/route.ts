@@ -8,11 +8,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const resolvedParams = await params;
     await dbConnect();
     
-    const song = await Song.findByIdAndUpdate(
-      resolvedParams.id,
-      { $inc: { plays: 1 } },
-      { new: true }
-    );
+    const song = await Song.findById(resolvedParams.id).lean();
 
     if (!song) {
       return NextResponse.json({ error: 'Song not found' }, { status: 404 });
