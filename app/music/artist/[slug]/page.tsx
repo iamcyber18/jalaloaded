@@ -13,7 +13,13 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   await dbConnect();
-  const artist = await Artist.findOne({ slug }).lean();
+  let artist = await Artist.findOne({ slug }).lean();
+  if (!artist) {
+    const allArtists = await Artist.find().lean();
+    artist = allArtists.find(a => 
+      a.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') === slug
+    ) || null;
+  }
   if (!artist) return { title: 'Artist Not Found' };
 
   return {
@@ -32,7 +38,16 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
   const { slug } = await params;
   await dbConnect();
   
-  const artist = await Artist.findOne({ slug }).lean();
+  let artist = await Artist.findOne({ slug }).lean();
+  
+  // Fallback: If not found, try searching by slugified name match (in case slug field is stale)
+  if (!artist) {
+    const allArtists = await Artist.find().lean();
+    artist = allArtists.find(a => 
+      a.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') === slug
+    ) || null;
+  }
+
   if (!artist) notFound();
 
   // Find all songs where artist name matches (since we store name in song.artist)
