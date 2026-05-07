@@ -50,9 +50,12 @@ async function getSong(slug: string) {
   }
   if (!song) return null;
 
-  // Get more songs from same artist
-  const moreSongs = await Song.find({ artist: song.artist, _id: { $ne: song._id } })
-    .sort({ createdAt: -1 }).limit(4).lean();
+  // Get more songs from same artist(s) — supports collaborations
+  // Split artist string to find all individual names
+  const artistNames = song.artist.split(/\s*(?:ft\.?|feat\.?|[x&,]|\|)\s*/i).map((n: string) => n.trim()).filter(Boolean);
+  const artistPatterns = artistNames.map((n: string) => new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  const moreSongs = await Song.find({ $or: artistPatterns.map(r => ({ artist: r })), _id: { $ne: song._id } })
+    .sort({ createdAt: -1 }).limit(6).lean();
 
   return {
     song: JSON.parse(JSON.stringify(song)),
@@ -103,7 +106,22 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
               {song.title}
             </h1>
             <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>
-              <Link href={`/music/artist/${song.artist.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`} style={{ color: '#FF6B00', textDecoration: 'none', fontWeight: 600 }}>{song.artist}</Link>
+              {(() => {
+                // Split artist string on common collaboration separators
+                const parts = song.artist.split(/(\s+(?:ft\.?|feat\.?|[x&,]|\|)\s+)/i);
+                return parts.map((part: string, i: number) => {
+                  // Check if this part is a separator like "ft.", "&", etc.
+                  if (/^\s*(?:ft\.?|feat\.?|[x&,]|\|)\s*$/i.test(part)) {
+                    return <span key={i} style={{ color: 'rgba(255,255,255,0.35)' }}>{part}</span>;
+                  }
+                  const slug = part.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                  return (
+                    <Link key={i} href={`/music/artist/${slug}`} style={{ color: '#FF6B00', textDecoration: 'none', fontWeight: 600 }}>
+                      {part.trim()}
+                    </Link>
+                  );
+                });
+              })()}
             </div>
             {song.description && (
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', lineHeight: 1.7, marginBottom: '18px', maxWidth: '400px' }}>

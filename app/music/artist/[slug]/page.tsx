@@ -50,14 +50,15 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
 
   if (!artist) notFound();
 
-  // Find all songs where artist name matches (since we store name in song.artist)
-  // or you could store artistId in Song, but since the requirement changed late,
-  // the simplest robust way is matching by exact name.
-  const songs = await Song.find({ artist: artist.name })
+  // Find all songs where this artist appears (exact match OR as part of a collaboration)
+  // This handles "Artist A ft. Artist B", "Artist A & Artist B", "Artist A x Artist B" etc.
+  const escapedName = artist.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const artistRegex = new RegExp(escapedName, 'i');
+  const songs = await Song.find({ artist: artistRegex })
     .sort({ createdAt: -1 })
     .lean();
 
-  const upcomingTracks = await UpcomingMusic.find({ artist: artist.name })
+  const upcomingTracks = await UpcomingMusic.find({ artist: artistRegex })
     .sort({ releaseDate: 1 })
     .lean();
 
