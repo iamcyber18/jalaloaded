@@ -57,6 +57,7 @@ export default function AdminMusicPage() {
 
   const resetForm = () => {
     setForm({ title: '', artist: '', genre: 'Afrobeats', year: new Date().getFullYear(), featured: false, mediaUrl: '', streamUrl: '', downloadUrl: '', coverUrl: '', videoUrl: '', description: '' });
+    setCollabs([]);
     setEditingId(null);
   };
 
@@ -76,6 +77,14 @@ export default function AdminMusicPage() {
   const [coverProgress, setCoverProgress] = useState(0);
   const [audioProgress, setAudioProgress] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [collabs, setCollabs] = useState<{sep: string; name: string}[]>([]);
+
+  // Build the final artist string from primary + collabs
+  const buildArtistString = (primary: string, feats: {sep: string; name: string}[]) => {
+    let result = primary;
+    feats.forEach(c => { if (c.name) result += ` ${c.sep} ${c.name}`; });
+    return result;
+  };
 
   const genres = ['Afrobeats', 'Amapiano', 'Highlife', 'R&B', 'Gospel', 'Hip-hop', 'Other'];
 
@@ -274,93 +283,75 @@ export default function AdminMusicPage() {
                 <div>
                   <div style={S.label}>Artist *</div>
                   <select style={S.select} value={form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || form.artist} onChange={e => {
-                    // Keep any existing featured artists
-                    const parts = form.artist.split(/(\s+(?:ft\.?|feat\.?|[x&])\s+)/i);
-                    if (parts.length > 1) {
-                      setForm({ ...form, artist: e.target.value + parts.slice(1).join('') });
-                    } else {
-                      setForm({ ...form, artist: e.target.value });
-                    }
+                    const newArtist = buildArtistString(e.target.value, collabs);
+                    setForm({ ...form, artist: newArtist });
                   }}>
                     <option value="" style={{ background: '#111' }}>Select Artist</option>
                     {artistsList.map(a => <option key={a._id} value={a.name} style={{ background: '#111' }}>{a.name}</option>)}
                   </select>
                   
-                  {/* Collaboration / Featured Artists */}
-                  {(() => {
-                    const parts = form.artist.split(/(\s+(?:ft\.?|feat\.?|[x&])\s+)/i);
-                    const primaryArtist = parts[0] || '';
-                    // Extract existing collabs
-                    const collabs: {sep: string; name: string}[] = [];
-                    for (let i = 1; i < parts.length; i += 2) {
-                      collabs.push({ sep: parts[i]?.trim() || 'ft.', name: parts[i + 1] || '' });
-                    }
-                    
-                    const updateCollabs = (newCollabs: {sep: string; name: string}[]) => {
-                      let full = primaryArtist;
-                      newCollabs.forEach(c => {
-                        if (c.name) full += ` ${c.sep} ${c.name}`;
-                      });
-                      setForm({ ...form, artist: full });
-                    };
-                    
-                    return (
-                      <div style={{ marginTop: '8px' }}>
-                        {collabs.map((c, idx) => (
-                          <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
-                            <select 
-                              style={{ ...S.select, width: '70px', flex: 'none' }} 
-                              value={c.sep}
-                              onChange={e => {
-                                const updated = [...collabs];
-                                updated[idx].sep = e.target.value;
-                                updateCollabs(updated);
-                              }}
-                            >
-                              <option value="ft." style={{ background: '#111' }}>ft.</option>
-                              <option value="feat." style={{ background: '#111' }}>feat.</option>
-                              <option value="&" style={{ background: '#111' }}>&</option>
-                              <option value="x" style={{ background: '#111' }}>x</option>
-                            </select>
-                            <select 
-                              style={{ ...S.select, flex: 1 }} 
-                              value={c.name}
-                              onChange={e => {
-                                const updated = [...collabs];
-                                updated[idx].name = e.target.value;
-                                updateCollabs(updated);
-                              }}
-                            >
-                              <option value="" style={{ background: '#111' }}>Select Artist</option>
-                              {artistsList.map(a => <option key={a._id} value={a.name} style={{ background: '#111' }}>{a.name}</option>)}
-                            </select>
-                            <button 
-                              onClick={() => {
-                                const updated = collabs.filter((_, i) => i !== idx);
-                                updateCollabs(updated);
-                              }}
-                              style={{ background: 'none', border: 'none', color: 'rgba(255,60,60,0.6)', cursor: 'pointer', fontSize: '16px', padding: '4px' }}
-                            >✕</button>
-                          </div>
-                        ))}
-                        
-                        <button 
-                          onClick={() => {
-                            updateCollabs([...collabs, { sep: 'ft.', name: '' }]);
-                          }}
-                          disabled={!primaryArtist}
-                          style={{ 
-                            background: 'rgba(255,107,0,0.06)', border: '1px dashed rgba(255,107,0,0.2)', borderRadius: '8px', 
-                            padding: '6px 14px', fontSize: '11px', color: '#FF6B00', cursor: primaryArtist ? 'pointer' : 'not-allowed',
-                            fontWeight: 600, fontFamily: '"DM Sans", sans-serif', opacity: primaryArtist ? 1 : 0.4,
-                            display: 'flex', alignItems: 'center', gap: '6px'
+                  {/* Collaboration rows */}
+                  <div style={{ marginTop: '8px' }}>
+                    {collabs.map((c, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
+                        <select 
+                          style={{ ...S.select, width: '70px', flex: 'none' }} 
+                          value={c.sep}
+                          onChange={e => {
+                            const updated = [...collabs];
+                            updated[idx] = { ...updated[idx], sep: e.target.value };
+                            setCollabs(updated);
+                            const primary = form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || '';
+                            setForm(f => ({ ...f, artist: buildArtistString(primary, updated) }));
                           }}
                         >
-                          + Add Collaboration
-                        </button>
+                          <option value="ft." style={{ background: '#111' }}>ft.</option>
+                          <option value="feat." style={{ background: '#111' }}>feat.</option>
+                          <option value="&" style={{ background: '#111' }}>&</option>
+                          <option value="x" style={{ background: '#111' }}>x</option>
+                        </select>
+                        <select 
+                          style={{ ...S.select, flex: 1 }} 
+                          value={c.name}
+                          onChange={e => {
+                            const updated = [...collabs];
+                            updated[idx] = { ...updated[idx], name: e.target.value };
+                            setCollabs(updated);
+                            const primary = form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || '';
+                            setForm(f => ({ ...f, artist: buildArtistString(primary, updated) }));
+                          }}
+                        >
+                          <option value="" style={{ background: '#111' }}>Select Artist</option>
+                          {artistsList.map(a => <option key={a._id} value={a.name} style={{ background: '#111' }}>{a.name}</option>)}
+                        </select>
+                        <button 
+                          onClick={() => {
+                            const updated = collabs.filter((_, i) => i !== idx);
+                            setCollabs(updated);
+                            const primary = form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || '';
+                            setForm(f => ({ ...f, artist: buildArtistString(primary, updated) }));
+                          }}
+                          style={{ background: 'none', border: 'none', color: 'rgba(255,60,60,0.6)', cursor: 'pointer', fontSize: '16px', padding: '4px' }}
+                        >✕</button>
                       </div>
-                    );
-                  })()}
+                    ))}
+                    
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setCollabs(prev => [...prev, { sep: 'ft.', name: '' }]);
+                      }}
+                      disabled={!form.artist}
+                      style={{ 
+                        background: 'rgba(255,107,0,0.06)', border: '1px dashed rgba(255,107,0,0.2)', borderRadius: '8px', 
+                        padding: '6px 14px', fontSize: '11px', color: '#FF6B00', cursor: form.artist ? 'pointer' : 'not-allowed',
+                        fontWeight: 600, fontFamily: '"DM Sans", sans-serif', opacity: form.artist ? 1 : 0.4,
+                        display: 'flex', alignItems: 'center', gap: '6px'
+                      }}
+                    >
+                      + Add Collaboration
+                    </button>
+                  </div>
                   
                   {form.artist && (
                     <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '6px', padding: '4px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
