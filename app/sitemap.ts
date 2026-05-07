@@ -7,7 +7,7 @@ import Artist from '@/models/Artist';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   await dbConnect();
 
-  const baseUrl = 'https://www.jalaloaded.com';
+  const baseUrl = 'https://jalaloaded.vercel.app';
 
   // 1. Static Routes
   const staticRoutes = [

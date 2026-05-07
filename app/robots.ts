@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin/', '/api/'],
     },
-    sitemap: 'https://www.jalaloaded.com/sitemap.xml',
+    sitemap: 'https://jalaloaded.vercel.app/sitemap.xml',
   };
 }
