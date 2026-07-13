@@ -24,6 +24,38 @@ export const viewport = {
 }
 
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  'name': 'Jalaloaded',
+  'url': 'https://jalaloaded.vercel.app',
+  'logo': 'https://jalaloaded.vercel.app/images/jalaloadedlogo.png',
+  'contactPoint': [
+    {
+      '@type': 'ContactPoint',
+      'telephone': '+2347051978758',
+      'contactType': 'customer service',
+      'email': 'jalaloaded.new@gmail.com',
+      'availableLanguage': 'English',
+      'areaServed': 'NG',
+    },
+    {
+      '@type': 'ContactPoint',
+      'telephone': '+2349047527504',
+      'contactType': 'customer service',
+      'email': 'jalaloaded.new@gmail.com',
+      'availableLanguage': 'English',
+      'areaServed': 'NG',
+    },
+  ],
+  'address': {
+    '@type': 'PostalAddress',
+    'addressLocality': 'Jalingo',
+    'addressRegion': 'Taraba State',
+    'addressCountry': 'NG',
+  },
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -35,6 +67,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className="antialiased min-h-screen flex flex-col">
         <AppShell>{children}</AppShell>

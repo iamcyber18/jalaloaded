@@ -1,0 +1,10 @@
+Owner: Jalaloaded
+Site-Name: Jalaloaded
+Site-URL: https://jalaloaded.vercel.app
+Contact-Email: jalaloaded.new@gmail.com
+Contact-Phone-Primary: +2347051978758
+Contact-Phone-Secondary: +2349047527504
+Contact-Page: https://jalaloaded.vercel.app/contact
+Location: Jalingo, Taraba State, Nigeria
+Sitemap-URL: https://jalaloaded.vercel.app/sitemap.xml
+Description: Latest Posts, Music, Videos & Live Scores.

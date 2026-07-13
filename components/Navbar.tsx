@@ -23,6 +23,8 @@ export default function Navbar() {
     { href: '/videos', label: 'Videos' },
     { href: '/live', label: 'Live' },
     { href: '/about', label: 'About' },
+    { href: '/contact', label: 'Contact' },
+
   ];
 
   // Close search results when clicking outside
@@ -101,7 +103,7 @@ export default function Navbar() {
           <div className="search-wrapper" ref={searchRef}>
             <div className="search-input-wrap">
               <svg className="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
               <input
                 type="text"
@@ -120,7 +122,7 @@ export default function Navbar() {
                 {totalResults === 0 ? (
                   <div className="search-empty">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ opacity: 0.4 }}>
-                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
                     <span>No results found for &ldquo;{query}&rdquo;</span>
                   </div>
@@ -130,7 +132,7 @@ export default function Navbar() {
                     {results.posts?.length > 0 && (
                       <div className="search-group">
                         <div className="search-group-label">
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                           Posts
                         </div>
                         {results.posts.map((post: any) => (
@@ -158,7 +160,7 @@ export default function Navbar() {
                     {results.songs?.length > 0 && (
                       <div className="search-group">
                         <div className="search-group-label">
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
                           Music
                         </div>
                         {results.songs.map((song: any) => (
@@ -169,7 +171,7 @@ export default function Navbar() {
                             onClick={handleResultClick}
                           >
                             <div className="search-thumb search-thumb-music">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B00" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B00" strokeWidth="2"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
                             </div>
                             <div className="search-item-info">
                               <div className="search-item-title">{song.title}</div>
@@ -184,7 +186,7 @@ export default function Navbar() {
                     {results.videos?.length > 0 && (
                       <div className="search-group">
                         <div className="search-group-label">
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg>
                           Videos
                         </div>
                         {results.videos.map((video: any) => (
@@ -195,7 +197,7 @@ export default function Navbar() {
                             onClick={handleResultClick}
                           >
                             <div className="search-thumb search-thumb-video">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B00" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B00" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3" /></svg>
                             </div>
                             <div className="search-item-info">
                               <div className="search-item-title">{video.title}</div>

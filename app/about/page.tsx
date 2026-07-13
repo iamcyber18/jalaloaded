@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Post from '@/models/Post';
 import Song from '@/models/Song';
 import Video from '@/models/Video';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,6 +71,19 @@ export default async function AboutPage() {
               In-depth articles covering the latest gist, entertainment news, lifestyle trends, and sports updates.
             </li>
           </ul>
+        </div>
+
+        {/* GET IN TOUCH */}
+        <div className="sec-hdr" style={{ marginTop: '40px' }}>
+          <div className="sec-title"><div className="sec-line"></div>Get In Touch</div>
+        </div>
+        <div className="s-card" style={{ padding: '32px', fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: 1.8, marginBottom: '40px' }}>
+          <p style={{ marginBottom: '20px' }}>
+            Have a question, feedback, or business proposal? We would love to hear from you. You can find our email, phone number, and direct messaging form on our dedicated contact page.
+          </p>
+          <Link href="/contact" style={{ display: 'inline-block', background: 'var(--orange, #FF6B00)', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontWeight: 'bold', textDecoration: 'none', fontSize: '14px', transition: 'all 0.15s' }}>
+            Go to Contact Page &rarr;
+          </Link>
         </div>
 
       </div>

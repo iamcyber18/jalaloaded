@@ -1,0 +1,21 @@
+# Jalaloaded
+
+Jalaloaded is a premier Nigerian entertainment, news, music, and video platform. It hosts the latest music releases, music videos, blog posts, live scores, and editorial content.
+
+## Contact Information
+
+You can contact Jalaloaded via the following channels:
+
+- **Email:** [jalaloaded.new@gmail.com](mailto:jalaloaded.new@gmail.com)
+- **Call / WhatsApp (Primary):** [+2347051978758](https://wa.me/2347051978758)
+- **Call / WhatsApp (Secondary):** [+2349047527504](https://wa.me/2349047527504)
+- **Location:** Jalingo, Taraba State, Nigeria
+- **Contact Page:** [https://jalaloaded.vercel.app/contact](https://jalaloaded.vercel.app/contact)
+
+## Site Map & Key Sections
+- **Homepage:** [https://jalaloaded.vercel.app/](https://jalaloaded.vercel.app/)
+- **Blog / Gist:** [https://jalaloaded.vercel.app/blog](https://jalaloaded.vercel.app/blog)
+- **Music:** [https://jalaloaded.vercel.app/music](https://jalaloaded.vercel.app/music)
+- **Videos:** [https://jalaloaded.vercel.app/videos](https://jalaloaded.vercel.app/videos)
+- **Live Stream:** [https://jalaloaded.vercel.app/live](https://jalaloaded.vercel.app/live)
+- **About:** [https://jalaloaded.vercel.app/about](https://jalaloaded.vercel.app/about)
