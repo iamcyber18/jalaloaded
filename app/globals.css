@@ -1981,3 +1981,97 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
   }
 }
 
+/* ========================================== */
+/* BLOG PAGE — PREMIUM ANIMATIONS            */
+/* ========================================== */
+
+@keyframes blogCardFadeIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.blog-post-item {
+  animation: blogCardFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.blog-category-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 12px;
+  margin-bottom: 32px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.blog-category-container::-webkit-scrollbar {
+  display: none;
+}
+
+.blog-cat-chip {
+  padding: 8px 18px;
+  border-radius: 24px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.blog-cat-chip:hover {
+  color: #FF6B00;
+  border-color: rgba(255, 107, 0, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.15);
+}
+
+.blog-cat-chip.active {
+  background: linear-gradient(135deg, #FF6B00, #ff8533);
+  color: #fff;
+  border-color: #FF6B00;
+  box-shadow: 0 4px 18px rgba(255, 107, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.blog-pagination-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.blog-pagination-btn:hover {
+  border-color: #FF6B00;
+  color: #FF6B00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.2);
+}
+
+.blog-pagination-btn.active {
+  background: linear-gradient(135deg, #FF6B00, #ff8533);
+  color: #fff;
+  border-color: #FF6B00;
+  box-shadow: 0 4px 16px rgba(255, 107, 0, 0.35);
+}
+
+@media (max-width: 640px) {
+  .posts-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+}

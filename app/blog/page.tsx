@@ -91,80 +91,96 @@ export default async function BlogPage({
   const categories = ['All', 'Music', 'Sports', 'Fashion', 'Lifestyle', 'News', 'Opinion', 'Events', 'Business', 'Health and Wellbeing', 'Sciences', 'Technology'];
 
   return (
-    <div className="jlh min-h-screen">
-      <div className="page" style={{ gridTemplateColumns: '1fr', maxWidth: '1240px', margin: '0 auto', padding: '40px 24px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>
-          <h1 style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '48px', letterSpacing: '2px', color: 'var(--color-text-primary)', textTransform: 'uppercase' }}>
-            {tag ? `Posts tagged "${tag}"` : 'THE GIST & STORIES'}
+    <div className="jlh min-h-screen" style={{ position: 'relative', overflow: 'hidden', paddingBottom: '60px' }}>
+
+      
+      {/* AMBIENT BACKGROUND ORBS */}
+      <div className="music-ambient-orb" style={{
+        position: 'fixed', top: '-150px', left: '10%', width: '450px', height: '450px',
+        background: 'radial-gradient(circle, rgba(255,107,0,0.12) 0%, transparent 70%)',
+        borderRadius: '50%', filter: 'blur(60px)', zIndex: 0
+      }} />
+      <div className="music-ambient-orb" style={{
+        position: 'fixed', bottom: '-100px', right: '5%', width: '380px', height: '380px',
+        background: 'radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%)',
+        borderRadius: '50%', filter: 'blur(60px)', zIndex: 0, animationDelay: '3s'
+      }} />
+
+      <div className="page" style={{ gridTemplateColumns: '1fr', maxWidth: '1240px', margin: '0 auto', padding: '36px 20px', position: 'relative', zIndex: 1 }}>
+        
+        {/* HEADER HERO BANNER */}
+        <div style={{ textAlign: 'center', marginBottom: '36px', maxWidth: '640px', margin: '0 auto 36px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 14px', borderRadius: '20px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.25)', color: '#FF6B00', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '14px' }}>
+            <div className="live-dot" style={{ width: '6px', height: '6px', background: '#FF6B00' }} />
+            LIVE FEED & STORIES
+          </div>
+
+          <h1 style={{
+            fontFamily: '"Bebas Neue", sans-serif', fontSize: '52px', letterSpacing: '2.5px',
+            color: '#fff', textTransform: 'uppercase', margin: 0, lineHeight: 1,
+            textShadow: '0 0 24px rgba(255,107,0,0.3)'
+          }}>
+            {tag ? `POSTS TAGGED "${tag}"` : 'THE GIST & STORIES'}
           </h1>
-          <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', fontFamily: '"Lora", serif', marginTop: '12px', lineHeight: '1.6' }}>
+          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', marginTop: '12px', lineHeight: '1.6', fontFamily: '"Syne", sans-serif' }}>
             {tag 
               ? `Browsing all articles under the tag ${tag}.` 
-              : 'Dive into the latest happenings, from street trends to global news. Pick a category or browse all.'}
+              : 'Dive into the latest happenings, street trends, viral culture, and breaking news.'}
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '32px', justifyContent: 'center' }}>
-          {categories.map((cat: string) => (
-            <Link
-              key={cat}
-              href={cat !== 'All' ? `/blog?category=${cat}` : '/blog'}
-              className="tag-pill"
-              style={{
-                textDecoration: 'none',
-                background: category === cat ? 'var(--orange)' : 'transparent',
-                color: category === cat ? '#fff' : 'var(--color-text-secondary)',
-                borderColor: category === cat ? 'var(--orange)' : 'var(--color-border-secondary)',
-              }}
-            >
-              {cat}
-            </Link>
-          ))}
+        {/* CATEGORY FILTER PILLS */}
+        <div className="blog-category-container" style={{ justifyContent: 'center' }}>
+          {categories.map((cat: string) => {
+            const isActive = category === cat;
+            return (
+              <Link
+                key={cat}
+                href={cat !== 'All' ? `/blog?category=${cat}` : '/blog'}
+                className={`blog-cat-chip ${isActive ? 'active' : ''}`}
+              >
+                {cat}
+              </Link>
+            );
+          })}
         </div>
 
+        {/* POSTS GRID */}
         {posts.length > 0 ? (
           <div className="posts-grid">
-            {posts.map((post: any) => (
-              <PostCard key={post._id.toString()} post={post} />
+            {posts.map((post: any, index: number) => (
+              <div key={post._id.toString()} className="blog-post-item" style={{ animationDelay: `${Math.min(index * 0.05, 0.8)}s` }}>
+                <PostCard post={post} />
+              </div>
             ))}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--color-background-primary)', borderRadius: '14px', border: '0.5px solid var(--color-border-tertiary)' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>Posts</div>
-            <h3 style={{ fontFamily: '"Syne", sans-serif', fontWeight: 700, fontSize: '20px', color: 'var(--color-text-primary)', marginBottom: '8px' }}>No posts found</h3>
-            <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Looks like we haven&apos;t published anything in this category yet.</p>
+          <div style={{ textAlign: 'center', padding: '80px 20px', background: 'linear-gradient(180deg, #181818 0%, #111111 100%)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px', filter: 'drop-shadow(0 0 12px rgba(255,107,0,0.4))' }}>📰</div>
+            <h3 style={{ fontFamily: '"Syne", sans-serif', fontWeight: 800, fontSize: '20px', color: '#fff', marginBottom: '8px' }}>No posts found</h3>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>Looks like we haven&apos;t published anything in this category yet. Check back soon!</p>
           </div>
         )}
 
+        {/* PAGINATION CONTROLS */}
         {totalPages > 1 && (
           <div style={{ marginTop: '48px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-            {Array.from({ length: totalPages }).map((_: any, i: number) => (
-              <Link
-                key={i}
-                href={`/blog?page=${i + 1}${category !== 'All' ? '&category=' + category : ''}`}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '4px',
-                  fontFamily: '"Syne", sans-serif',
-                  fontWeight: 700,
-                  fontSize: '13px',
-                  textDecoration: 'none',
-                  border: '1px solid',
-                  background: currentPage === i + 1 ? 'var(--orange)' : 'var(--color-background-primary)',
-                  color: currentPage === i + 1 ? '#fff' : 'var(--color-text-secondary)',
-                  borderColor: currentPage === i + 1 ? 'var(--orange)' : 'var(--color-border-tertiary)',
-                }}
-              >
-                {i + 1}
-              </Link>
-            ))}
+            {Array.from({ length: totalPages }).map((_: any, i: number) => {
+              const isCurrent = currentPage === i + 1;
+              return (
+                <Link
+                  key={i}
+                  href={`/blog?page=${i + 1}${category !== 'All' ? '&category=' + category : ''}`}
+                  className={`blog-pagination-btn ${isCurrent ? 'active' : ''}`}
+                >
+                  {i + 1}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
     </div>
   );
 }
+
