@@ -10,6 +10,7 @@ type DashboardPost = {
   _id: string;
   title: string;
   slug: string;
+  category?: string;
   status: 'published' | 'draft';
   featured?: boolean;
   allowComments?: boolean;
@@ -17,6 +18,7 @@ type DashboardPost = {
   createdAt: string;
   updatedAt: string;
 };
+
 
 type DashboardStats = {
   totalPosts: number;
@@ -59,6 +61,16 @@ export default function AdminDashboardPage() {
     const featured = posts.filter((post) => post.featured).length;
     const totalViews = posts.reduce((sum, post) => sum + (post.views || 0), 0);
     
+    // Category distribution
+    const categoryCounts: Record<string, number> = {};
+    posts.forEach(post => {
+      const cat = post.category || 'General';
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+    });
+    const sortedCategories = Object.entries(categoryCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
     // Recent activity (posts created/updated in last 7 days)
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -72,7 +84,8 @@ export default function AdminDashboardPage() {
       draftPosts: drafts, 
       featuredPosts: featured,
       totalViews,
-      recentActivity
+      recentActivity,
+      topCategories: sortedCategories
     };
   }, [posts]);
 
@@ -129,6 +142,54 @@ export default function AdminDashboardPage() {
               <strong style={{ color: '#8b5cf6' }}>{formatNumber(stats.recentActivity)}</strong>
             </div>
           </div>
+
+          {/* Visual Analytics Charts Bar */}
+          {stats.totalPosts > 0 && (
+            <div className="post-list-card" style={{ marginBottom: '24px' }}>
+              <div className="side-title">📊 Analytics & Content Ratios</div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '16px', marginTop: '16px' }}>
+
+                {/* Published vs Draft Ratio Bar */}
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: '8px' }}>
+                    Publishing Ratio ({Math.round((stats.publishedPosts / stats.totalPosts) * 100)}% Live)
+                  </div>
+                  <div style={{ height: '10px', width: '100%', borderRadius: '5px', background: '#fbbf24', overflow: 'hidden', display: 'flex' }}>
+                    <div style={{ height: '100%', width: `${(stats.publishedPosts / stats.totalPosts) * 100}%`, background: '#4ade80', transition: 'width 0.5s' }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginTop: '8px', color: 'rgba(255,255,255,0.5)' }}>
+                    <span style={{ color: '#4ade80' }}>🟢 {stats.publishedPosts} Published</span>
+                    <span style={{ color: '#fbbf24' }}>🟡 {stats.draftPosts} Drafts</span>
+                  </div>
+                </div>
+
+                {/* Top Categories Distribution */}
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: '12px' }}>
+                    Top Content Categories
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {stats.topCategories.map(([cat, count]) => {
+                      const pct = Math.round((count / stats.totalPosts) * 100);
+                      return (
+                        <div key={cat}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'rgba(255,255,255,0.8)', marginBottom: '3px' }}>
+                            <span>{cat}</span>
+                            <span style={{ color: '#FF6B00', fontWeight: 600 }}>{count} ({pct}%)</span>
+                          </div>
+                          <div style={{ height: '5px', width: '100%', borderRadius: '3px', background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, #FF6B00, #ff8533)', borderRadius: '3px' }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
 
           <div className="post-manager-grid">
             {/* Quick Actions */}

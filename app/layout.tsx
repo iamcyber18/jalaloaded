@@ -5,15 +5,57 @@ import './globals.css'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://jalaloaded.vercel.app'),
-  title: 'Jalaloaded — Latest Posts, Music, Videos & Live Scores',
-  description: 'Your go-to spot for the freshest updates, music drops, and street vibes from Jalal and Co-friend.',
+  title: {
+    default: 'Jalaloaded — Premier Entertainment, Music, Latest News & Live Scores',
+    template: '%s | Jalaloaded',
+  },
+  description: 'Your ultimate hub for the latest music downloads, trending news, viral videos, lifestyle updates, and live football scores.',
+  keywords: [
+    'Jalaloaded',
+    'Jalaloaded Music',
+    'Jalaloaded Blog',
+    'Jalaloaded Entertainment',
+    'Jalaloaded News',
+    'Jalaloaded Videos',
+    'Jalaloaded Live Scores',
+    'Jalaloaded Mp3 Download',
+    'Nigerian Music',
+    'Afrobeats',
+  ],
+  authors: [{ name: 'Jalaloaded' }],
+  creator: 'Jalaloaded',
+  publisher: 'Jalaloaded',
+  alternates: {
+    canonical: 'https://jalaloaded.vercel.app',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: '/images/jalaloadedlogo.png',
     apple: '/images/jalaloadedlogo.png',
   },
   openGraph: {
-    title: 'Jalaloaded — Latest Posts, Music, Videos & Live Scores',
-    description: 'Your go-to spot for the freshest updates, music drops, and street vibes.',
+    title: 'Jalaloaded — Premier Entertainment, Music, Latest News & Live Scores',
+    description: 'Your ultimate hub for the latest music downloads, trending news, viral videos, lifestyle updates, and live football scores.',
+    url: 'https://jalaloaded.vercel.app',
+    siteName: 'Jalaloaded',
+    images: [{ url: '/images/jalaloadedlogo.png', width: 1200, height: 630, alt: 'Jalaloaded' }],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Jalaloaded — Premier Entertainment, Music, Latest News & Live Scores',
+    description: 'Your ultimate hub for the latest music downloads, trending news, viral videos, lifestyle updates, and live football scores.',
     images: ['/images/jalaloadedlogo.png'],
   },
 }
@@ -23,37 +65,57 @@ export const viewport = {
   initialScale: 1,
 }
 
-
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Organization',
-  'name': 'Jalaloaded',
-  'url': 'https://jalaloaded.vercel.app',
-  'logo': 'https://jalaloaded.vercel.app/images/jalaloadedlogo.png',
-  'contactPoint': [
+  '@graph': [
     {
-      '@type': 'ContactPoint',
-      'telephone': '+2347051978758',
-      'contactType': 'customer service',
-      'email': 'jalaloaded.new@gmail.com',
-      'availableLanguage': 'English',
-      'areaServed': 'NG',
+      '@type': 'WebSite',
+      '@id': 'https://jalaloaded.vercel.app/#website',
+      'url': 'https://jalaloaded.vercel.app',
+      'name': 'Jalaloaded',
+      'alternateName': ['Jalaloaded Music', 'Jalaloaded Blog', 'Jalaloaded Entertainment'],
+      'description': 'Your ultimate hub for the latest music downloads, trending news, viral videos, lifestyle updates, and live football scores.',
+      'potentialAction': {
+        '@type': 'SearchAction',
+        'target': {
+          '@type': 'EntryPoint',
+          'urlTemplate': 'https://jalaloaded.vercel.app/blog?q={search_term_string}'
+        },
+        'query-input': 'required name=search_term_string'
+      }
     },
     {
-      '@type': 'ContactPoint',
-      'telephone': '+2349047527504',
-      'contactType': 'customer service',
-      'email': 'jalaloaded.new@gmail.com',
-      'availableLanguage': 'English',
-      'areaServed': 'NG',
-    },
-  ],
-  'address': {
-    '@type': 'PostalAddress',
-    'addressLocality': 'Jalingo',
-    'addressRegion': 'Taraba State',
-    'addressCountry': 'NG',
-  },
+      '@type': 'Organization',
+      '@id': 'https://jalaloaded.vercel.app/#organization',
+      'name': 'Jalaloaded',
+      'url': 'https://jalaloaded.vercel.app',
+      'logo': 'https://jalaloaded.vercel.app/images/jalaloadedlogo.png',
+      'contactPoint': [
+        {
+          '@type': 'ContactPoint',
+          'telephone': '+2347051978758',
+          'contactType': 'customer service',
+          'email': 'jalaloaded.new@gmail.com',
+          'availableLanguage': 'English',
+          'areaServed': 'NG',
+        },
+        {
+          '@type': 'ContactPoint',
+          'telephone': '+2349047527504',
+          'contactType': 'customer service',
+          'email': 'jalaloaded.new@gmail.com',
+          'availableLanguage': 'English',
+          'areaServed': 'NG',
+        },
+      ],
+      'address': {
+        '@type': 'PostalAddress',
+        'addressLocality': 'Jalingo',
+        'addressRegion': 'Taraba State',
+        'addressCountry': 'NG',
+      },
+    }
+  ]
 };
 
 export default function RootLayout({

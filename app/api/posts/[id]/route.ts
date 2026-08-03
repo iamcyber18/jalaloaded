@@ -76,13 +76,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    // Multiple posts can be featured simultaneously for the carousel
+    if (post.status === 'published') {
+      import('@/lib/searchIndexPing')
+        .then(({ notifySearchEngines }) => notifySearchEngines(`/blog/${post.slug}`))
+        .catch(() => {});
+    }
 
     return NextResponse.json(post);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
   }
 }
+
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {

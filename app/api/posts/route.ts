@@ -115,7 +115,12 @@ export async function POST(request: Request) {
     });
     await newPost.save();
 
-    // Removed the logic that unfeatures all other posts so multiple posts can be featured
+    // Trigger instant search engine indexing if published
+    if (nextStatus === 'published') {
+      import('@/lib/searchIndexPing')
+        .then(({ notifySearchEngines }) => notifySearchEngines(`/blog/${newPost.slug}`))
+        .catch(() => {});
+    }
 
     return NextResponse.json(newPost, { status: 201 });
   } catch (error) {
@@ -123,3 +128,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
   }
 }
+

@@ -272,56 +272,51 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                   );
                 };
 
-                // Split body into sections using '---' divider
-                const sections = content.split('\n---\n');
-                
-                if (sections.length >= 3) {
-                  return (
-                    <>
-                      <ReactMarkdown {...mdProps}>{sections[0]}</ReactMarkdown>
-                      {renderPhotos(afterIntro)}
-                      <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
-                      {renderPhotos(afterMain)}
-                      <ReactMarkdown {...mdProps}>{sections.slice(2).join('\n---\n')}</ReactMarkdown>
-                      {renderPhotos(afterConclusion)}
-                    </>
-                  );
-                }
+                // Extract introduction, main content, and conclusion
+                let introText = post.introduction?.trim() || '';
+                let mainText = post.mainContent?.trim() || '';
+                let conclusionText = post.conclusion?.trim() || '';
 
-                if (sections.length === 2) {
-                  return (
-                    <>
-                      <ReactMarkdown {...mdProps}>{sections[0]}</ReactMarkdown>
-                      {renderPhotos(afterIntro)}
-                      <ReactMarkdown {...mdProps}>{sections[1]}</ReactMarkdown>
-                      {renderPhotos(afterMain)}
-                      {renderPhotos(afterConclusion)}
-                    </>
-                  );
-                }
-
-                // Single section fallback
-                const blocks = content.split('\n\n');
-                if (blocks.length >= 3) {
-                  const third = Math.max(1, Math.floor(blocks.length / 3));
-                  const twoThirds = third * 2;
-                  return (
-                    <>
-                      <ReactMarkdown {...mdProps}>{blocks.slice(0, third).join('\n\n')}</ReactMarkdown>
-                      {renderPhotos(afterIntro)}
-                      <ReactMarkdown {...mdProps}>{blocks.slice(third, twoThirds).join('\n\n')}</ReactMarkdown>
-                      {renderPhotos(afterMain)}
-                      <ReactMarkdown {...mdProps}>{blocks.slice(twoThirds).join('\n\n')}</ReactMarkdown>
-                      {renderPhotos(afterConclusion)}
-                    </>
-                  );
+                if (!introText && !mainText && !conclusionText) {
+                  const content = post.body?.trim() || '';
+                  const sections = content.split(/\n\s*---\s*\n/);
+                  if (sections.length >= 3) {
+                    introText = sections[0].trim();
+                    mainText = sections[1].trim();
+                    conclusionText = sections.slice(2).join('\n\n---\n\n').trim();
+                  } else if (sections.length === 2) {
+                    introText = sections[0].trim();
+                    mainText = sections[1].trim();
+                  } else {
+                    const blocks = content.split(/\n\n+/).filter(Boolean);
+                    if (blocks.length >= 3) {
+                      const third = Math.max(1, Math.floor(blocks.length / 3));
+                      const twoThirds = third * 2;
+                      introText = blocks.slice(0, third).join('\n\n');
+                      mainText = blocks.slice(third, twoThirds).join('\n\n');
+                      conclusionText = blocks.slice(twoThirds).join('\n\n');
+                    } else if (blocks.length === 2) {
+                      introText = blocks[0];
+                      mainText = blocks[1];
+                    } else {
+                      mainText = content;
+                    }
+                  }
                 }
 
                 return (
                   <>
-                    <ReactMarkdown {...mdProps}>{content}</ReactMarkdown>
+                    {introText && (
+                      <ReactMarkdown {...mdProps}>{introText}</ReactMarkdown>
+                    )}
                     {renderPhotos(afterIntro)}
+                    {mainText && (
+                      <ReactMarkdown {...mdProps}>{mainText}</ReactMarkdown>
+                    )}
                     {renderPhotos(afterMain)}
+                    {conclusionText && (
+                      <ReactMarkdown {...mdProps}>{conclusionText}</ReactMarkdown>
+                    )}
                     {renderPhotos(afterConclusion)}
                   </>
                 );

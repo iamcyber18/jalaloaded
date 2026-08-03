@@ -5,6 +5,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import AdminSidebar from '@/components/AdminSidebar';
 import PostMediaUploader from '@/components/PostMediaUploader';
+import RichTextEditor from '@/components/RichTextEditor';
 import { useAdminSession } from '@/components/useAdminSession';
 import { IMediaItem } from '@/models/Post';
 import { formatNumber, timeAgo } from '@/lib/utils';
@@ -52,21 +53,11 @@ const categories = ['General', 'Music', 'Sports', 'Lifestyle', 'Politics', 'Ente
 
 
 function buildBody(editor: EditorState) {
-  let body = '';
-
-  if (editor.introduction.trim()) {
-    body += `${editor.introduction.trim()}\n\n`;
-  }
-
-  if (editor.mainContent.trim()) {
-    body += `${editor.mainContent.trim()}\n\n`;
-  }
-
-  if (editor.conclusion.trim()) {
-    body += `---\n\n${editor.conclusion.trim()}`;
-  }
-
-  return body.trim();
+  const parts = [];
+  if (editor.introduction.trim()) parts.push(editor.introduction.trim());
+  if (editor.mainContent.trim()) parts.push(editor.mainContent.trim());
+  if (editor.conclusion.trim()) parts.push(editor.conclusion.trim());
+  return parts.join('\n\n---\n\n');
 }
 
 function getLegacySections(post: Pick<AdminPost, 'body' | 'introduction' | 'mainContent' | 'conclusion'>) {
@@ -346,6 +337,52 @@ export default function AdminPostsPage() {
     }
   };
 
+  const [selectedBulkIds, setSelectedBulkIds] = useState<string[]>([]);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
+
+  const toggleBulkSelect = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedBulkIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedBulkIds.length === posts.length) {
+      setSelectedBulkIds([]);
+    } else {
+      setSelectedBulkIds(posts.map(p => p._id));
+    }
+  };
+
+  const handleBulkAction = async (action: 'publish' | 'draft' | 'delete') => {
+    if (selectedBulkIds.length === 0) return;
+    const actionLabel = action === 'publish' ? 'publish' : action === 'draft' ? 'set to draft' : 'delete';
+    if (!window.confirm(`Are you sure you want to ${actionLabel} ${selectedBulkIds.length} selected post(s)?`)) {
+      return;
+    }
+
+    setBulkProcessing(true);
+    try {
+      const res = await fetch('/api/posts/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ids: selectedBulkIds }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Bulk operation failed');
+
+      toast.success(data.message || 'Bulk operation completed! 🚀');
+      setSelectedBulkIds([]);
+      setRefreshToken(current => current + 1);
+    } catch (err: any) {
+      toast.error(err.message || 'Bulk operation failed');
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
   const publishedCount = posts.filter((post) => post.status === 'published').length;
   const draftCount = posts.filter((post) => post.status === 'draft').length;
   const isSubAdmin = session?.role === 'sub-admin';
@@ -413,7 +450,7 @@ export default function AdminPostsPage() {
                 </select>
               </div>
 
-              <div className="post-counts">
+              <div className="post-counts" style={{ alignItems: 'center' }}>
                 <div className="editor-metric">
                   <span className="editor-metric-label">Loaded</span>
                   <strong>{posts.length}</strong>
@@ -426,7 +463,62 @@ export default function AdminPostsPage() {
                   <span className="editor-metric-label">Drafts</span>
                   <strong>{draftCount}</strong>
                 </div>
+                {posts.length > 0 && (
+                  <button 
+                    type="button" 
+                    onClick={toggleSelectAll} 
+                    className="btn-draft"
+                    style={{ marginLeft: 'auto', fontSize: '11px', padding: '4px 8px' }}
+                  >
+                    {selectedBulkIds.length === posts.length ? 'Deselect All' : 'Select All'}
+                  </button>
+                )}
               </div>
+
+              {/* Bulk Actions Floating Bar */}
+              {selectedBulkIds.length > 0 && (
+                <div style={{
+                  padding: '10px 14px',
+                  margin: '12px 0',
+                  background: 'linear-gradient(135deg, rgba(255, 107, 0, 0.15), rgba(255, 107, 0, 0.05))',
+                  border: '1px solid rgba(255, 107, 0, 0.4)',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px'
+                }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#FF6B00' }}>
+                    {selectedBulkIds.length} selected
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => handleBulkAction('publish')} 
+                      disabled={bulkProcessing}
+                      style={{ background: '#4ade80', color: '#000', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      Publish
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => handleBulkAction('draft')} 
+                      disabled={bulkProcessing}
+                      style={{ background: '#fbbf24', color: '#000', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      Draft
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => handleBulkAction('delete')} 
+                      disabled={bulkProcessing}
+                      style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {loading ? (
                 <div className="post-empty-card">Loading posts...</div>
@@ -439,13 +531,22 @@ export default function AdminPostsPage() {
                       key={post._id}
                       className={`post-row ${post._id === selectedId ? 'active' : ''}`}
                       onClick={() => handleSelectPost(post)}
+                      style={{ position: 'relative' }}
                     >
-                      <div className="post-row-head">
-                        <div className="post-row-title">{post.title}</div>
+                      <div className="post-row-head" style={{ gap: '8px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedBulkIds.includes(post._id)}
+                          onClick={(e) => toggleBulkSelect(post._id, e)}
+                          onChange={() => {}}
+                          style={{ cursor: 'pointer', accentColor: '#FF6B00', width: '15px', height: '15px', flexShrink: 0 }}
+                        />
+                        <div className="post-row-title" style={{ flex: 1 }}>{post.title}</div>
                         <div className={`post-badge ${post.status === 'draft' ? 'draft' : 'published'}`}>
                           {post.status}
                         </div>
                       </div>
+
 
                       <div className="post-row-meta">
                         <span>{post.category}</span>
@@ -487,60 +588,42 @@ export default function AdminPostsPage() {
 
                     <div className="section-gap"></div>
 
-                    <div className="form-card">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <div className="section-num">1</div>
-                        <div>
-                          <div className="field-label" style={{ marginBottom: '0' }}>Introduction</div>
-                          <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Hook the reader before they dive in.</div>
-                        </div>
-                      </div>
-                      <textarea
-                        className="field-body"
-                        value={editor.introduction}
-                        onChange={(e) => setEditor((current) => ({ ...current, introduction: e.target.value }))}
-                        style={{ minHeight: '100px' }}
-                      />
-                      <div className="char-count">{editor.introduction.length} chars</div>
-                    </div>
+                    {/* INTRODUCTION */}
+                    <RichTextEditor
+                      label="Introduction"
+                      description="Hook the reader before they dive in."
+                      value={editor.introduction}
+                      onChange={(val) => setEditor((current) => ({ ...current, introduction: val }))}
+                      placeholder="Start with something catchy..."
+                      minHeight="120px"
+                      sectionNum={1}
+                    />
 
                     <div className="section-gap"></div>
 
-                    <div className="form-card">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <div className="section-num">2</div>
-                        <div>
-                          <div className="field-label" style={{ marginBottom: '0' }}>Main Content</div>
-                          <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Keep the core article content here.</div>
-                        </div>
-                      </div>
-                      <textarea
-                        className="field-body"
-                        value={editor.mainContent}
-                        onChange={(e) => setEditor((current) => ({ ...current, mainContent: e.target.value }))}
-                        style={{ minHeight: '220px' }}
-                      />
-                      <div className="char-count">{editor.mainContent.length} chars</div>
-                    </div>
+                    {/* MAIN CONTENT */}
+                    <RichTextEditor
+                      label="Main Content"
+                      description="Keep the core article content here. Use toolbar for bold, bulleting, H2/H3 headings, subheadings, etc."
+                      value={editor.mainContent}
+                      onChange={(val) => setEditor((current) => ({ ...current, mainContent: val }))}
+                      placeholder="Write the full body of your post here... Use the toolbar above to bold text, add bullet points, H2/H3 headings, sub-headings, quotes, and links."
+                      minHeight="240px"
+                      sectionNum={2}
+                    />
 
                     <div className="section-gap"></div>
 
-                    <div className="form-card">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <div className="section-num">3</div>
-                        <div>
-                          <div className="field-label" style={{ marginBottom: '0' }}>Conclusion</div>
-                          <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Wrap up the story or add your closing take.</div>
-                        </div>
-                      </div>
-                      <textarea
-                        className="field-body"
-                        value={editor.conclusion}
-                        onChange={(e) => setEditor((current) => ({ ...current, conclusion: e.target.value }))}
-                        style={{ minHeight: '90px' }}
-                      />
-                      <div className="char-count">{editor.conclusion.length} chars</div>
-                    </div>
+                    {/* CONCLUSION */}
+                    <RichTextEditor
+                      label="Conclusion"
+                      description="Wrap up the story or add your closing take."
+                      value={editor.conclusion}
+                      onChange={(val) => setEditor((current) => ({ ...current, conclusion: val }))}
+                      placeholder="End with a bang — your take, a question, or what's next..."
+                      minHeight="100px"
+                      sectionNum={3}
+                    />
 
                     <div className="section-gap"></div>
 

@@ -134,16 +134,60 @@ export default function AdminMusicPage() {
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Smart MP3 Metadata & Filename Auto-Extractor
+    let extractedTitle = '';
+    let extractedArtist = '';
+    let extractedDuration = 0;
+
+    // 1. Calculate audio duration
+    try {
+      const audioUrl = URL.createObjectURL(file);
+      const tempAudio = new Audio(audioUrl);
+      await new Promise<void>((resolve) => {
+        tempAudio.onloadedmetadata = () => {
+          extractedDuration = Math.round(tempAudio.duration || 0);
+          URL.revokeObjectURL(audioUrl);
+          resolve();
+        };
+        tempAudio.onerror = () => resolve();
+      });
+    } catch {
+      // fallback if object url fails
+    }
+
+    // 2. Extract Artist & Title from filename
+    const cleanName = file.name
+      .replace(/\.(mp3|wav|m4a|aac|flac)$/i, '')
+      .replace(/\[.*?\]|\(.*?official.*?\)/gi, '')
+      .replace(/download|jalaloaded/gi, '')
+      .trim();
+
+    if (cleanName.includes('-')) {
+      const parts = cleanName.split('-');
+      extractedArtist = parts[0].trim();
+      extractedTitle = parts.slice(1).join('-').trim();
+    } else {
+      extractedTitle = cleanName;
+    }
+
     setUploadingAudio(true);
     setAudioProgress(0);
     try {
       const data = await uploadWithProgress(file, 'video', setAudioProgress);
-      setForm(f => ({ ...f, mediaUrl: data.url, downloadUrl: data.url }));
-      toast.success('Audio uploaded!');
+      setForm(f => ({
+        ...f,
+        title: f.title ? f.title : (extractedTitle || f.title),
+        artist: f.artist ? f.artist : (extractedArtist || f.artist),
+        mediaUrl: data.url,
+        downloadUrl: data.url,
+      }));
+      toast.success('Audio uploaded & metadata auto-filled! 🎶');
     } catch { toast.error('Audio upload failed'); }
     setUploadingAudio(false);
     setAudioProgress(0);
   };
+
 
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

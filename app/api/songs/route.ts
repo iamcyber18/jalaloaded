@@ -37,8 +37,15 @@ export async function POST(request: Request) {
 
     const newSong = new Song(body);
     await newSong.save();
+
+    // Trigger instant search engine indexing
+    import('@/lib/searchIndexPing')
+      .then(({ notifySearchEngines }) => notifySearchEngines(`/music/${newSong.slug}`))
+      .catch(() => {});
+
     return NextResponse.json(newSong, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to create song' }, { status: 500 });
   }
 }
+

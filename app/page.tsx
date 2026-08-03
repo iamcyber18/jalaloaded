@@ -183,6 +183,7 @@ export default async function Home() {
 
   return (
     <div className="jlh min-h-screen">
+      <h1 className="sr-only">Jalaloaded — Premier Entertainment, Music, Latest News & Live Scores</h1>
       {activeLive && activeLive.length > 0 && (
         <div style={{ background: '#FF0000', color: '#fff', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', padding: '6px' }}>
           {activeLive.map((stream: any, i: number) => (

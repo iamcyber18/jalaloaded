@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import AdminSidebar from '@/components/AdminSidebar';
 import PostMediaUploader from '@/components/PostMediaUploader';
+import RichTextEditor from '@/components/RichTextEditor';
 import { useAdminSession } from '@/components/useAdminSession';
 import { IMediaItem } from '@/models/Post';
 
@@ -46,17 +47,11 @@ export default function AdminPage() {
 
   // Merge structured sections into one body with markdown formatting
   const buildBody = () => {
-    let body = '';
-    if (form.introduction.trim()) {
-      body += form.introduction.trim() + '\n\n';
-    }
-    if (form.mainContent.trim()) {
-      body += form.mainContent.trim() + '\n\n';
-    }
-    if (form.conclusion.trim()) {
-      body += '---\n\n' + form.conclusion.trim();
-    }
-    return body.trim();
+    const parts = [];
+    if (form.introduction.trim()) parts.push(form.introduction.trim());
+    if (form.mainContent.trim()) parts.push(form.mainContent.trim());
+    if (form.conclusion.trim()) parts.push(form.conclusion.trim());
+    return parts.join('\n\n---\n\n');
   };
 
   const handleSubmit = async (status: 'published' | 'draft' = 'published') => {
@@ -166,65 +161,41 @@ export default function AdminPage() {
             <div className="section-gap"></div>
 
             {/* INTRODUCTION */}
-            <div className="form-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                <div className="section-num">1</div>
-                <div>
-                  <div className="field-label" style={{ marginBottom: '0' }}>Introduction</div>
-                  <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Hook your readers — set the scene or give a quick summary</div>
-                </div>
-              </div>
-              <textarea
-                className="field-body"
-                value={form.introduction}
-                onChange={e => setForm({ ...form, introduction: e.target.value })}
-                placeholder="Start with something catchy... What's the story about? Why should people care?"
-                style={{ minHeight: '100px' }}
-              />
-              <div className="char-count">{form.introduction.length} chars</div>
-            </div>
+            <RichTextEditor
+              label="Introduction"
+              description="Hook your readers — set the scene or give a quick summary"
+              value={form.introduction}
+              onChange={(val) => setForm({ ...form, introduction: val })}
+              placeholder="Start with something catchy... What's the story about? Why should people care?"
+              minHeight="120px"
+              sectionNum={1}
+            />
 
             <div className="section-gap"></div>
 
             {/* MAIN CONTENT */}
-            <div className="form-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                <div className="section-num">2</div>
-                <div>
-                  <div className="field-label" style={{ marginBottom: '0' }}>Main Content</div>
-                  <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>The full story — details, quotes, analysis, everything</div>
-                </div>
-              </div>
-              <textarea
-                className="field-body"
-                value={form.mainContent}
-                onChange={e => setForm({ ...form, mainContent: e.target.value })}
-                placeholder="Write the full body of your post here... Go deep into the story, add details, quotes, and context. Markdown is supported."
-                style={{ minHeight: '200px' }}
-              />
-              <div className="char-count">{form.mainContent.length} chars</div>
-            </div>
+            <RichTextEditor
+              label="Main Content"
+              description="The full story — details, quotes, analysis, headings, bullet points"
+              value={form.mainContent}
+              onChange={(val) => setForm({ ...form, mainContent: val })}
+              placeholder="Write the full body of your post here... Use the toolbar above to bold text, add bullet points, H2/H3 headings, sub-headings, quotes, and links."
+              minHeight="240px"
+              sectionNum={2}
+            />
 
             <div className="section-gap"></div>
 
             {/* CONCLUSION */}
-            <div className="form-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                <div className="section-num">3</div>
-                <div>
-                  <div className="field-label" style={{ marginBottom: '0' }}>Conclusion</div>
-                  <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)' }}>Wrap it up — final thoughts, call to action, or opinion</div>
-                </div>
-              </div>
-              <textarea
-                className="field-body"
-                value={form.conclusion}
-                onChange={e => setForm({ ...form, conclusion: e.target.value })}
-                placeholder="End with a bang — your take, a question, or what's next..."
-                style={{ minHeight: '80px' }}
-              />
-              <div className="char-count">{form.conclusion.length} chars</div>
-            </div>
+            <RichTextEditor
+              label="Conclusion"
+              description="Wrap it up — final thoughts, call to action, or opinion"
+              value={form.conclusion}
+              onChange={(val) => setForm({ ...form, conclusion: val })}
+              placeholder="End with a bang — your take, a question, or what's next..."
+              minHeight="100px"
+              sectionNum={3}
+            />
           </div>
 
           {/* RIGHT: SIDEBAR PANELS */}

@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { MusicPlayerProvider } from '@/components/MusicPlayerContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-// import MusicPlayer from '@/components/MusicPlayer';
+import MusicPlayer from '@/components/MusicPlayer';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,8 +16,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <main className={`flex-1 w-full relative`}>
         {children}
       </main>
-      {/* {!isAdminRoute && <MusicPlayer />} */}
+      {!isAdminRoute && <MusicPlayer />}
       {!isAdminRoute && <Footer />}
     </MusicPlayerProvider>
   );
 }
+

@@ -25,7 +25,7 @@ export default function InlineArticleBody({ content, mediaItems }: Props) {
   };
 
   return (
-    <>
+    <div className="article-body">
       {parts.map((part, idx) => {
         // Check if this part is an [image:N] marker
         const match = part.match(/^\[image:(\d+)\]$/i);
@@ -60,6 +60,6 @@ export default function InlineArticleBody({ content, mediaItems }: Props) {
         }
         return null;
       })}
-    </>
+    </div>
   );
 }
