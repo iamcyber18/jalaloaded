@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function NewsletterBroadcastClient({ initialCount }: { initialCount: number }) {
   const [subject, setSubject] = useState('');
@@ -8,7 +9,16 @@ export default function NewsletterBroadcastClient({ initialCount }: { initialCou
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
+  
+  // Image Upload Modal States
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [imageUrlInput, setImageUrlInput] = useState('');
+  const [imageAltInput, setImageAltInput] = useState('Newsletter image');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Formatting helper to insert tags or markdown into textarea
   const insertFormatting = (prefix: string, suffix: string = '', defaultText: string = '') => {
@@ -46,13 +56,39 @@ export default function NewsletterBroadcastClient({ initialCount }: { initialCou
     }, 0);
   };
 
-  // Add Image dialog
-  const handleAddImage = () => {
-    const url = prompt('Enter Image URL (e.g. https://domain.com/image.jpg):', 'https://');
-    if (!url || url === 'https://') return;
-    const alt = prompt('Enter Image Alt / Description:', 'Newsletter image') || 'Image';
-    insertFormatting(`\n\n![${alt}](${url})\n\n`, '', '');
+  // Device File Upload Handler
+  const handleDeviceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setUploadProgress(0);
+
+    try {
+      const { uploadAdminAsset } = await import('@/lib/adminUpload');
+      const data = await uploadAdminAsset(file, 'image', setUploadProgress);
+      setImageUrlInput(data.url);
+      toast.success('Image uploaded successfully! 🖼️');
+    } catch {
+      toast.error('Failed to upload image. Please try again.');
+    } finally {
+      setUploadingImage(false);
+      setUploadProgress(0);
+    }
   };
+
+  const handleConfirmInsertImage = () => {
+    if (!imageUrlInput.trim()) {
+      toast.error('Please select an image file or enter an image URL');
+      return;
+    }
+    const alt = imageAltInput.trim() || 'Newsletter image';
+    insertFormatting(`\n\n![${alt}](${imageUrlInput.trim()})\n\n`, '', '');
+    setShowImageModal(false);
+    setImageUrlInput('');
+    setImageAltInput('Newsletter image');
+  };
+
 
   // Add CTA Button dialog
   const handleAddButton = () => {
@@ -293,13 +329,14 @@ export default function NewsletterBroadcastClient({ initialCount }: { initialCou
                 <div className="rich-toolbar-sep"></div>
 
                 <div className="rich-toolbar-group">
-                  <button type="button" className="rich-btn text-btn" title="Add Image" onClick={handleAddImage} style={{ background: 'rgba(255,107,0,0.15)', color: '#FF6B00' }}>
+                  <button type="button" className="rich-btn text-btn" title="Add Image" onClick={() => setShowImageModal(true)} style={{ background: 'rgba(255,107,0,0.15)', color: '#FF6B00' }}>
                     🖼️ Image
                   </button>
                   <button type="button" className="rich-btn text-btn" title="Add CTA Button" onClick={handleAddButton} style={{ background: 'var(--orange, #FF6B00)', color: '#fff' }}>
                     🔘 Button
                   </button>
                 </div>
+
 
                 <div className="rich-toolbar-sep"></div>
 
@@ -454,6 +491,155 @@ export default function NewsletterBroadcastClient({ initialCount }: { initialCou
         </div>
 
       </div>
+
+      {/* IMAGE UPLOAD & INSERT MODAL */}
+      {showImageModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 99999,
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#18181b',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '480px',
+            padding: '24px',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ fontSize: '16px', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🖼️ Add Image to Newsletter
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowImageModal(false)}
+                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '18px' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* HIDDEN FILE INPUT */}
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              accept="image/*" 
+              onChange={handleDeviceUpload} 
+              style={{ display: 'none' }} 
+            />
+
+            {/* OPTION 1: DEVICE UPLOAD BOX */}
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                border: '2px dashed rgba(255, 107, 0, 0.4)',
+                background: 'rgba(255, 107, 0, 0.05)',
+                borderRadius: '12px',
+                padding: '24px 16px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                marginBottom: '16px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <div style={{ fontSize: '32px', marginBottom: '8px' }}>📁</div>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#FF6B00', marginBottom: '4px' }}>
+                {uploadingImage ? `Uploading... ${uploadProgress}%` : 'Upload Image from Phone/PC'}
+              </div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+                Click to browse files on your device (JPG, PNG, WEBP)
+              </div>
+            </div>
+
+            {/* OR DIVIDER */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '16px 0', opacity: 0.5 }}>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.2)' }} />
+              <span style={{ fontSize: '10px', color: '#fff', textTransform: 'uppercase', letterSpacing: '1px' }}>OR PASTE LINK</span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.2)' }} />
+            </div>
+
+            {/* OPTION 2: URL INPUT */}
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: '4px' }}>
+                Image Web URL
+              </label>
+              <input 
+                type="text" 
+                placeholder="https://jalaloaded.vercel.app/images/..." 
+                value={imageUrlInput}
+                onChange={(e) => setImageUrlInput(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: '#111',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                  color: '#fff',
+                  fontSize: '13px',
+                  outline: 'none'
+                }}
+              />
+            </div>
+
+            {/* IMAGE DESCRIPTION */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: '4px' }}>
+                Image Caption / Alt Description
+              </label>
+              <input 
+                type="text" 
+                placeholder="e.g. Song Artwork or Breaking News Photo" 
+                value={imageAltInput}
+                onChange={(e) => setImageAltInput(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: '#111',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                  color: '#fff',
+                  fontSize: '13px',
+                  outline: 'none'
+                }}
+              />
+            </div>
+
+            {/* IMAGE PREVIEW IF URL AVAILABLE */}
+            {imageUrlInput && (
+              <div style={{ marginBottom: '20px', textAlign: 'center', background: '#0a0a0a', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imageUrlInput} alt="Preview" style={{ maxHeight: '140px', maxWidth: '100%', objectFit: 'contain', borderRadius: '6px' }} />
+              </div>
+            )}
+
+            {/* ACTION BUTTONS */}
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button 
+                type="button" 
+                onClick={() => setShowImageModal(false)}
+                style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={handleConfirmInsertImage}
+                style={{ background: '#FF6B00', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Insert into Email 🖼️
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -221,15 +221,33 @@ export default async function Home() {
 
       <div className="page">
         <div style={{ minWidth: 0 }}>
-          {heroSlides.length > 0 && <HeroCarousel slides={heroSlides} />}
+          {/* HERO SECTION WITH AMBIENT NEON GLOW */}
+          {heroSlides.length > 0 && (
+            <div style={{ position: 'relative' }}>
+              <div style={{
+                position: 'absolute',
+                top: '-20px',
+                left: '10%',
+                width: '300px',
+                height: '300px',
+                background: 'radial-gradient(circle, rgba(255,107,0,0.18) 0%, transparent 70%)',
+                pointerEvents: 'none',
+                filter: 'blur(40px)',
+                zIndex: 0
+              }} />
+              <HeroCarousel slides={heroSlides} />
+            </div>
+          )}
 
-          <div className="sec-hdr" style={{ marginTop: '0' }}>
+          {/* LATEST STORIES SECTION */}
+          <div className="sec-hdr" style={{ marginTop: '8px' }}>
             <div className="sec-title">
+              <span className="sec-icon">🔥</span>
               <div className="sec-line"></div>
-              Latest Posts
+              Latest Stories
             </div>
             <Link href="/blog" className="sec-more">
-              View all &rarr;
+              View all posts &rarr;
             </Link>
           </div>
           <div className="posts-grid">
@@ -238,15 +256,15 @@ export default async function Home() {
             ))}
           </div>
 
-
-
-          <div className="sec-hdr">
+          {/* FRESH MUSIC SECTION */}
+          <div className="sec-hdr" style={{ marginTop: '24px' }}>
             <div className="sec-title">
+              <span className="sec-icon">🎵</span>
               <div className="sec-line"></div>
-              Fresh Music
+              Fresh Music Drops
             </div>
             <Link href="/music" className="sec-more">
-              All tracks &rarr;
+              Explore music &rarr;
             </Link>
           </div>
           <div className="music-section">
@@ -257,13 +275,15 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="sec-hdr">
+          {/* TRENDING VIDEOS SECTION */}
+          <div className="sec-hdr" style={{ marginTop: '24px' }}>
             <div className="sec-title">
+              <span className="sec-icon">🎬</span>
               <div className="sec-line"></div>
-              Videos
+              Trending Videos & Premieres
             </div>
             <Link href="/videos" className="sec-more">
-              All videos &rarr;
+              Watch all &rarr;
             </Link>
           </div>
           <div className="video-grid">
@@ -272,16 +292,37 @@ export default async function Home() {
             ))}
           </div>
 
-          <div className="newsletter">
-            <div className="nl-title">
-              Stay <span>Loaded</span>
+          {/* FLASHY NEWSLETTER CONTAINER */}
+          <div className="newsletter" style={{
+            position: 'relative',
+            overflow: 'hidden',
+            background: 'linear-gradient(135deg, #111111 0%, #1a0d04 50%, #0d0d0d 100%)',
+            border: '1px solid rgba(255, 107, 0, 0.3)',
+            boxShadow: '0 12px 36px rgba(255, 107, 0, 0.1)',
+            borderRadius: '16px',
+            padding: '28px 24px',
+            marginTop: '28px'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '-40px',
+              right: '-40px',
+              width: '180px',
+              height: '180px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(255,107,0,0.2) 0%, transparent 70%)',
+              pointerEvents: 'none'
+            }} />
+            <div className="nl-title" style={{ fontSize: '28px', fontFamily: '"Bebas Neue", sans-serif', letterSpacing: '2px' }}>
+              STAY <span style={{ color: '#FF6B00', textShadow: '0 0 12px rgba(255,107,0,0.5)' }}>LOADED</span>
             </div>
-            <div className="nl-sub">
-              Get the freshest posts, music drops and videos delivered to your inbox. No spam, only vibes.
+            <div className="nl-sub" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', maxWidth: '480px', margin: '0 auto 18px' }}>
+              Get instant alerts for new music downloads, viral news, and live football updates delivered straight to you.
             </div>
             <NewsletterForm />
           </div>
         </div>
+
 
         <div className="sidebar">
           {adverts.length > 0 && (
