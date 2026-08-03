@@ -2,44 +2,57 @@
 
 import { useState, useEffect } from 'react';
 
-const fallbackScores = [
-  {h:'Man City',a:'Arsenal',hs:2,as:1,status:'LIVE',min:'67\'',league:'EPL',id:'fb1'},
-  {h:'PSG',a:'Barcelona',hs:1,as:1,status:'LIVE',min:'43\'',league:'UCL',id:'fb2'},
-  {h:'Real Madrid',a:'Atletico',hs:3,as:0,status:'FT',min:'FT',league:'La Liga',id:'fb3'},
-  {h:'Bayern',a:'Dortmund',hs:1,as:2,status:'FT',min:'FT',league:'Bundesliga',id:'fb4'},
-  {h:'Napoli',a:'Juventus',hs:0,as:0,status:'LIVE',min:'12\'',league:'Serie A',id:'fb5'},
-];
-
 export default function LiveScoresTicker() {
-  const [scores, setScores] = useState<any[]>(fallbackScores);
+  const [scores, setScores] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
     const fetchScores = async () => {
       try {
-        const res = await fetch('/api/scores');
+        const res = await fetch('/api/scores', { cache: 'no-store' });
         if (res.ok) {
-           const data = await res.json();
-           if (data.scores && data.scores.length > 0 && mounted) {
-              setScores(data.scores);
-           }
+          const data = await res.json();
+          if (data.scores && mounted) {
+            setScores(data.scores);
+          }
         }
       } catch (err) {
         console.error('Failed fetching live scores', err);
+      } finally {
+        if (mounted) setLoading(false);
       }
     };
 
     fetchScores();
-    const interval = setInterval(fetchScores, 60000); // Fetch new standard scores every minute
+    const interval = setInterval(fetchScores, 30000); // Fetch fresh live scores every 30 seconds
     return () => {
       mounted = false;
       clearInterval(interval);
-    }
+    };
   }, []);
 
+  if (loading && scores.length === 0) {
+    return (
+      <div className="fticker">
+        <div className="fticker-inner">
+          <div className="fticker-label">
+            <div className="live-dot"></div>LIVE SCORES
+          </div>
+          <div className="scores-scroll" style={{ display: 'flex', alignItems: 'center', paddingLeft: '16px', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+            Updating live scores...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (scores.length === 0) return null;
+
   // Double array for infinite scroll effect
-  const displayScores = scores.length > 0 ? [...scores, ...scores] : [];
+  const displayScores = [...scores, ...scores];
+
 
   return (
     <div className="fticker">

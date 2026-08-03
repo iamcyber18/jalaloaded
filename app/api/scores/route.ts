@@ -13,7 +13,7 @@ export async function GET() {
   try {
     const promises = LEAGUES.map(async (league) => {
       const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${league.id}/scoreboard`, {
-        next: { revalidate: 60 }
+        cache: 'no-store'
       });
       if (!res.ok) return [];
       const data = await res.json();
@@ -61,8 +61,6 @@ export async function GET() {
 
     const isTopTeam = (teamName: string) => {
       const lower = teamName.toLowerCase();
-      // Check if the team name contains any of our top team keywords
-      // OR if any of our keywords are contained within the team name
       return TOP_TEAMS.some(t => lower.includes(t) || t.includes(lower));
     };
 
@@ -70,32 +68,28 @@ export async function GET() {
     const getPriority = (score: any) => {
        const isBigMatch = isTopTeam(score.h) || isTopTeam(score.a) || score.league === 'UCL';
        
-       // Priority levels:
-       // 1. LIVE Big Match
-       // 2. PRE Big Match
-       // 3. LIVE Small Match
-       // 4. PRE Small Match
-       // 5. FT Big Match
-       // 6. FT Small Match
-
-       if (score.status === 'LIVE') {
-         return isBigMatch ? 1 : 3;
-       }
-       if (score.status === 'PRE') {
-         return isBigMatch ? 2 : 4;
-       }
-       // Finished matches
+       if (score.status === 'LIVE') return isBigMatch ? 1 : 3;
+       if (score.status === 'PRE') return isBigMatch ? 2 : 4;
        return isBigMatch ? 5 : 6;
     };
 
     flattened.sort((a, b) => getPriority(a) - getPriority(b));
 
-    // Limit to 30 matches
     const finalScores = flattened.slice(0, 30);
 
-    return NextResponse.json({ scores: finalScores });
+    return NextResponse.json(
+      { scores: finalScores },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (err) {
     console.error('ESPN API error:', err);
     return NextResponse.json({ scores: [] }, { status: 500 });
   }
 }
+

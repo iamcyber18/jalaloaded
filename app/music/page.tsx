@@ -55,7 +55,19 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
   };
 
   return (
-    <div className="jlh" style={{ minHeight: '100vh', paddingBottom: '40px' }}>
+    <div className="jlh" style={{ minHeight: '100vh', paddingBottom: '40px', position: 'relative', overflow: 'hidden' }}>
+
+      {/* AMBIENT BACKGROUND ORBS */}
+      <div className="music-ambient-orb" style={{
+        position: 'fixed', top: '-150px', left: '-100px', width: '400px', height: '400px',
+        background: 'radial-gradient(circle, rgba(255,107,0,0.12) 0%, transparent 70%)',
+        borderRadius: '50%', filter: 'blur(60px)', zIndex: 0
+      }} />
+      <div className="music-ambient-orb" style={{
+        position: 'fixed', bottom: '-100px', right: '-80px', width: '350px', height: '350px',
+        background: 'radial-gradient(circle, rgba(99,88,255,0.08) 0%, transparent 70%)',
+        borderRadius: '50%', filter: 'blur(60px)', zIndex: 0, animationDelay: '3s'
+      }} />
 
       {/* FEATURED CAROUSEL */}
       {featuredSongs.length > 0 ? (
@@ -65,35 +77,50 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
       ) : null}
 
       {/* MAIN CONTENT */}
-      <div className="page" style={{ maxWidth: '100%' }}>
+      <div className="page" style={{ maxWidth: '100%', position: 'relative', zIndex: 1 }}>
         <div style={{ minWidth: 0 }}>
 
-
-
-          {/* GENRE FILTERS */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px', alignItems: 'center' }}>
-            {genres.map(genre => (
-              <Link
-                key={genre}
-                href={genre !== 'All' ? `/music?genre=${genre}` : '/music'}
-                style={{
-                  padding: '6px 16px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
-                  textDecoration: 'none', transition: 'all 0.2s',
-                  background: currentGenre === genre ? '#FF6B00' : 'rgba(255,255,255,0.04)',
-                  color: currentGenre === genre ? '#fff' : 'rgba(255,255,255,0.5)',
-                  border: currentGenre === genre ? '1px solid #FF6B00' : '1px solid rgba(255,255,255,0.06)',
-                }}
-              >
-                {genre}
-              </Link>
-            ))}
+          {/* GENRE FILTERS — Animated pills */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px', alignItems: 'center' }}>
+            {genres.map(genre => {
+              const isActive = currentGenre === genre;
+              return (
+                <Link
+                  key={genre}
+                  href={genre !== 'All' ? `/music?genre=${genre}` : '/music'}
+                  className={`music-genre-filter ${isActive ? 'active' : ''}`}
+                  style={{
+                    padding: '7px 18px', borderRadius: '24px', fontSize: '11px', fontWeight: 700,
+                    textDecoration: 'none', letterSpacing: '0.5px',
+                    background: isActive ? 'linear-gradient(135deg, #FF6B00, #ff8533)' : 'rgba(255,255,255,0.04)',
+                    color: isActive ? '#fff' : 'rgba(255,255,255,0.5)',
+                    border: isActive ? '1px solid #FF6B00' : '1px solid rgba(255,255,255,0.08)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {genre}
+                </Link>
+              );
+            })}
           </div>
 
-          {/* TRACK COUNT */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>
-              {currentGenre === 'All' ? 'All Tracks' : currentGenre}
-              <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.3)', marginLeft: '8px' }}>({songs.length})</span>
+          {/* TRACK COUNT HEADER */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '4px', height: '20px', borderRadius: '2px',
+                background: 'linear-gradient(180deg, #FF6B00, #ff8533)',
+                boxShadow: '0 0 8px rgba(255,107,0,0.4)'
+              }} />
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#fff', fontFamily: '"Syne", sans-serif' }}>
+                {currentGenre === 'All' ? 'All Tracks' : currentGenre}
+              </div>
+              <span style={{
+                fontWeight: 600, color: 'rgba(255,255,255,0.3)', fontSize: '12px',
+                padding: '2px 10px', borderRadius: '12px', background: 'rgba(255,255,255,0.04)'
+              }}>
+                {songs.length}
+              </span>
             </div>
           </div>
 
@@ -101,57 +128,81 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
           <div>
             {songs.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.25)', fontSize: '13px' }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>🎵</div>
-                No tracks found{currentGenre !== 'All' ? ` in ${currentGenre}` : ''}. Check back soon!
+                <div style={{ fontSize: '48px', marginBottom: '16px', filter: 'drop-shadow(0 0 16px rgba(255,107,0,0.3))' }}>🎵</div>
+                <div style={{ fontFamily: '"Syne", sans-serif', fontWeight: 700, fontSize: '16px', color: 'rgba(255,255,255,0.4)', marginBottom: '6px' }}>
+                  No tracks found{currentGenre !== 'All' ? ` in ${currentGenre}` : ''}
+                </div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)' }}>Check back soon for fresh drops!</div>
               </div>
             ) : (
               songs.map((song: any, i: number) => {
                 const gc = genreColors[song.genre] || '#888';
                 return (
-                  <div key={song._id.toString()} style={{
+                  <div key={song._id.toString()} className="music-track-row" style={{
                     display: 'flex', alignItems: 'center', gap: '14px',
-                    padding: '14px 16px', borderRadius: '12px', marginBottom: '6px',
-                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)',
-                    transition: 'background 0.2s',
+                    padding: '14px 16px', borderRadius: '14px', marginBottom: '6px',
+                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)',
+                    animationDelay: `${Math.min(i * 0.06, 1.2)}s`,
                   }}>
                     {/* Track Number */}
-                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.15)', fontWeight: 700, width: '24px', textAlign: 'center', flexShrink: 0 }}>
+                    <div className="music-track-num" style={{
+                      fontSize: '13px', color: 'rgba(255,255,255,0.15)', fontWeight: 800,
+                      width: '26px', textAlign: 'center', flexShrink: 0,
+                      fontFamily: '"Bebas Neue", sans-serif', letterSpacing: '0.5px'
+                    }}>
                       {String(i + 1).padStart(2, '0')}
                     </div>
 
-                    {/* Cover Art - clickable */}
+                    {/* Cover Art — clickable with hover glow */}
                     <Link href={`/music/${song.slug || song._id}`} style={{ textDecoration: 'none', flexShrink: 0 }}>
-                      <div style={{
-                        width: '52px', height: '52px', borderRadius: '10px', overflow: 'hidden',
-                        background: song.coverUrl ? `url(${song.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,107,0,0.05))',
+                      <div className="music-track-cover" style={{
+                        width: '54px', height: '54px', borderRadius: '12px', overflow: 'hidden',
+                        background: song.coverUrl ? `url(${song.coverUrl}) center/cover` : `linear-gradient(135deg, ${gc}33, ${gc}11)`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        border: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer'
+                        border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer',
+                        boxShadow: `0 2px 10px ${gc}22`
                       }}>
-                        {!song.coverUrl && <span style={{ fontSize: '18px', opacity: 0.4 }}>🎵</span>}
+                        {!song.coverUrl && <span style={{ fontSize: '20px', opacity: 0.5 }}>🎵</span>}
                       </div>
                     </Link>
 
                     {/* Song Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Link href={`/music/${song.slug || song._id}`} style={{ textDecoration: 'none', color: '#fff' }}>
-                        <div style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}>
+                        <div className="music-track-title" style={{
+                          fontSize: '13px', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden',
+                          textOverflow: 'ellipsis', cursor: 'pointer', fontFamily: '"Syne", sans-serif'
+                        }}>
                           {song.title}
-                          {song.featured && <span style={{ marginLeft: '6px', fontSize: '10px' }}>⭐</span>}
+                          {song.featured && <span style={{ marginLeft: '8px', fontSize: '10px', filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.5))' }}>⭐</span>}
                         </div>
                       </Link>
-                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
-                        <Link href={`/music/artist/${song.artist.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`} style={{ color: '#FF6B00', textDecoration: 'none', fontWeight: 600 }}>{song.artist}</Link> • {song.year || new Date(song.createdAt).getFullYear()} • {formatNumber(song.plays || 0)} plays
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        <Link href={`/music/artist/${song.artist.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`} style={{ color: '#FF6B00', textDecoration: 'none', fontWeight: 700 }}>{song.artist}</Link>
+                        <span style={{ color: 'rgba(255,255,255,0.15)' }}>•</span>
+                        <span>{song.year || new Date(song.createdAt).getFullYear()}</span>
+                        <span style={{ color: 'rgba(255,255,255,0.15)' }}>•</span>
+                        <span>{formatNumber(song.plays || 0)} plays</span>
                       </div>
                       {song.description && (
-                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '3px', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.18)', marginTop: '3px', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {song.description}
                         </div>
                       )}
                     </div>
 
+                    {/* Genre Pill */}
+                    <div className="music-genre-pill" style={{
+                      padding: '3px 10px', borderRadius: '12px', fontSize: '9px', fontWeight: 700,
+                      letterSpacing: '0.8px', textTransform: 'uppercase', flexShrink: 0,
+                      background: `${gc}15`, color: gc, border: `1px solid ${gc}25`,
+                    }}>
+                      {song.genre}
+                    </div>
+
                     {/* Like count */}
-                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '3px' }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="rgba(255,255,255,0.15)" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="rgba(255,255,255,0.15)" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                       {song.likes || 0}
                     </div>
 
@@ -159,13 +210,24 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
                       {song.mediaUrl && (
                         <Link href={`/music/${song.slug || song._id}`} title="Listen"
-                          style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>
+                          className="music-play-pulse"
+                          style={{
+                            width: '34px', height: '34px', borderRadius: '10px', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                            color: 'rgba(255,255,255,0.5)', textDecoration: 'none', transition: 'all 0.2s'
+                          }}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                         </Link>
                       )}
                       {(song.downloadUrl || song.mediaUrl) && (
                         <TrackAction songId={song._id} action="download" href={`/api/songs/${song._id}/download`} download title="Download"
-                          style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,107,0,0.06)', border: '1px solid rgba(255,107,0,0.12)', color: '#FF6B00' }}>
+                          style={{
+                            width: '34px', height: '34px', borderRadius: '10px', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                            background: 'rgba(255,107,0,0.08)', border: '1px solid rgba(255,107,0,0.15)',
+                            color: '#FF6B00', transition: 'all 0.2s'
+                          }}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         </TrackAction>
                       )}
@@ -176,31 +238,39 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
             )}
           </div>
 
-          {/* UPCOMING DROPS (Moved Below Tracks) */}
+          {/* UPCOMING DROPS (Below Tracks) */}
           {currentGenre === 'All' && upcomingTracks.length > 0 && (
             <div style={{ marginTop: '40px', marginBottom: '40px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                <div style={{ fontSize: '18px', fontWeight: 800, fontFamily: '"Bebas Neue", sans-serif', color: 'var(--orange)', letterSpacing: '1px' }}>Upcoming Drops</div>
-                <div style={{ marginLeft: '12px', height: '1px', background: 'var(--color-border-tertiary)', flex: 1 }}></div>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '18px', gap: '12px' }}>
+                <span style={{ fontSize: '20px', filter: 'drop-shadow(0 0 8px rgba(255,107,0,0.4))' }}>⏳</span>
+                <div style={{
+                  fontSize: '18px', fontWeight: 800, fontFamily: '"Bebas Neue", sans-serif',
+                  color: '#FF6B00', letterSpacing: '1.5px',
+                  textShadow: '0 0 12px rgba(255,107,0,0.3)'
+                }}>
+                  Upcoming Drops
+                </div>
+                <div style={{ height: '1px', background: 'linear-gradient(90deg, rgba(255,107,0,0.3), transparent)', flex: 1 }}></div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {upcomingTracks.map((track: any) => {
+                {upcomingTracks.map((track: any, i: number) => {
                   const isOut = new Date(track.releaseDate) <= new Date();
                   return (
-                    <div key={track._id.toString()} style={{
+                    <div key={track._id.toString()} className="music-upcoming-row" style={{
                       display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
-                      padding: '14px 16px', borderRadius: '12px',
-                      background: 'rgba(255,255,255,0.02)', border: isOut ? '1px solid rgba(255,107,0,0.5)' : '1px solid rgba(255,255,255,0.03)',
-                      transition: 'background 0.2s',
+                      padding: '14px 16px', borderRadius: '14px',
+                      background: isOut ? 'rgba(29,190,115,0.04)' : 'rgba(255,255,255,0.02)',
+                      border: isOut ? '1px solid rgba(29,190,115,0.3)' : '1px solid rgba(255,255,255,0.04)',
+                      animationDelay: `${i * 0.08}s`,
                     }}>
                       
                       {/* Status/Icon */}
-                      <div style={{ fontSize: '12px', color: isOut ? '#1DBE73' : '#FF6B00', fontWeight: 800, width: '24px', textAlign: 'center', flexShrink: 0 }}>
+                      <div style={{ fontSize: '14px', color: isOut ? '#1DBE73' : '#FF6B00', fontWeight: 800, width: '24px', textAlign: 'center', flexShrink: 0 }}>
                         {isOut ? '▶' : '⏳'}
                       </div>
 
                       {/* Cover Art */}
-                      <div style={{
+                      <div className="music-track-cover" style={{
                         width: '52px', height: '52px', borderRadius: '10px', overflow: 'hidden',
                         background: track.coverUrl ? `url(${track.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,107,0,0.05))',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -212,16 +282,16 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                       {/* Track Info */}
                       <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <div className="music-track-title" style={{ fontSize: '13px', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: '"Syne", sans-serif' }}>
                             {track.title}
                           </div>
-                          {!isOut && <span style={{ padding: '2px 6px', background: 'rgba(255,107,0,0.1)', color: '#FF6B00', fontSize: '8px', fontWeight: 800, borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>Upcoming</span>}
+                          {!isOut && <span style={{ padding: '2px 8px', background: 'rgba(255,107,0,0.1)', color: '#FF6B00', fontSize: '8px', fontWeight: 800, borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.8px', flexShrink: 0 }}>Upcoming</span>}
                         </div>
                         <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
-                          <span style={{ color: '#FF6B00', fontWeight: 600 }}>{track.artist}</span>
+                          <span style={{ color: '#FF6B00', fontWeight: 700 }}>{track.artist}</span>
                         </div>
                         {track.description && (
-                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '3px', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.18)', marginTop: '3px', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {track.description}
                           </div>
                         )}
@@ -251,27 +321,33 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
           )}
         </div>
 
-        {/* SIDEBAR */}
+        {/* SIDEBAR — Elevated with hover glows */}
         <div className="sidebar">
           {/* Most Played Songs List */}
-          <div className="s-card">
-            <div className="s-title"><div className="s-line2"></div>Most Played</div>
+          <div className="s-card music-sidebar-card">
+            <div className="s-title"><div className="s-line"></div>🔥 Most Played</div>
             <div>
               {topSongs.map((song: any, i: number) => (
                 <Link key={song._id.toString()} href={`/music/${song.slug || song._id}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: i < topSongs.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 800, color: i < 3 ? '#FF6B00' : 'rgba(255,255,255,0.15)', width: '20px', textAlign: 'center' }}>
+                  <div className="music-rank-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 4px', borderBottom: i < topSongs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                    <div style={{
+                      fontSize: '16px', fontWeight: 800, width: '22px', textAlign: 'center', flexShrink: 0,
+                      fontFamily: '"Bebas Neue", sans-serif',
+                      color: i < 3 ? '#FF6B00' : 'rgba(255,255,255,0.15)',
+                      textShadow: i < 3 ? '0 0 8px rgba(255,107,0,0.3)' : 'none'
+                    }}>
                       {i + 1}
                     </div>
                     <div style={{
-                      width: '40px', height: '40px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0,
+                      width: '42px', height: '42px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0,
                       background: song.coverUrl ? `url(${song.coverUrl}) center/cover` : 'linear-gradient(135deg, #FF6B00, #c84b00)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: i < 3 ? '0 2px 10px rgba(255,107,0,0.15)' : 'none'
                     }}>
                       {!song.coverUrl && <span style={{ fontSize: '14px' }}>🎵</span>}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: '"Syne", sans-serif' }}>{song.title}</div>
                       <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '2px' }}>{song.artist} • {formatNumber(song.plays || 0)} plays</div>
                     </div>
                   </div>
@@ -284,24 +360,28 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
           </div>
 
           {/* Most Downloaded */}
-          <div className="s-card">
-            <div className="s-title"><div className="s-line2"></div>Most Downloaded</div>
+          <div className="s-card music-sidebar-card">
+            <div className="s-title"><div className="s-line"></div>⬇️ Most Downloaded</div>
             <div>
               {[...songs].sort((a: any, b: any) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 5).map((song: any, i: number) => (
                 <Link key={song._id.toString()} href={`/music/${song.slug || song._id}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.03)' : 'none' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 800, color: i === 0 ? '#FF6B00' : 'rgba(255,255,255,0.15)', width: '20px' }}>
+                  <div className="music-rank-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 4px', borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                    <div style={{
+                      fontSize: '13px', fontWeight: 800, width: '22px', textAlign: 'center',
+                      fontFamily: '"Bebas Neue", sans-serif',
+                      color: i === 0 ? '#FF6B00' : 'rgba(255,255,255,0.15)'
+                    }}>
                       {String(i + 1).padStart(2, '0')}
                     </div>
                     <div style={{
-                      width: '34px', height: '34px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0,
+                      width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0,
                       background: song.coverUrl ? `url(${song.coverUrl}) center/cover` : 'linear-gradient(135deg, #FF6B00, #c84b00)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
                       {!song.coverUrl && <span style={{ fontSize: '12px' }}>🎵</span>}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '11px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: '"Syne", sans-serif' }}>{song.title}</div>
                       <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>{formatNumber(song.downloads || 0)} downloads</div>
                     </div>
                   </div>
@@ -314,21 +394,21 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
           </div>
 
           {/* Latest Uploads */}
-          <div className="s-card">
-            <div className="s-title"><div className="s-line2"></div>Latest Uploads</div>
+          <div className="s-card music-sidebar-card">
+            <div className="s-title"><div className="s-line"></div>🆕 Latest Uploads</div>
             <div>
               {songs.slice(0, 4).map((song: any) => (
                 <Link key={song._id.toString()} href={`/music/${song.slug || song._id}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                  <div className="music-rank-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 4px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <div style={{
-                      width: '34px', height: '34px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0,
+                      width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0,
                       background: song.coverUrl ? `url(${song.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(99,88,255,0.3), rgba(99,88,255,0.1))',
                       display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
                       {!song.coverUrl && <span style={{ fontSize: '12px' }}>🎵</span>}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '11px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: '"Syne", sans-serif' }}>{song.title}</div>
                       <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>{song.artist} • {song.genre}</div>
                     </div>
                   </div>
@@ -341,15 +421,15 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
           </div>
 
           {/* About */}
-          <div className="s-card">
-            <div className="s-title"><div className="s-line2"></div>About the Music</div>
+          <div className="s-card music-sidebar-card">
+            <div className="s-title"><div className="s-line"></div>🎧 About the Music</div>
             <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>
               All tracks on Jalaloaded are curated and shared for free. Listen online, stream on your favourite platform, or download directly. Share the vibes.
             </div>
-            <div style={{ marginTop: '12px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              <span style={{ padding: '4px 10px', borderRadius: '20px', background: 'rgba(255,107,0,0.08)', color: '#FF6B00', fontSize: '9px', fontWeight: 600 }}>Free Download</span>
-              <span style={{ padding: '4px 10px', borderRadius: '20px', background: 'rgba(29,190,115,0.08)', color: '#1DBE73', fontSize: '9px', fontWeight: 600 }}>Stream Online</span>
-              <span style={{ padding: '4px 10px', borderRadius: '20px', background: 'rgba(99,88,255,0.08)', color: '#6358FF', fontSize: '9px', fontWeight: 600 }}>Curated</span>
+            <div style={{ marginTop: '14px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{ padding: '5px 12px', borderRadius: '20px', background: 'rgba(255,107,0,0.1)', color: '#FF6B00', fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px' }}>Free Download</span>
+              <span style={{ padding: '5px 12px', borderRadius: '20px', background: 'rgba(29,190,115,0.1)', color: '#1DBE73', fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px' }}>Stream Online</span>
+              <span style={{ padding: '5px 12px', borderRadius: '20px', background: 'rgba(99,88,255,0.1)', color: '#6358FF', fontSize: '9px', fontWeight: 700, letterSpacing: '0.5px' }}>Curated</span>
             </div>
           </div>
         </div>
