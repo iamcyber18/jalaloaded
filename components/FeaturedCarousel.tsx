@@ -70,7 +70,7 @@ export default function FeaturedCarousel({ songs }: { songs: FeaturedSong[] }) {
         backgroundSize: '24px 24px', pointerEvents: 'none'
       }} />
 
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px', display: 'flex', gap: '36px', alignItems: 'center', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
+      <div className="music-hero-flex" style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px', display: 'flex', gap: '36px', alignItems: 'center', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
         {/* Cover Art with hover tilt */}
         <Link href={`/music/${song.slug || song._id}`} style={{ textDecoration: 'none' }}>
           <div className="music-featured-cover" style={{
@@ -99,8 +99,8 @@ export default function FeaturedCarousel({ songs }: { songs: FeaturedSong[] }) {
         </Link>
 
         {/* Song Info */}
-        <div style={{ flex: 1, minWidth: '280px' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
+        <div style={{ flex: 1, minWidth: '240px' }}>
+          <div className="music-hero-meta" style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
             <span style={{
               padding: '4px 12px', borderRadius: '20px',
               background: 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05))',
@@ -120,7 +120,7 @@ export default function FeaturedCarousel({ songs }: { songs: FeaturedSong[] }) {
           </div>
 
           <Link href={`/music/${song.slug || song._id}`} style={{ textDecoration: 'none' }}>
-            <h2 style={{
+            <h2 className="music-hero-title" style={{
               fontFamily: '"Syne", sans-serif', fontSize: '34px', fontWeight: 800,
               color: '#fff', lineHeight: 1.15, margin: '0 0 8px', cursor: 'pointer',
               textShadow: '0 2px 20px rgba(0,0,0,0.3)',
@@ -129,14 +129,14 @@ export default function FeaturedCarousel({ songs }: { songs: FeaturedSong[] }) {
               {song.title}
             </h2>
           </Link>
-          <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '20px', fontWeight: 500 }}>
+          <div className="music-hero-meta" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '20px', fontWeight: 500, display: 'flex', alignItems: 'center' }}>
             <span style={{ color: '#FF6B00', fontWeight: 700 }}>{song.artist}</span>
             <span style={{ margin: '0 8px', color: 'rgba(255,255,255,0.15)' }}>•</span>
             {song.year}
           </div>
 
           {/* Stats */}
-          <div style={{ display: 'flex', gap: '28px', marginBottom: '24px' }}>
+          <div className="music-hero-stats" style={{ display: 'flex', gap: '28px', marginBottom: '24px' }}>
             {[
               { value: formatNumber(song.plays || 0), label: 'Plays' },
               { value: formatNumber(song.downloads || 0), label: 'Downloads' },
@@ -160,7 +160,8 @@ export default function FeaturedCarousel({ songs }: { songs: FeaturedSong[] }) {
           </div>
 
           {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <div className="music-hero-actions" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+
             {(song.downloadUrl || song.mediaUrl) && (
               <TrackAction songId={song._id} action="download" href={song.downloadUrl || song.mediaUrl} download
                 className="music-action-btn"

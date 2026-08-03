@@ -80,8 +80,8 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
       <div className="page" style={{ maxWidth: '100%', position: 'relative', zIndex: 1 }}>
         <div style={{ minWidth: 0 }}>
 
-          {/* GENRE FILTERS — Animated pills */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px', alignItems: 'center' }}>
+          {/* GENRE FILTERS — Animated pills with mobile touch scroll */}
+          <div className="music-genre-container" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px', alignItems: 'center' }}>
             {genres.map(genre => {
               const isActive = currentGenre === genre;
               return (
@@ -103,6 +103,7 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
               );
             })}
           </div>
+
 
           {/* TRACK COUNT HEADER */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -297,7 +298,7 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                         )}
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                      <div className="music-upcoming-controls" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
                         {/* Audio Teaser */}
                         {track.snippetUrl && !isOut && (
                           <div style={{ flexShrink: 0 }}>

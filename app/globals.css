@@ -1880,14 +1880,104 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
   animation: playPulse 2s ease-in-out infinite;
 }
 
-/* Mobile responsive for music page */
+/* ========================================== */
+/* MOBILE RESPONSIVE ENGINE FOR MUSIC & PAGE  */
+/* ========================================== */
+
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr !important;
+    padding: 14px 12px !important;
+    gap: 24px !important;
+  }
+}
+
 @media (max-width: 768px) {
-  .music-featured-hero > div:last-child {
-    flex-direction: column;
+  /* Featured Hero Carousel Mobile Layout */
+  .music-featured-hero {
+    padding: 24px 0 28px !important;
+  }
+  .music-hero-flex {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
     gap: 20px !important;
   }
   .music-featured-cover {
-    width: 160px !important;
-    height: 160px !important;
+    width: 170px !important;
+    height: 170px !important;
+    margin: 0 auto !important;
+  }
+  .music-hero-title {
+    font-size: 22px !important;
+    text-align: center !important;
+  }
+  .music-hero-meta {
+    justify-content: center !important;
+  }
+  .music-hero-stats {
+    justify-content: center !important;
+    gap: 20px !important;
+  }
+  .music-hero-actions {
+    justify-content: center !important;
+  }
+
+  /* Genre Filter Bar Horizontal Touch Scroll on Mobile */
+  .music-genre-container {
+    display: flex !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 16px !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .music-genre-container::-webkit-scrollbar {
+    display: none !important;
+  }
+  .music-genre-filter {
+    flex-shrink: 0 !important;
+    padding: 6px 14px !important;
+    font-size: 10px !important;
   }
 }
+
+@media (max-width: 540px) {
+  /* Track Row Compact Mobile Tuning */
+  .music-track-row {
+    padding: 10px 10px !important;
+    gap: 10px !important;
+    border-radius: 10px !important;
+  }
+  .music-track-num {
+    width: 18px !important;
+    font-size: 11px !important;
+  }
+  .music-track-cover {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 8px !important;
+  }
+  .music-genre-pill {
+    display: none !important; /* Hide pill on super small mobile to prevent squishing */
+  }
+  .music-track-title {
+    font-size: 12px !important;
+  }
+  .music-track-meta {
+    font-size: 10px !important;
+  }
+  
+  /* Upcoming Drop Mobile Row Stack */
+  .music-upcoming-row {
+    padding: 12px 10px !important;
+    gap: 10px !important;
+  }
+  .music-upcoming-controls {
+    width: 100% !important;
+    justify-content: space-between !important;
+    margin-top: 6px !important;
+  }
+}
+

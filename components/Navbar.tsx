@@ -22,10 +22,9 @@ export default function Navbar() {
     { href: '/music', label: 'Music' },
     { href: '/videos', label: 'Videos' },
     { href: '/live', label: 'Live' },
-    { href: '/about', label: 'About' },
     { href: '/contact', label: 'Contact' },
-
   ];
+
 
   // Close search results when clicking outside
   useEffect(() => {

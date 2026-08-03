@@ -12,11 +12,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/music',
     '/videos',
     '/live',
-    '/about',
     '/contact',
     '/privacy',
     '/upcoming',
   ].map((route) => ({
+
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
