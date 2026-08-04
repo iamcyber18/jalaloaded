@@ -175,6 +175,15 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
                           textOverflow: 'ellipsis', cursor: 'pointer', fontFamily: '"Syne", sans-serif'
                         }}>
                           {song.title}
+                          {song.videoUrl && (
+                            <span style={{
+                              marginLeft: '8px', padding: '2px 6px', borderRadius: '4px',
+                              background: 'rgba(230,57,70,0.15)', color: '#ff4d5e', fontSize: '8px',
+                              fontWeight: 800, border: '1px solid rgba(230,57,70,0.3)', verticalAlign: 'middle'
+                            }}>
+                              🎬 VIDEO
+                            </span>
+                          )}
                           {song.featured && <span style={{ marginLeft: '8px', fontSize: '10px', filter: 'drop-shadow(0 0 4px rgba(255,215,0,0.5))' }}>⭐</span>}
                         </div>
                       </Link>

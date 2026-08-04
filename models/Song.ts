@@ -12,6 +12,10 @@ export interface ISong extends Document {
   downloadUrl?: string;
   coverUrl?: string;
   videoUrl?: string;
+  producer?: string;
+  lyrics?: string;
+  album?: string;
+  albumType?: 'Single' | 'EP' | 'Album';
   duration?: number;
   fileSize?: string;
   plays: number;
@@ -39,6 +43,10 @@ const SongSchema = new Schema<ISong>(
     downloadUrl: { type: String },
     coverUrl: { type: String },
     videoUrl: { type: String },
+    producer: { type: String },
+    lyrics: { type: String },
+    album: { type: String },
+    albumType: { type: String, enum: ['Single', 'EP', 'Album'], default: 'Single' },
     duration: { type: Number },
     fileSize: { type: String },
     plays: { type: Number, default: 0 },

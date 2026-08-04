@@ -18,6 +18,10 @@ interface SongItem {
   downloadUrl?: string;
   coverUrl?: string;
   videoUrl?: string;
+  producer?: string;
+  lyrics?: string;
+  album?: string;
+  albumType?: 'Single' | 'EP' | 'Album';
   description?: string;
   plays: number;
   downloads: number;
@@ -56,7 +60,11 @@ export default function AdminMusicPage() {
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
-    setForm({ title: '', artist: '', genre: 'Afrobeats', year: new Date().getFullYear(), featured: false, mediaUrl: '', streamUrl: '', downloadUrl: '', coverUrl: '', videoUrl: '', description: '' });
+    setForm({
+      title: '', artist: '', genre: 'Afrobeats', year: new Date().getFullYear(),
+      featured: false, mediaUrl: '', streamUrl: '', downloadUrl: '', coverUrl: '',
+      videoUrl: '', producer: '', lyrics: '', album: '', albumType: 'Single', description: ''
+    });
     setCollabs([]);
     setEditingId(null);
   };
@@ -72,6 +80,10 @@ export default function AdminMusicPage() {
     downloadUrl: '',
     coverUrl: '',
     videoUrl: '',
+    producer: '',
+    lyrics: '',
+    album: '',
+    albumType: 'Single' as 'Single' | 'EP' | 'Album',
     description: '',
   });
   const [coverProgress, setCoverProgress] = useState(0);
@@ -406,6 +418,25 @@ export default function AdminMusicPage() {
                 </div>
               </div>
 
+              {/* Producer & Album/EP */}
+              <div style={S.row}>
+                <div>
+                  <div style={S.label}>Producer Name (optional)</div>
+                  <input style={S.input} value={form.producer} onChange={e => setForm({ ...form, producer: e.target.value })} placeholder="e.g. Produced by Masterkraft" />
+                </div>
+                <div>
+                  <div style={S.label}>Album / EP Title (optional)</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: '6px' }}>
+                    <input style={S.input} value={form.album} onChange={e => setForm({ ...form, album: e.target.value })} placeholder="e.g. Rave & Roses" />
+                    <select style={S.select} value={form.albumType} onChange={e => setForm({ ...form, albumType: e.target.value as any })}>
+                      <option value="Single" style={{ background: '#111' }}>Single</option>
+                      <option value="EP" style={{ background: '#111' }}>EP</option>
+                      <option value="Album" style={{ background: '#111' }}>Album</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               {/* Genre & Year */}
               <div style={S.row}>
                 <div>
@@ -492,6 +523,17 @@ export default function AdminMusicPage() {
                 <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,.mpeg,video/mpeg" hidden onChange={handleVideoUpload} />
               </div>
 
+              {/* Song Lyrics Field */}
+              <div style={{ marginBottom: '16px' }}>
+                <div style={S.label}>Song Lyrics (optional)</div>
+                <textarea 
+                  style={{ ...S.input, minHeight: '120px', resize: 'vertical', lineHeight: 1.6 }} 
+                  value={form.lyrics} 
+                  onChange={e => setForm({ ...form, lyrics: e.target.value })} 
+                  placeholder="Paste the song lyrics here... Line breaks will be preserved." 
+                />
+              </div>
+
               {/* Description */}
               <div style={{ marginBottom: '16px' }}>
                 <div style={S.label}>Description (optional)</div>
@@ -561,7 +603,9 @@ export default function AdminMusicPage() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
-                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>{song.artist} • {song.genre} • {song.year}</div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>
+                      {song.artist} • {song.genre} {song.producer ? `• Prod. ${song.producer}` : ''} {song.album ? `• ${song.albumType || 'Album'}: ${song.album}` : ''}
+                    </div>
                   </div>
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
                     <span>▶ {song.plays || 0}</span>
@@ -581,12 +625,17 @@ export default function AdminMusicPage() {
                           downloadUrl: song.downloadUrl || '',
                           coverUrl: song.coverUrl || '',
                           videoUrl: song.videoUrl || '',
+                          producer: song.producer || '',
+                          lyrics: song.lyrics || '',
+                          album: song.album || '',
+                          albumType: (song.albumType || 'Single') as any,
                           description: song.description || '',
                         });
                         setEditingId(song._id);
                         setShowForm(true);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
+
                       style={{ background: 'rgba(255,107,0,0.1)', border: 'none', color: '#FF6B00', cursor: 'pointer', fontSize: '14px', padding: '4px', borderRadius: '4px' }}
                       title="Edit song"
                     >✏️</button>

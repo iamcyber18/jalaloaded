@@ -51,7 +51,6 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
   if (!artist) notFound();
 
   // Find all songs where this artist appears (exact match OR as part of a collaboration)
-  // This handles "Artist A ft. Artist B", "Artist A & Artist B", "Artist A x Artist B" etc.
   const escapedName = artist.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const artistRegex = new RegExp(escapedName, 'i');
   const songs = await Song.find({ artist: artistRegex })
@@ -61,6 +60,26 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
   const upcomingTracks = await UpcomingMusic.find({ artist: artistRegex })
     .sort({ releaseDate: 1 })
     .lean();
+
+  // Group songs by Album / EP for this artist
+  const albumMap = new Map<string, { title: string; type: string; year: number; coverUrl?: string; songs: any[] }>();
+  songs.forEach((s: any) => {
+    if (s.album && s.album.trim()) {
+      const key = s.album.trim();
+      if (!albumMap.has(key)) {
+        albumMap.set(key, {
+          title: s.album,
+          type: s.albumType || 'Album',
+          year: s.year,
+          coverUrl: s.coverUrl,
+          songs: [],
+        });
+      }
+      albumMap.get(key)!.songs.push(s);
+    }
+  });
+  const albumsList = Array.from(albumMap.values());
+  const artistVideos = songs.filter((s: any) => s.videoUrl && s.videoUrl.trim() !== '');
 
   return (
     <div className="jlh artist-page" style={{ minHeight: '100vh', paddingBottom: '40px' }}>
@@ -86,6 +105,78 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
               {artist.bio && <p className="artist-bio">{artist.bio}</p>}
             </div>
           </div>
+
+          {/* Official Music Videos Section */}
+          {artistVideos.length > 0 && (
+            <div style={{ marginTop: '30px', marginBottom: '30px' }}>
+              <h2 className="artist-section-title">🎬 Official Music Videos ({artistVideos.length})</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+                {artistVideos.map((s: any) => (
+                  <Link key={s._id.toString()} href={`/videos/${s.slug || s._id.toString()}`} style={{ textDecoration: 'none' }}>
+                    <div style={{
+                      background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: '14px', overflow: 'hidden', transition: 'all 0.2s',
+                    }}>
+                      <div style={{
+                        height: '130px', position: 'relative',
+                        background: s.coverUrl ? `url(${s.coverUrl}) center/cover` : 'linear-gradient(135deg, #e63946, #800020)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        <div style={{
+                          width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(230,57,70,0.9)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(230,57,70,0.5)'
+                        }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        </div>
+                        <span style={{ position: 'absolute', top: '8px', left: '8px', padding: '2px 6px', background: '#e63946', color: '#fff', fontSize: '8px', fontWeight: 800, borderRadius: '4px' }}>
+                          OFFICIAL VIDEO
+                        </span>
+                      </div>
+                      <div style={{ padding: '12px' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: '"Syne", sans-serif' }}>
+                          {s.title}
+                        </div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                          {s.artist} • {s.genre}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Albums & EPs Section */}
+          {albumsList.length > 0 && (
+            <div style={{ marginTop: '30px', marginBottom: '30px' }}>
+              <h2 className="artist-section-title">💿 Albums & EPs ({albumsList.length})</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
+                {albumsList.map((alb, idx) => (
+                  <div key={idx} style={{
+                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: '14px', padding: '14px', transition: 'all 0.2s',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
+                  }}>
+                    <div style={{
+                      height: '140px', borderRadius: '10px', overflow: 'hidden', marginBottom: '10px',
+                      background: alb.coverUrl ? `url(${alb.coverUrl}) center/cover` : 'linear-gradient(135deg, #FF6B00, #c84b00)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      {!alb.coverUrl && <span style={{ fontSize: '32px' }}>💿</span>}
+                    </div>
+                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff', fontFamily: '"Syne", sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {alb.title}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+                      <span style={{ color: '#FF6B00', fontWeight: 700 }}>{alb.type}</span>
+                      <span>{alb.songs.length} Track{alb.songs.length > 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Upcoming Drops */}
           {upcomingTracks.length > 0 && (
@@ -160,6 +251,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
 
           {/* Discography */}
           <h2 className="artist-section-title">Latest Releases</h2>
+
           
           {songs.length === 0 ? (
             <div className="artist-empty-state">

@@ -6,6 +6,7 @@ import TrackAction from '@/components/TrackAction';
 import ShareButton from '@/components/ShareButton';
 import LikeButton from '@/components/LikeButton';
 import AudioPlayer from '@/components/AudioPlayer';
+import SongLyrics from '@/components/SongLyrics';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -51,7 +52,6 @@ async function getSong(slug: string) {
   if (!song) return null;
 
   // Get more songs from same artist(s) — supports collaborations
-  // Split artist string to find all individual names
   const artistNames = song.artist.split(/\s*(?:ft\.?|feat\.?|[x&,]|\|)\s*/i).map((n: string) => n.trim()).filter(Boolean);
   const artistPatterns = artistNames.map((n: string) => new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
   const moreSongs = await Song.find({ $or: artistPatterns.map(r => ({ artist: r })), _id: { $ne: song._id } })
@@ -99,6 +99,11 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
             <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
               <span style={{ padding: '3px 10px', borderRadius: '20px', background: 'rgba(255,107,0,0.1)', color: '#FF6B00', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>{song.genre}</span>
               <span style={{ padding: '3px 10px', borderRadius: '20px', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', fontSize: '10px', fontWeight: 600 }}>{song.year}</span>
+              {song.album && (
+                <span style={{ padding: '3px 10px', borderRadius: '20px', background: 'rgba(99,88,255,0.12)', color: '#a78bfa', fontSize: '10px', fontWeight: 700, border: '1px solid rgba(99,88,255,0.2)' }}>
+                  💿 {song.albumType || 'Album'}: {song.album}
+                </span>
+              )}
               {song.featured && <span style={{ padding: '3px 10px', borderRadius: '20px', background: 'rgba(255,215,0,0.1)', color: '#ffd700', fontSize: '10px', fontWeight: 700 }}>⭐ Featured</span>}
             </div>
 
@@ -107,10 +112,8 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
             </h1>
             <div style={{ fontSize: '15px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>
               {(() => {
-                // Split artist string on common collaboration separators
                 const parts = song.artist.split(/(\s+(?:ft\.?|feat\.?|[x&,]|\|)\s+)/i);
                 return parts.map((part: string, i: number) => {
-                  // Check if this part is a separator like "ft.", "&", etc.
                   if (/^\s*(?:ft\.?|feat\.?|[x&,]|\|)\s*$/i.test(part)) {
                     return <span key={i} style={{ color: 'rgba(255,255,255,0.35)' }}>{part}</span>;
                   }
@@ -123,6 +126,15 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
                 });
               })()}
             </div>
+
+            {/* Producer Name */}
+            {song.producer && (
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ color: 'rgba(255,255,255,0.3)' }}>🎛️ Producer:</span>
+                <span style={{ color: '#fff', fontWeight: 600 }}>{song.producer}</span>
+              </div>
+            )}
+
             {song.description && (
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', lineHeight: 1.7, marginBottom: '18px', maxWidth: '400px' }}>
                 {song.description}
@@ -149,10 +161,17 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               {(song.downloadUrl || song.mediaUrl) && (
                 <TrackAction songId={song._id} action="download" href={`/api/songs/${song._id}/download`} download
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '10px', background: 'linear-gradient(135deg, #FF6B00, #ff8533)', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '10px', background: 'linear-gradient(135deg, #FF6B00, #ff8533)', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 15px rgba(255,107,0,0.3)' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Download
+                  Download MP3
                 </TrackAction>
+              )}
+              {song.videoUrl && (
+                <a href="#official-video"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '10px', background: 'linear-gradient(135deg, #e63946, #c1121f)', color: '#fff', fontSize: '12px', fontWeight: 700, textDecoration: 'none', cursor: 'pointer', boxShadow: '0 4px 15px rgba(230,57,70,0.3)' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Watch Official Video
+                </a>
               )}
               {song.streamUrl && (
                 <TrackAction songId={song._id} action="play" href={song.streamUrl}
@@ -174,18 +193,43 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
           </div>
         )}
 
-        {/* VIDEO PLAYER */}
+        {/* LYRICS SECTION */}
+        {song.lyrics && (
+          <SongLyrics lyrics={song.lyrics} songTitle={song.title} artist={song.artist} />
+        )}
+
+
+        {/* OFFICIAL MUSIC VIDEO PLAYER */}
         {song.videoUrl && (
-          <div style={{ maxWidth: '800px', margin: '32px auto 0', padding: '0 24px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '14px' }}>Official Music Video</div>
-            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '16px', background: '#000', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div id="official-video" style={{ maxWidth: '800px', margin: '36px auto 0', padding: '0 24px', scrollMarginTop: '80px' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '20px',
+                  background: 'rgba(230,57,70,0.15)', color: '#ff4d5e', fontSize: '11px', fontWeight: 800,
+                  border: '1px solid rgba(230,57,70,0.3)', textTransform: 'uppercase', letterSpacing: '1px'
+                }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff4d5e', boxShadow: '0 0 8px #ff4d5e', display: 'inline-block' }} />
+                  🎬 Official Music Video
+                </span>
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>{song.artist}</span>
+              </div>
+            </div>
+
+            <div style={{
+              position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden',
+              borderRadius: '20px', background: '#000', border: '1px solid rgba(255,107,0,0.2)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(255,107,0,0.1)'
+            }}>
               {song.videoUrl.includes('youtube') || song.videoUrl.includes('youtu.be') ? (() => {
                 const match = song.videoUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
                 const ytId = match ? match[1] : null;
                 if (ytId) {
                   return (
                     <iframe 
-                      src={`https://www.youtube.com/embed/${ytId}?autoplay=0&rel=0`}
+                      src={`https://www.youtube.com/embed/${ytId}?autoplay=0&rel=0&modestbranding=1`}
                       style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -196,21 +240,22 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
               })() : (
                 <video 
                   controls 
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }}
                   poster={song.coverUrl}
                 >
                   <source src={song.videoUrl} type={song.videoUrl.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
-                  Your browser does not support the video tag.
+                  Your browser does not support HTML5 video.
                 </video>
               )}
             </div>
+
             {/* Download Video Button */}
             {!(song.videoUrl.includes('youtube') || song.videoUrl.includes('youtu.be')) && (
               <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-start' }}>
                 <TrackAction songId={song._id} action="download" href={`/api/songs/${song._id}/download?type=video`} download
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px', fontWeight: 600, cursor: 'pointer', transition: 'background 0.2s' }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Download Video
+                  Download Official Video (MP4)
                 </TrackAction>
               </div>
             )}
