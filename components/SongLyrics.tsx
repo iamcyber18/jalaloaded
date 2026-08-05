@@ -9,8 +9,9 @@ export default function SongLyrics({ lyrics, songTitle, artist }: { lyrics: stri
   if (!lyrics || !lyrics.trim()) return null;
 
   const lines = lyrics.trim().split('\n');
-  const isLong = lines.length > 25;
-  const displayedLyrics = expanded || !isLong ? lyrics : lines.slice(0, 25).join('\n') + '\n...';
+  const isLong = lines.length > 12;
+  const previewMode = isLong && !expanded;
+  const displayedLyrics = expanded || !isLong ? lyrics : lines.slice(0, 12).join('\n') + '\n...';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(`${songTitle} by ${artist} Lyrics:\n\n${lyrics}`);
@@ -77,12 +78,23 @@ export default function SongLyrics({ lyrics, songTitle, artist }: { lyrics: stri
 
         {/* Lyrics Body */}
         <div style={{
-          fontSize: '14px', lineHeight: 1.8, color: 'rgba(255,255,255,0.85)',
-          whiteSpace: 'pre-line', fontFamily: '"DM Sans", sans-serif',
-          background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '12px',
-          border: '1px solid rgba(255,255,255,0.04)'
+          position: 'relative', overflow: 'hidden', background: 'rgba(0,0,0,0.2)',
+          padding: '20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.04)'
         }}>
-          {displayedLyrics}
+          <div style={{
+            fontSize: '14px', lineHeight: 1.8, color: 'rgba(255,255,255,0.85)',
+            whiteSpace: 'pre-line', fontFamily: '"DM Sans", sans-serif',
+            maxHeight: previewMode ? '220px' : 'none', overflow: previewMode ? 'hidden' : 'visible'
+          }}>
+            {displayedLyrics}
+          </div>
+          {previewMode && (
+            <div style={{
+              position: 'absolute', left: 0, right: 0, bottom: 0, height: '96px',
+              background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(5,5,5,0.86) 100%)',
+              pointerEvents: 'none'
+            }} />
+          )}
         </div>
 
         {/* Read More / Collapse Toggle */}
@@ -98,9 +110,9 @@ export default function SongLyrics({ lyrics, songTitle, artist }: { lyrics: stri
               }}
             >
               {expanded ? (
-                <>Collapse Lyrics ▲</>
+                <>Show Less ▲</>
               ) : (
-                <>Show Full Lyrics ({lines.length} lines) ▼</>
+                <>Read More ▼</>
               )}
             </button>
           </div>

@@ -7,13 +7,32 @@ cloudinary.config({
 });
 
 /**
- * Extract Cloudinary public ID from a Cloudinary URL
+ * Extract Cloudinary public ID and resource type from a Cloudinary URL
  */
-export function extractPublicId(url: string): string | null {
+export function extractPublicId(url: string): { publicId: string; resourceType: 'image' | 'video' | 'raw' } | null {
   try {
-    // Match Cloudinary URL patterns
-    const match = url.match(/\/(?:v\d+\/)?([^/.]+)(?:\.[^.]+)?$/);
-    return match ? match[1] : null;
+    const parsedUrl = new URL(url);
+    const pathname = decodeURIComponent(parsedUrl.pathname);
+    const segments = pathname.split('/').filter(Boolean);
+
+    const resourceType = segments[1] === 'video' || segments[1] === 'raw' ? segments[1] : 'image';
+    const uploadIndex = segments.indexOf('upload');
+
+    if (uploadIndex === -1) return null;
+
+    let publicIdParts = segments.slice(uploadIndex + 1);
+
+    if (publicIdParts.length === 0) return null;
+
+    if (publicIdParts[0].startsWith('v') && /^v\d+$/i.test(publicIdParts[0])) {
+      publicIdParts = publicIdParts.slice(1);
+    }
+
+    if (publicIdParts.length === 0) return null;
+
+    const publicId = publicIdParts.join('/').replace(/\.[^.]+$/, '');
+
+    return publicId ? { publicId, resourceType } : null;
   } catch {
     return null;
   }
@@ -24,10 +43,12 @@ export function extractPublicId(url: string): string | null {
  */
 export async function deleteCloudinaryFile(url: string): Promise<boolean> {
   try {
-    const publicId = extractPublicId(url);
-    if (!publicId) return false;
+    const asset = extractPublicId(url);
+    if (!asset) return false;
 
-    const result = await cloudinary.uploader.destroy(publicId);
+    const result = await cloudinary.uploader.destroy(asset.publicId, {
+      resource_type: asset.resourceType,
+    });
     return result.result === 'ok';
   } catch (error) {
     console.error('Failed to delete Cloudinary file:', error);

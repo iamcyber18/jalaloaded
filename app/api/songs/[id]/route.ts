@@ -52,15 +52,13 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     }
 
     // Extract Cloudinary URLs from song
-    const cloudinaryUrls: string[] = [];
-    const urlFields = ['mediaUrl', 'streamUrl', 'downloadUrl', 'coverUrl'];
-    
-    urlFields.forEach(field => {
-      const url = song[field as keyof typeof song] as string;
-      if (url && url.includes('cloudinary.com')) {
-        cloudinaryUrls.push(url);
-      }
-    });
+    const cloudinaryUrls = Array.from(new Set(
+      ['mediaUrl', 'streamUrl', 'downloadUrl', 'coverUrl', 'videoUrl']
+        .flatMap(field => {
+          const value = song[field as keyof typeof song];
+          return typeof value === 'string' && value.includes('cloudinary.com') ? [value] : [];
+        })
+    ));
 
     // Delete the song from database first
     await Song.findByIdAndDelete(resolvedParams.id);

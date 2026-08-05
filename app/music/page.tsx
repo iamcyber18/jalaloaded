@@ -7,6 +7,7 @@ import FeaturedCarousel from '@/components/FeaturedCarousel';
 import LikeButton from '@/components/LikeButton';
 import ShareButton from '@/components/ShareButton';
 import UpcomingMusic from '@/models/UpcomingMusic';
+import Album from '@/models/Album';
 import CountdownTimer from '@/components/CountdownTimer';
 
 export const dynamic = 'force-dynamic';
@@ -22,6 +23,7 @@ async function getMusicData(genre?: string) {
   const totalDownloads = await Song.aggregate([{ $group: { _id: null, total: { $sum: '$downloads' } } }]);
 
   const upcomingTracks = await UpcomingMusic.find().sort({ releaseDate: 1 }).lean();
+  const albums = await Album.find({}).sort({ year: -1, createdAt: -1 }).limit(8).lean();
 
   const topSongs = await Song.find({}).sort({ plays: -1 }).limit(5).lean();
 
@@ -31,6 +33,7 @@ async function getMusicData(genre?: string) {
     totalPlays: totalPlays[0]?.total || 0,
     totalDownloads: totalDownloads[0]?.total || 0,
     upcomingTracks: JSON.parse(JSON.stringify(upcomingTracks)),
+    albums: JSON.parse(JSON.stringify(albums)),
     topSongs: JSON.parse(JSON.stringify(topSongs)),
   };
 }
@@ -38,7 +41,7 @@ async function getMusicData(genre?: string) {
 export default async function MusicPage({ searchParams }: { searchParams: Promise<{ genre?: string }> }) {
   const resolvedParams = await searchParams;
   const currentGenre = resolvedParams.genre || 'All';
-  const { songs, featuredSongs, totalPlays, totalDownloads, upcomingTracks, topSongs } = await getMusicData(currentGenre);
+  const { songs, featuredSongs, totalPlays, totalDownloads, upcomingTracks, albums, topSongs } = await getMusicData(currentGenre);
 
   const genres = ['All', 'Afrobeats', 'Amapiano', 'Highlife', 'R&B', 'Gospel', 'Hip-hop', 'Other'];
 
@@ -104,6 +107,51 @@ export default async function MusicPage({ searchParams }: { searchParams: Promis
             })}
           </div>
 
+
+          {albums.length > 0 && (
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                <div style={{ width: '4px', height: '16px', borderRadius: '2px', background: 'linear-gradient(180deg, #FF6B00, #ff8533)' }} />
+                <div style={{ fontSize: '14px', fontWeight: 800, color: '#fff', fontFamily: '"Syne", sans-serif' }}>Latest Albums</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                {albums.map((album: any) => (
+                  <Link key={album._id.toString()} href={`/music/album/${album.slug || album._id}`} style={{ textDecoration: 'none' }}>
+                    <div
+                      style={{
+                        borderRadius: '16px',
+                        padding: '12px',
+                        background: 'linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03))',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        boxShadow: '0 10px 24px rgba(0,0,0,0.22)',
+                        transition: 'transform 0.2s ease, border-color 0.2s ease',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '112px',
+                          borderRadius: '12px',
+                          background: album.coverUrl ? `url(${album.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.25), rgba(255,107,0,0.08))',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginBottom: '10px',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+                        }}
+                      >
+                        {!album.coverUrl && <span style={{ fontSize: '24px', opacity: 0.45 }}>💿</span>}
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{album.title}</div>
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{album.artist}</div>
+                      <div style={{ fontSize: '10px', color: '#FF6B00', marginTop: '4px', fontWeight: 700 }}>{album.type || 'Album'} • {album.year || new Date(album.createdAt).getFullYear()}</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* TRACK COUNT HEADER */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

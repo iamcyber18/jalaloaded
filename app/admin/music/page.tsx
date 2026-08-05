@@ -48,9 +48,13 @@ export default function AdminMusicPage() {
   }
   const [songs, setSongs] = useState<SongItem[]>([]);
   const [artistsList, setArtistsList] = useState<{_id:string;name:string}[]>([]);
+  const [albumsList, setAlbumsList] = useState<{_id:string; title:string; artist:string; type:'EP'|'Album'; year:number; genre?:string; description?:string; coverUrl?:string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showAlbumModal, setShowAlbumModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [creatingAlbum, setCreatingAlbum] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -90,6 +94,15 @@ export default function AdminMusicPage() {
   const [audioProgress, setAudioProgress] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
   const [collabs, setCollabs] = useState<{sep: string; name: string}[]>([]);
+  const [albumForm, setAlbumForm] = useState({
+    title: '',
+    artist: '',
+    type: 'Album' as 'EP' | 'Album',
+    year: new Date().getFullYear(),
+    genre: 'Afrobeats',
+    description: '',
+    coverUrl: '',
+  });
 
   // Build the final artist string from primary + collabs
   const buildArtistString = (primary: string, feats: {sep: string; name: string}[]) => {
@@ -101,8 +114,16 @@ export default function AdminMusicPage() {
   const genres = ['Afrobeats', 'Amapiano', 'Highlife', 'R&B', 'Gospel', 'Hip-hop', 'Other'];
 
   useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
     fetchSongs();
     fetchArtists();
+    fetchAlbums();
   }, []);
 
   const fetchSongs = async () => {
@@ -123,6 +144,42 @@ export default function AdminMusicPage() {
     }
   };
 
+  const fetchAlbums = async () => {
+    try {
+      const res = await fetch('/api/albums?limit=100');
+      const data = await res.json();
+      setAlbumsList(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error('Failed to load albums');
+    }
+  };
+
+  const handleCreateAlbum = async () => {
+    if (!albumForm.title.trim() || !albumForm.artist.trim()) {
+      toast.error('Album title and artist are required');
+      return;
+    }
+
+    setCreatingAlbum(true);
+    try {
+      const res = await fetch('/api/albums', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(albumForm),
+      });
+      if (!res.ok) throw new Error('Failed');
+
+      const createdAlbum = await res.json();
+      setAlbumsList(prev => [createdAlbum, ...prev]);
+      setForm(f => ({ ...f, album: createdAlbum.title, albumType: createdAlbum.type || 'Album' }));
+      setAlbumForm({ title: '', artist: '', type: 'Album', year: new Date().getFullYear(), genre: 'Afrobeats', description: '', coverUrl: '' });
+      setShowAlbumModal(false);
+      toast.success('Album created! You can now assign songs to it.');
+    } catch {
+      toast.error('Failed to create album');
+    }
+    setCreatingAlbum(false);
+  };
 
   const uploadWithProgress = async (file: File, fileType: string, onProgress: (p: number) => void): Promise<any> => {
     const { uploadAdminAsset } = await import('@/lib/adminUpload');
@@ -244,6 +301,18 @@ export default function AdminMusicPage() {
     setSaving(false);
   };
 
+  const handleDeleteAlbum = async (id: string, title: string) => {
+    if (!confirm(`Delete album "${title}" and remove it from linked songs?`)) return;
+    try {
+      const res = await fetch(`/api/albums/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Album deleted');
+      setAlbumsList(prev => prev.filter(album => album._id !== id));
+      setSongs(prev => prev.map(song => song.album === title ? { ...song, album: '', albumType: 'Single' as any } : song));
+      setForm(current => current.album === title ? { ...current, album: '', albumType: 'Single' } : current);
+    } catch { toast.error('Failed to delete album'); }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this song?')) return;
     try {
@@ -255,13 +324,13 @@ export default function AdminMusicPage() {
   };
 
   const S = {
-    card: { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '20px', marginBottom: '16px' } as React.CSSProperties,
+    card: { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: isMobile ? '16px' : '20px', marginBottom: '16px' } as React.CSSProperties,
     label: { fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' } as React.CSSProperties,
     input: { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#fff', outline: 'none', fontFamily: '"DM Sans", sans-serif' } as React.CSSProperties,
     select: { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#fff', outline: 'none', fontFamily: '"DM Sans", sans-serif' } as React.CSSProperties,
-    row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' } as React.CSSProperties,
-    uploadBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '10px', border: '2px dashed rgba(255,107,0,0.2)', background: 'rgba(255,107,0,0.03)', color: '#FF6B00', fontSize: '12px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' } as React.CSSProperties,
-    songRow: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '8px', transition: 'background 0.2s' } as React.CSSProperties,
+    row: { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' } as React.CSSProperties,
+    uploadBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '10px', border: '2px dashed rgba(255,107,0,0.2)', background: 'rgba(255,107,0,0.03)', color: '#FF6B00', fontSize: '12px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' } as React.CSSProperties,
+    songRow: { display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '8px' : '12px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '8px', transition: 'background 0.2s' } as React.CSSProperties,
   };
 
   return (
@@ -270,7 +339,7 @@ export default function AdminMusicPage() {
       <div className="main">
         <div className="topbar">
           <div className="page-title">Music</div>
-          <div className="topbar-actions">
+          <div className="topbar-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
             <button className="btn-publish" onClick={() => {
               if (showForm) {
                 resetForm();
@@ -282,10 +351,113 @@ export default function AdminMusicPage() {
             }}>
               {showForm ? '✕ Close' : '+ Upload Song'}
             </button>
+            <button className="btn-publish" onClick={() => setShowAlbumModal(true)}>
+              + Create Album
+            </button>
           </div>
         </div>
 
-        <div style={{ padding: '0 24px 40px', maxWidth: '900px' }}>
+        {showAlbumModal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.78)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200, padding: '20px' }}>
+            <div style={{ width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', background: 'rgba(12,12,12,0.98)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '18px', padding: isMobile ? '18px' : '24px', boxShadow: '0 20px 60px rgba(0,0,0,0.45)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>Create Album</div>
+                <button onClick={() => setShowAlbumModal(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+              </div>
+
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', marginBottom: '14px' }}>Use this when an artist is releasing a full project or EP. Single uploads stay simple by default.</div>
+
+              <div style={S.row}>
+                <div>
+                  <div style={S.label}>Album Title *</div>
+                  <input style={S.input} value={albumForm.title} onChange={e => setAlbumForm({ ...albumForm, title: e.target.value })} placeholder="e.g. Loaded Vibes" />
+                </div>
+                <div>
+                  <div style={S.label}>Artist *</div>
+                  <select style={S.select} value={albumForm.artist} onChange={e => setAlbumForm({ ...albumForm, artist: e.target.value })}>
+                    <option value="" style={{ background: '#111' }}>Select Artist</option>
+                    {artistsList.map(a => <option key={a._id} value={a.name} style={{ background: '#111' }}>{a.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div style={S.row}>
+                <div>
+                  <div style={S.label}>Album Type</div>
+                  <select style={S.select} value={albumForm.type} onChange={e => setAlbumForm({ ...albumForm, type: e.target.value as 'EP' | 'Album' })}>
+                    <option value="Album" style={{ background: '#111' }}>Album</option>
+                    <option value="EP" style={{ background: '#111' }}>EP</option>
+                  </select>
+                </div>
+                <div>
+                  <div style={S.label}>Genre</div>
+                  <select style={S.select} value={albumForm.genre} onChange={e => setAlbumForm({ ...albumForm, genre: e.target.value })}>
+                    {genres.map(g => <option key={g} value={g} style={{ background: '#111' }}>{g}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <div style={S.label}>Year</div>
+                <input style={S.input} type="number" value={albumForm.year} onChange={e => setAlbumForm({ ...albumForm, year: parseInt(e.target.value) || new Date().getFullYear() })} />
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <div style={S.label}>Album Cover</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = async (event) => {
+                        const file = (event.target as HTMLInputElement).files?.[0];
+                        if (!file) return;
+                        setCreatingAlbum(true);
+                        try {
+                          const { uploadAdminAsset } = await import('@/lib/adminUpload');
+                          const data = await uploadAdminAsset(file, 'image', () => {});
+                          setAlbumForm(prev => ({ ...prev, coverUrl: data.url }));
+                          toast.success('Album cover uploaded!');
+                        } catch {
+                          toast.error('Album cover upload failed');
+                        }
+                        setCreatingAlbum(false);
+                      };
+                      input.click();
+                    }}
+                    style={{
+                      width: '92px', height: '92px', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer',
+                      background: albumForm.coverUrl ? `url(${albumForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.15), rgba(255,107,0,0.05))',
+                      border: '2px dashed rgba(255,107,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                  >
+                    {!albumForm.coverUrl && <span style={{ fontSize: '11px', color: '#FF6B00', textAlign: 'center' }}>+ Cover</span>}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)' }}>
+                    {albumForm.coverUrl ? '✅ Cover ready for this album' : 'Upload a cover image for the album.'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <div style={S.label}>Description</div>
+                <textarea style={{ ...S.input, minHeight: '70px', resize: 'vertical' }} value={albumForm.description} onChange={e => setAlbumForm({ ...albumForm, description: e.target.value })} placeholder="A short note about the album..." />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button onClick={() => setShowAlbumModal(false)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button onClick={handleCreateAlbum} disabled={creatingAlbum} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: creatingAlbum ? 'rgba(255,107,0,0.3)' : 'linear-gradient(135deg, #FF6B00, #ff8533)', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: creatingAlbum ? 'default' : 'pointer' }}>
+                  {creatingAlbum ? 'Creating album...' : 'Create Album'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div style={{ padding: isMobile ? '0 16px 32px' : '0 24px 40px', maxWidth: '900px', margin: '0 auto' }}>
           {/* UPLOAD FORM */}
           {showForm && (
             <div style={S.card}>
@@ -296,7 +468,7 @@ export default function AdminMusicPage() {
               {/* Cover Image */}
               <div style={{ marginBottom: '16px' }}>
                 <div style={S.label}>Cover Art</div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <div
                     onClick={() => !uploadingCover && coverInputRef.current?.click()}
                     style={{
@@ -328,6 +500,10 @@ export default function AdminMusicPage() {
                     <button onClick={() => setForm({ ...form, coverUrl: '' })} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
                   )}
                 </div>
+              </div>
+
+              <div style={{ marginBottom: '14px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
+                Upload a single track by default. If this song belongs to an album, choose it below or create a new album from the button above.
               </div>
 
               {/* Title & Artist */}
@@ -425,15 +601,27 @@ export default function AdminMusicPage() {
                   <input style={S.input} value={form.producer} onChange={e => setForm({ ...form, producer: e.target.value })} placeholder="e.g. Produced by Masterkraft" />
                 </div>
                 <div>
-                  <div style={S.label}>Album / EP Title (optional)</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: '6px' }}>
-                    <input style={S.input} value={form.album} onChange={e => setForm({ ...form, album: e.target.value })} placeholder="e.g. Rave & Roses" />
-                    <select style={S.select} value={form.albumType} onChange={e => setForm({ ...form, albumType: e.target.value as any })}>
-                      <option value="Single" style={{ background: '#111' }}>Single</option>
-                      <option value="EP" style={{ background: '#111' }}>EP</option>
-                      <option value="Album" style={{ background: '#111' }}>Album</option>
-                    </select>
-                  </div>
+                  <div style={S.label}>Assign to Album</div>
+                  <select
+                    style={S.select}
+                    value={form.album}
+                    onChange={e => {
+                      const selectedAlbum = albumsList.find(album => album.title === e.target.value);
+                      setForm({
+                        ...form,
+                        album: e.target.value,
+                        albumType: selectedAlbum ? (selectedAlbum.type as any) : 'Single',
+                      });
+                    }}
+                  >
+                    <option value="" style={{ background: '#111' }}>No album / Single</option>
+                    {albumsList.map(album => (
+                      <option key={album._id} value={album.title} style={{ background: '#111' }}>
+                        {album.title} ({album.type})
+                      </option>
+                    ))}
+                  </select>
+                  <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>Pick an existing album from the list above, or create one first.</div>
                 </div>
               </div>
 
@@ -513,7 +701,7 @@ export default function AdminMusicPage() {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr auto', gap: '8px', marginBottom: '8px' }}>
                     <input style={S.input} value={form.videoUrl} onChange={e => setForm({ ...form, videoUrl: e.target.value })} placeholder="Paste YouTube link here..." />
                     <div onClick={() => videoInputRef.current?.click()} style={{ padding: '10px 16px', borderRadius: '8px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.3)', color: '#FF6B00', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                       OR UPLOAD MP4/MPEG
@@ -580,8 +768,34 @@ export default function AdminMusicPage() {
             </div>
           )}
 
-          {/* SONGS LIST */}
           <div style={{ marginTop: '8px' }}>
+            <div style={{ ...S.card, marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>Albums ({albumsList.length})</div>
+                <button onClick={() => setShowAlbumModal(true)} style={{ background: 'rgba(255,107,0,0.1)', border: 'none', color: '#FF6B00', cursor: 'pointer', fontSize: '12px', padding: '6px 10px', borderRadius: '8px', fontWeight: 700 }}>
+                  + New Album
+                </button>
+              </div>
+
+              {albumsList.length === 0 ? (
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>No albums created yet.</div>
+              ) : (
+                <div style={{ display: 'grid', gap: '10px' }}>
+                  {albumsList.map(album => (
+                    <div key={album._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{album.title}</div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }}>{album.artist} • {album.type} • {album.year}</div>
+                      </div>
+                      <button onClick={() => handleDeleteAlbum(album._id, album.title)} style={{ background: 'rgba(255,60,60,0.1)', border: '1px solid rgba(255,60,60,0.18)', color: '#ff6b6b', cursor: 'pointer', fontSize: '12px', padding: '6px 10px', borderRadius: '8px', fontWeight: 700 }}>
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>All Songs ({songs.length})</div>
             </div>

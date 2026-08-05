@@ -1,5 +1,60 @@
 @import "tailwindcss";
 
+@media (max-width: 768px) {
+  .album-page-inner {
+    padding-top: 16px !important;
+  }
+  .album-page-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .album-card {
+    padding: 16px !important;
+  }
+  .album-title {
+    font-size: 20px !important;
+  }
+  .album-artist {
+    font-size: 12px !important;
+  }
+  .album-meta {
+    font-size: 10px !important;
+    margin-bottom: 10px !important;
+  }
+  .album-pill-wrap {
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+  .album-pill {
+    font-size: 9px !important;
+    padding: 6px 9px !important;
+  }
+  .album-description {
+    font-size: 11px !important;
+  }
+  .album-track-header {
+    margin-bottom: 10px !important;
+  }
+  .album-track-row {
+    gap: 10px !important;
+    padding: 10px 4px !important;
+  }
+  .album-track-number {
+    width: 24px !important;
+    font-size: 12px !important;
+  }
+  .album-track-thumb {
+    width: 38px !important;
+    height: 38px !important;
+  }
+  .album-track-title {
+    font-size: 12px !important;
+  }
+  .album-track-subtitle {
+    font-size: 9px !important;
+  }
+}
+
 :root {
   --color-background-primary: #121212;
   --color-background-secondary: #1a1a1a;

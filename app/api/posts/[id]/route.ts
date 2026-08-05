@@ -110,19 +110,15 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     }
 
     // Extract Cloudinary URLs from post media
-    const cloudinaryUrls: string[] = [];
-    if (post.media && post.media.length > 0) {
-      post.media.forEach(mediaItem => {
-        // Check if URL is from Cloudinary
-        if (mediaItem.url && mediaItem.url.includes('cloudinary.com')) {
-          cloudinaryUrls.push(mediaItem.url);
-        }
-        // Also check thumbnail URLs
-        if (mediaItem.thumbnailUrl && mediaItem.thumbnailUrl.includes('cloudinary.com')) {
-          cloudinaryUrls.push(mediaItem.thumbnailUrl);
-        }
-      });
-    }
+    const cloudinaryUrls = Array.from(new Set(
+      (post.media || [])
+        .flatMap((mediaItem: any) => {
+          const urls = [] as string[];
+          if (typeof mediaItem?.url === 'string' && mediaItem.url.includes('cloudinary.com')) urls.push(mediaItem.url);
+          if (typeof mediaItem?.thumbnailUrl === 'string' && mediaItem.thumbnailUrl.includes('cloudinary.com')) urls.push(mediaItem.thumbnailUrl);
+          return urls;
+        })
+    ));
 
     // Delete the post from database first
     await Post.findByIdAndDelete(resolvedParams.id);
