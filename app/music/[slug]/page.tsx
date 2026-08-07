@@ -15,9 +15,9 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   await dbConnect();
-  let song = await Song.findOne({ slug }).lean();
+  let song = await Song.findOne({ slug, status: 'Published' }).lean();
   if (!song) {
-    try { song = await Song.findById(slug).lean(); } catch {}
+    try { song = await Song.findOne({ _id: slug, status: 'Published' }).lean(); } catch {}
   }
   if (!song) return { title: 'Song Not Found' };
 
@@ -45,16 +45,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 async function getSong(slug: string) {
   await dbConnect();
   // Try slug first, then _id for backwards compat
-  let song = await Song.findOne({ slug }).lean();
+  let song = await Song.findOne({ slug, status: 'Published' }).lean();
   if (!song) {
-    try { song = await Song.findById(slug).lean(); } catch {}
+    try { song = await Song.findOne({ _id: slug, status: 'Published' }).lean(); } catch {}
   }
   if (!song) return null;
 
   // Get more songs from same artist(s) — supports collaborations
   const artistNames = song.artist.split(/\s*(?:ft\.?|feat\.?|[x&,]|\|)\s*/i).map((n: string) => n.trim()).filter(Boolean);
   const artistPatterns = artistNames.map((n: string) => new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
-  const moreSongs = await Song.find({ $or: artistPatterns.map(r => ({ artist: r })), _id: { $ne: song._id } })
+  const moreSongs = await Song.find({ $or: artistPatterns.map(r => ({ artist: r })), _id: { $ne: song._id }, status: 'Published' })
     .sort({ createdAt: -1 }).limit(6).lean();
 
   return {
@@ -104,7 +104,7 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
                   💿 {song.albumType || 'Album'}: {song.album}
                 </span>
               )}
-              {song.featured && <span style={{ padding: '3px 10px', borderRadius: '20px', background: 'rgba(255,215,0,0.1)', color: '#ffd700', fontSize: '10px', fontWeight: 700 }}>⭐ Featured</span>}
+              {song.featured && <span style={{ padding: '3px 10px', borderRadius: '20px', background: 'rgba(255,215,0,0.1)', color: '#ffd700', fontSize: '10px', fontWeight: 700 }}><svg width="10" height="10" viewBox="0 0 24 24" fill="#ffd700" stroke="none" style={{display:'inline',verticalAlign:'middle',marginRight:'3px'}}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Featured</span>}
             </div>
 
             <h1 style={{ fontFamily: '"Syne", sans-serif', fontSize: '30px', fontWeight: 800, color: '#fff', lineHeight: 1.2, margin: '0 0 8px' }}>
@@ -212,7 +212,7 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
                   border: '1px solid rgba(230,57,70,0.3)', textTransform: 'uppercase', letterSpacing: '1px'
                 }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff4d5e', boxShadow: '0 0 8px #ff4d5e', display: 'inline-block' }} />
-                  🎬 Official Music Video
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{display:'inline',verticalAlign:'middle',marginRight:'4px'}}><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>Official Music Video
                 </span>
                 <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>{song.artist}</span>
               </div>
@@ -271,7 +271,7 @@ export default async function SongPage({ params }: { params: Promise<{ slug: str
             <Link key={s._id} href={`/music/${s.slug || s._id}`} style={{ textDecoration: 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)', marginBottom: '6px', transition: 'background 0.2s' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: s.coverUrl ? `url(${s.coverUrl}) center/cover` : 'linear-gradient(135deg, #FF6B00, #c84b00)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {!s.coverUrl && <span style={{ fontSize: '16px' }}>🎵</span>}
+                  {!s.coverUrl && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff' }}>{s.title}</div>

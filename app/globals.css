@@ -2017,6 +2017,9 @@ body{font-family:'DM Sans',sans-serif;color:var(--color-text-primary);background
   .music-genre-pill {
     display: none !important; /* Hide pill on super small mobile to prevent squishing */
   }
+  .music-track-likes {
+    display: none !important;
+  }
   .music-track-title {
     font-size: 12px !important;
   }

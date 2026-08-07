@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // 3. Fetch all Songs
     const Song = (await import('@/models/Song')).default;
-    const songs = await Song.find().select('slug updatedAt').lean();
+    const songs = await Song.find({ status: 'Published' }).select('slug updatedAt').lean();
     const songRoutes: MetadataRoute.Sitemap = songs.map((song: any) => ({
       url: `${baseUrl}/music/${song.slug}`,
       lastModified: song.updatedAt || new Date(),

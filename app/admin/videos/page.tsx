@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import AdminSidebar from '@/components/AdminSidebar';
 import { useAdminSession } from '@/components/useAdminSession';
 import Image from 'next/image';
+import { Video, Eye, Trash2, CheckCircle, AlertTriangle } from 'lucide-react';
 
 interface VideoItem {
   _id: string;
@@ -570,11 +571,10 @@ export default function AdminVideosPage() {
                     <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{video.title}</div>
                     <div className="admin-video-card-footer">
                       <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
-                        <span>👁 {video.views || 0}</span>
-                        <span>👍 {video.likes || 0}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Eye size={12} /> {video.views || 0}</span>
                       </div>
-                      <button onClick={() => handleDelete(video._id)} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                        Delete
+                      <button onClick={() => handleDelete(video._id)} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Trash2 size={12} /> Delete
                       </button>
                     </div>
                   </div>

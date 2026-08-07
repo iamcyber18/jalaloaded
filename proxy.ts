@@ -38,14 +38,13 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // If user is logged in and hits /admin/login, redirect to /admin
+  // If user is logged in and hits /admin/login, redirect to /admin/dashboard
   if (pathname === '/admin/login') {
     const token = request.cookies.get('admin_token')?.value;
     if (token) {
       try {
-        const { payload } = await jwtVerify(token, JWT_SECRET);
-        const redirectPath = payload.role === 'sub-admin' ? SUB_ADMIN_DEFAULT_ROUTE : '/admin';
-        return NextResponse.redirect(new URL(redirectPath, request.url));
+        await jwtVerify(token, JWT_SECRET);
+        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
       } catch {
         // Token invalid, let them see login page
       }

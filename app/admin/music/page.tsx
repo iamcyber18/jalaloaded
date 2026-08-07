@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import AdminSidebar from '@/components/AdminSidebar';
 import { useAdminSession } from '@/components/useAdminSession';
 import Image from 'next/image';
+import { Music, Pencil, Trash2, Star, Circle, Play, Download } from 'lucide-react';
 
 interface SongItem {
   _id: string;
@@ -25,6 +26,7 @@ interface SongItem {
   description?: string;
   plays: number;
   downloads: number;
+  status: 'Pending' | 'Published';
   createdAt: string;
 }
 
@@ -47,8 +49,8 @@ export default function AdminMusicPage() {
     );
   }
   const [songs, setSongs] = useState<SongItem[]>([]);
-  const [artistsList, setArtistsList] = useState<{_id:string;name:string}[]>([]);
-  const [albumsList, setAlbumsList] = useState<{_id:string; title:string; artist:string; type:'EP'|'Album'; year:number; genre?:string; description?:string; coverUrl?:string}[]>([]);
+  const [artistsList, setArtistsList] = useState<{ _id: string; name: string }[]>([]);
+  const [albumsList, setAlbumsList] = useState<{ _id: string; title: string; artist: string; type: 'EP' | 'Album'; year: number; genre?: string; description?: string; coverUrl?: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showAlbumModal, setShowAlbumModal] = useState(false);
@@ -67,7 +69,7 @@ export default function AdminMusicPage() {
     setForm({
       title: '', artist: '', genre: 'Afrobeats', year: new Date().getFullYear(),
       featured: false, mediaUrl: '', streamUrl: '', downloadUrl: '', coverUrl: '',
-      videoUrl: '', producer: '', lyrics: '', album: '', albumType: 'Single', description: ''
+      videoUrl: '', producer: '', lyrics: '', album: '', albumType: 'Single', description: '', status: 'Pending'
     });
     setCollabs([]);
     setEditingId(null);
@@ -89,11 +91,12 @@ export default function AdminMusicPage() {
     album: '',
     albumType: 'Single' as 'Single' | 'EP' | 'Album',
     description: '',
+    status: 'Pending' as 'Pending' | 'Published',
   });
   const [coverProgress, setCoverProgress] = useState(0);
   const [audioProgress, setAudioProgress] = useState(0);
   const [videoProgress, setVideoProgress] = useState(0);
-  const [collabs, setCollabs] = useState<{sep: string; name: string}[]>([]);
+  const [collabs, setCollabs] = useState<{ sep: string; name: string }[]>([]);
   const [albumForm, setAlbumForm] = useState({
     title: '',
     artist: '',
@@ -105,7 +108,7 @@ export default function AdminMusicPage() {
   });
 
   // Build the final artist string from primary + collabs
-  const buildArtistString = (primary: string, feats: {sep: string; name: string}[]) => {
+  const buildArtistString = (primary: string, feats: { sep: string; name: string }[]) => {
     let result = primary;
     feats.forEach(c => { if (c.name) result += ` ${c.sep} ${c.name}`; });
     return result;
@@ -128,7 +131,7 @@ export default function AdminMusicPage() {
 
   const fetchSongs = async () => {
     try {
-      const res = await fetch('/api/songs?limit=50');
+      const res = await fetch('/api/songs?limit=50&admin=true');
       const data = await res.json();
       setSongs(data);
     } catch { toast.error('Failed to load songs'); }
@@ -286,7 +289,7 @@ export default function AdminMusicPage() {
     try {
       const url = editingId ? `/api/songs/${editingId}` : '/api/songs';
       const method = editingId ? 'PUT' : 'POST';
-      
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -323,548 +326,604 @@ export default function AdminMusicPage() {
     } catch { toast.error('Failed to delete'); }
   };
 
-  const S = {
-    card: { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: isMobile ? '16px' : '20px', marginBottom: '16px' } as React.CSSProperties,
-    label: { fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' } as React.CSSProperties,
-    input: { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#fff', outline: 'none', fontFamily: '"DM Sans", sans-serif' } as React.CSSProperties,
-    select: { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#fff', outline: 'none', fontFamily: '"DM Sans", sans-serif' } as React.CSSProperties,
-    row: { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' } as React.CSSProperties,
-    uploadBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '10px', border: '2px dashed rgba(255,107,0,0.2)', background: 'rgba(255,107,0,0.03)', color: '#FF6B00', fontSize: '12px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' } as React.CSSProperties,
-    songRow: { display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '8px' : '12px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '8px', transition: 'background 0.2s' } as React.CSSProperties,
-  };
+  const handleToggleStatus = async (id: string, currentStatus: string) => {
+      try {
+        const newStatus = currentStatus === 'Published' ? 'Pending' : 'Published';
+        const res = await fetch(`/api/songs/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus }),
+        });
+        if (!res.ok) throw new Error('Failed');
+        toast.success(newStatus === 'Published' ? 'Song published! 🎶' : 'Song withdrawn to drafts');
+        setSongs(songs.map(s => s._id === id ? { ...s, status: newStatus } : s));
+      } catch { toast.error('Failed to change status'); }
+    };
 
-  return (
-    <div className="jl">
-      <AdminSidebar />
-      <div className="main">
-        <div className="topbar">
-          <div className="page-title">Music</div>
-          <div className="topbar-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
-            <button className="btn-publish" onClick={() => {
-              if (showForm) {
-                resetForm();
-                setShowForm(false);
-              } else {
-                resetForm();
-                setShowForm(true);
-              }
-            }}>
-              {showForm ? '✕ Close' : '+ Upload Song'}
-            </button>
-            <button className="btn-publish" onClick={() => setShowAlbumModal(true)}>
-              + Create Album
-            </button>
-          </div>
-        </div>
+    const S = {
+      card: { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: isMobile ? '16px' : '20px', marginBottom: '16px' } as React.CSSProperties,
+      label: { fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.5)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' } as React.CSSProperties,
+      input: { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#fff', outline: 'none', fontFamily: '"DM Sans", sans-serif' } as React.CSSProperties,
+      select: { width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#fff', outline: 'none', fontFamily: '"DM Sans", sans-serif' } as React.CSSProperties,
+      row: { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' } as React.CSSProperties,
+      uploadBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '10px', border: '2px dashed rgba(255,107,0,0.2)', background: 'rgba(255,107,0,0.03)', color: '#FF6B00', fontSize: '12px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' } as React.CSSProperties,
+      songRow: { display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '8px' : '12px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '8px', transition: 'background 0.2s' } as React.CSSProperties,
+    };
 
-        {showAlbumModal && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.78)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200, padding: '20px' }}>
-            <div style={{ width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', background: 'rgba(12,12,12,0.98)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '18px', padding: isMobile ? '18px' : '24px', boxShadow: '0 20px 60px rgba(0,0,0,0.45)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>Create Album</div>
-                <button onClick={() => setShowAlbumModal(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', fontSize: '18px' }}>✕</button>
-              </div>
-
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', marginBottom: '14px' }}>Use this when an artist is releasing a full project or EP. Single uploads stay simple by default.</div>
-
-              <div style={S.row}>
-                <div>
-                  <div style={S.label}>Album Title *</div>
-                  <input style={S.input} value={albumForm.title} onChange={e => setAlbumForm({ ...albumForm, title: e.target.value })} placeholder="e.g. Loaded Vibes" />
-                </div>
-                <div>
-                  <div style={S.label}>Artist *</div>
-                  <select style={S.select} value={albumForm.artist} onChange={e => setAlbumForm({ ...albumForm, artist: e.target.value })}>
-                    <option value="" style={{ background: '#111' }}>Select Artist</option>
-                    {artistsList.map(a => <option key={a._id} value={a.name} style={{ background: '#111' }}>{a.name}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div style={S.row}>
-                <div>
-                  <div style={S.label}>Album Type</div>
-                  <select style={S.select} value={albumForm.type} onChange={e => setAlbumForm({ ...albumForm, type: e.target.value as 'EP' | 'Album' })}>
-                    <option value="Album" style={{ background: '#111' }}>Album</option>
-                    <option value="EP" style={{ background: '#111' }}>EP</option>
-                  </select>
-                </div>
-                <div>
-                  <div style={S.label}>Genre</div>
-                  <select style={S.select} value={albumForm.genre} onChange={e => setAlbumForm({ ...albumForm, genre: e.target.value })}>
-                    {genres.map(g => <option key={g} value={g} style={{ background: '#111' }}>{g}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <div style={S.label}>Year</div>
-                <input style={S.input} type="number" value={albumForm.year} onChange={e => setAlbumForm({ ...albumForm, year: parseInt(e.target.value) || new Date().getFullYear() })} />
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <div style={S.label}>Album Cover</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div
-                    onClick={() => {
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = 'image/*';
-                      input.onchange = async (event) => {
-                        const file = (event.target as HTMLInputElement).files?.[0];
-                        if (!file) return;
-                        setCreatingAlbum(true);
-                        try {
-                          const { uploadAdminAsset } = await import('@/lib/adminUpload');
-                          const data = await uploadAdminAsset(file, 'image', () => {});
-                          setAlbumForm(prev => ({ ...prev, coverUrl: data.url }));
-                          toast.success('Album cover uploaded!');
-                        } catch {
-                          toast.error('Album cover upload failed');
-                        }
-                        setCreatingAlbum(false);
-                      };
-                      input.click();
-                    }}
-                    style={{
-                      width: '92px', height: '92px', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer',
-                      background: albumForm.coverUrl ? `url(${albumForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.15), rgba(255,107,0,0.05))',
-                      border: '2px dashed rgba(255,107,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}
-                  >
-                    {!albumForm.coverUrl && <span style={{ fontSize: '11px', color: '#FF6B00', textAlign: 'center' }}>+ Cover</span>}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)' }}>
-                    {albumForm.coverUrl ? '✅ Cover ready for this album' : 'Upload a cover image for the album.'}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <div style={S.label}>Description</div>
-                <textarea style={{ ...S.input, minHeight: '70px', resize: 'vertical' }} value={albumForm.description} onChange={e => setAlbumForm({ ...albumForm, description: e.target.value })} placeholder="A short note about the album..." />
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-                <button onClick={() => setShowAlbumModal(false)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                  Cancel
-                </button>
-                <button onClick={handleCreateAlbum} disabled={creatingAlbum} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: creatingAlbum ? 'rgba(255,107,0,0.3)' : 'linear-gradient(135deg, #FF6B00, #ff8533)', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: creatingAlbum ? 'default' : 'pointer' }}>
-                  {creatingAlbum ? 'Creating album...' : 'Create Album'}
-                </button>
-              </div>
+    return (
+      <div className="jl">
+        <AdminSidebar />
+        <div className="main">
+          <div className="topbar">
+            <div className="page-title">Music</div>
+            <div className="topbar-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
+              <button className="btn-publish" onClick={() => {
+                if (showForm) {
+                  resetForm();
+                  setShowForm(false);
+                } else {
+                  resetForm();
+                  setShowForm(true);
+                }
+              }}>
+                {showForm ? '✕ Close' : '+ Upload Song'}
+              </button>
+              <button className="btn-publish" onClick={() => setShowAlbumModal(true)}>
+                + Create Album
+              </button>
             </div>
           </div>
-        )}
 
-        <div style={{ padding: isMobile ? '0 16px 32px' : '0 24px 40px', maxWidth: '900px', margin: '0 auto' }}>
-          {/* UPLOAD FORM */}
-          {showForm && (
-            <div style={S.card}>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '16px' }}>
-                {editingId ? '✏️ Edit Song' : '🎵 Upload New Song'}
-              </div>
-
-              {/* Cover Image */}
-              <div style={{ marginBottom: '16px' }}>
-                <div style={S.label}>Cover Art</div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div
-                    onClick={() => !uploadingCover && coverInputRef.current?.click()}
-                    style={{
-                      width: '100px', height: '100px', borderRadius: '12px', overflow: 'hidden', cursor: uploadingCover ? 'default' : 'pointer',
-                      background: form.coverUrl ? `url(${form.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.15), rgba(255,107,0,0.05))',
-                      border: '2px dashed rgba(255,107,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      position: 'relative'
-                    }}
-                  >
-                    {uploadingCover && (
-                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#FF6B00' }}>{coverProgress}%</div>
-                        <div style={{ width: '60px', height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                          <div style={{ width: `${coverProgress}%`, height: '100%', background: '#FF6B00', borderRadius: '2px', transition: 'width 0.3s' }} />
-                        </div>
-                      </div>
-                    )}
-                    {!form.coverUrl && !uploadingCover && (
-                      <div style={{ textAlign: 'center', color: '#FF6B00', fontSize: '10px' }}>+ Cover</div>
-                    )}
-                  </div>
-                  <input ref={coverInputRef} type="file" accept="image/*" hidden onChange={handleCoverUpload} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
-                      {uploadingCover ? `Uploading cover... ${coverProgress}%` : form.coverUrl ? '✅ Cover uploaded — click image to replace' : 'Click to upload cover art. JPG/PNG recommended.'}
-                    </div>
-                  </div>
-                  {form.coverUrl && !uploadingCover && (
-                    <button onClick={() => setForm({ ...form, coverUrl: '' })} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
-                  )}
+          {showAlbumModal && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.78)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200, padding: '20px' }}>
+              <div style={{ width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', background: 'rgba(12,12,12,0.98)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '18px', padding: isMobile ? '18px' : '24px', boxShadow: '0 20px 60px rgba(0,0,0,0.45)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>Create Album</div>
+                  <button onClick={() => setShowAlbumModal(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', fontSize: '18px' }}>✕</button>
                 </div>
-              </div>
 
-              <div style={{ marginBottom: '14px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
-                Upload a single track by default. If this song belongs to an album, choose it below or create a new album from the button above.
-              </div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', marginBottom: '14px' }}>Use this when an artist is releasing a full project or EP. Single uploads stay simple by default.</div>
 
-              {/* Title & Artist */}
-              <div style={S.row}>
-                <div>
-                  <div style={S.label}>Song Title *</div>
-                  <input style={S.input} value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Loaded Vibes" />
+                <div style={S.row}>
+                  <div>
+                    <div style={S.label}>Album Title *</div>
+                    <input style={S.input} value={albumForm.title} onChange={e => setAlbumForm({ ...albumForm, title: e.target.value })} placeholder="e.g. Loaded Vibes" />
+                  </div>
+                  <div>
+                    <div style={S.label}>Artist *</div>
+                    <select style={S.select} value={albumForm.artist} onChange={e => setAlbumForm({ ...albumForm, artist: e.target.value })}>
+                      <option value="" style={{ background: '#111' }}>Select Artist</option>
+                      {artistsList.map(a => <option key={a._id} value={a.name} style={{ background: '#111' }}>{a.name}</option>)}
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <div style={S.label}>Artist *</div>
-                  <select style={S.select} value={form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || form.artist} onChange={e => {
-                    const newArtist = buildArtistString(e.target.value, collabs);
-                    setForm({ ...form, artist: newArtist });
-                  }}>
-                    <option value="" style={{ background: '#111' }}>Select Artist</option>
-                    {artistsList.map(a => <option key={a._id} value={a.name} style={{ background: '#111' }}>{a.name}</option>)}
-                  </select>
-                  
-                  {/* Collaboration rows */}
-                  <div style={{ marginTop: '8px' }}>
-                    {collabs.map((c, idx) => (
-                      <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
-                        <select 
-                          style={{ ...S.select, width: '70px', flex: 'none' }} 
-                          value={c.sep}
-                          onChange={e => {
-                            const updated = [...collabs];
-                            updated[idx] = { ...updated[idx], sep: e.target.value };
-                            setCollabs(updated);
-                            const primary = form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || '';
-                            setForm(f => ({ ...f, artist: buildArtistString(primary, updated) }));
-                          }}
-                        >
-                          <option value="ft." style={{ background: '#111' }}>ft.</option>
-                          <option value="feat." style={{ background: '#111' }}>feat.</option>
-                          <option value="&" style={{ background: '#111' }}>&</option>
-                          <option value="x" style={{ background: '#111' }}>x</option>
-                        </select>
-                        <select 
-                          style={{ ...S.select, flex: 1 }} 
-                          value={c.name}
-                          onChange={e => {
-                            const updated = [...collabs];
-                            updated[idx] = { ...updated[idx], name: e.target.value };
-                            setCollabs(updated);
-                            const primary = form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || '';
-                            setForm(f => ({ ...f, artist: buildArtistString(primary, updated) }));
-                          }}
-                        >
-                          <option value="" style={{ background: '#111' }}>Select Artist</option>
-                          {artistsList.map(a => <option key={a._id} value={a.name} style={{ background: '#111' }}>{a.name}</option>)}
-                        </select>
-                        <button 
-                          onClick={() => {
-                            const updated = collabs.filter((_, i) => i !== idx);
-                            setCollabs(updated);
-                            const primary = form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || '';
-                            setForm(f => ({ ...f, artist: buildArtistString(primary, updated) }));
-                          }}
-                          style={{ background: 'none', border: 'none', color: 'rgba(255,60,60,0.6)', cursor: 'pointer', fontSize: '16px', padding: '4px' }}
-                        >✕</button>
-                      </div>
-                    ))}
-                    
-                    <button 
-                      type="button"
+
+                <div style={S.row}>
+                  <div>
+                    <div style={S.label}>Album Type</div>
+                    <select style={S.select} value={albumForm.type} onChange={e => setAlbumForm({ ...albumForm, type: e.target.value as 'EP' | 'Album' })}>
+                      <option value="Album" style={{ background: '#111' }}>Album</option>
+                      <option value="EP" style={{ background: '#111' }}>EP</option>
+                    </select>
+                  </div>
+                  <div>
+                    <div style={S.label}>Genre</div>
+                    <select style={S.select} value={albumForm.genre} onChange={e => setAlbumForm({ ...albumForm, genre: e.target.value })}>
+                      {genres.map(g => <option key={g} value={g} style={{ background: '#111' }}>{g}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={S.label}>Year</div>
+                  <input style={S.input} type="number" value={albumForm.year} onChange={e => setAlbumForm({ ...albumForm, year: parseInt(e.target.value) || new Date().getFullYear() })} />
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={S.label}>Album Cover</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div
                       onClick={() => {
-                        setCollabs(prev => [...prev, { sep: 'ft.', name: '' }]);
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = async (event) => {
+                          const file = (event.target as HTMLInputElement).files?.[0];
+                          if (!file) return;
+                          setCreatingAlbum(true);
+                          try {
+                            const { uploadAdminAsset } = await import('@/lib/adminUpload');
+                            const data = await uploadAdminAsset(file, 'image', () => { });
+                            setAlbumForm(prev => ({ ...prev, coverUrl: data.url }));
+                            toast.success('Album cover uploaded!');
+                          } catch {
+                            toast.error('Album cover upload failed');
+                          }
+                          setCreatingAlbum(false);
+                        };
+                        input.click();
                       }}
-                      disabled={!form.artist}
-                      style={{ 
-                        background: 'rgba(255,107,0,0.06)', border: '1px dashed rgba(255,107,0,0.2)', borderRadius: '8px', 
-                        padding: '6px 14px', fontSize: '11px', color: '#FF6B00', cursor: form.artist ? 'pointer' : 'not-allowed',
-                        fontWeight: 600, fontFamily: '"DM Sans", sans-serif', opacity: form.artist ? 1 : 0.4,
-                        display: 'flex', alignItems: 'center', gap: '6px'
+                      style={{
+                        width: '92px', height: '92px', borderRadius: '12px', overflow: 'hidden', cursor: 'pointer',
+                        background: albumForm.coverUrl ? `url(${albumForm.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.15), rgba(255,107,0,0.05))',
+                        border: '2px dashed rgba(255,107,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     >
-                      + Add Collaboration
-                    </button>
-                  </div>
-                  
-                  {form.artist && (
-                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '6px', padding: '4px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
-                      Final: <span style={{ color: '#FF6B00', fontWeight: 600 }}>{form.artist}</span>
+                      {!albumForm.coverUrl && <span style={{ fontSize: '11px', color: '#FF6B00', textAlign: 'center' }}>+ Cover</span>}
                     </div>
-                  )}
-                  <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>Manage artists from the <a href="/admin/artists" style={{ color: '#FF6B00' }}>Artists page</a></div>
-                </div>
-              </div>
-
-              {/* Producer & Album/EP */}
-              <div style={S.row}>
-                <div>
-                  <div style={S.label}>Producer Name (optional)</div>
-                  <input style={S.input} value={form.producer} onChange={e => setForm({ ...form, producer: e.target.value })} placeholder="e.g. Produced by Masterkraft" />
-                </div>
-                <div>
-                  <div style={S.label}>Assign to Album</div>
-                  <select
-                    style={S.select}
-                    value={form.album}
-                    onChange={e => {
-                      const selectedAlbum = albumsList.find(album => album.title === e.target.value);
-                      setForm({
-                        ...form,
-                        album: e.target.value,
-                        albumType: selectedAlbum ? (selectedAlbum.type as any) : 'Single',
-                      });
-                    }}
-                  >
-                    <option value="" style={{ background: '#111' }}>No album / Single</option>
-                    {albumsList.map(album => (
-                      <option key={album._id} value={album.title} style={{ background: '#111' }}>
-                        {album.title} ({album.type})
-                      </option>
-                    ))}
-                  </select>
-                  <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>Pick an existing album from the list above, or create one first.</div>
-                </div>
-              </div>
-
-              {/* Genre & Year */}
-              <div style={S.row}>
-                <div>
-                  <div style={S.label}>Genre</div>
-                  <select style={S.select} value={form.genre} onChange={e => setForm({ ...form, genre: e.target.value })}>
-                    {genres.map(g => <option key={g} value={g} style={{ background: '#111' }}>{g}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <div style={S.label}>Year</div>
-                  <input style={S.input} type="number" value={form.year} onChange={e => setForm({ ...form, year: parseInt(e.target.value) || new Date().getFullYear() })} />
-                </div>
-              </div>
-
-              {/* Audio Upload */}
-              <div style={{ marginBottom: '12px' }}>
-                <div style={S.label}>Audio File *</div>
-                {form.mediaUrl ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(29,190,115,0.08)', border: '1px solid rgba(29,190,115,0.15)' }}>
-                    <span style={{ fontSize: '16px' }}>✅</span>
-                    <span style={{ fontSize: '11px', color: '#1DBE73', fontWeight: 600, flex: 1 }}>Audio uploaded successfully</span>
-                    <button onClick={() => setForm({ ...form, mediaUrl: '', downloadUrl: '' })} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
-                  </div>
-                ) : uploadingAudio ? (
-                  <div style={{ padding: '14px 16px', borderRadius: '10px', border: '1px solid rgba(255,107,0,0.15)', background: 'rgba(255,107,0,0.03)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 600 }}>⏳ Uploading audio...</span>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#FF6B00' }}>{audioProgress}%</span>
-                    </div>
-                    <div style={{ width: '100%', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-                      <div style={{ width: `${audioProgress}%`, height: '100%', background: 'linear-gradient(90deg, #FF6B00, #ff8533)', borderRadius: '2px', transition: 'width 0.3s' }} />
+                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)' }}>
+                      {albumForm.coverUrl ? '✅ Cover ready for this album' : 'Upload a cover image for the album.'}
                     </div>
                   </div>
-                ) : (
-                  <div onClick={() => audioInputRef.current?.click()} style={S.uploadBtn}>
-                    🎧 Click to upload audio file (MP3, WAV, OGG, MPEG)
-                  </div>
-                )}
-                <input ref={audioInputRef} type="file" accept="audio/*,.mpeg,video/mpeg" hidden onChange={handleAudioUpload} />
-              </div>
-
-              {/* Stream URL */}
-              <div style={{ marginBottom: '12px' }}>
-                <div style={S.label}>Stream URL (Spotify, Apple Music, etc.)</div>
-                <input style={S.input} value={form.streamUrl} onChange={e => setForm({ ...form, streamUrl: e.target.value })} placeholder="https://open.spotify.com/track/..." />
-              </div>
-
-              {/* Download URL (auto-filled or manual) */}
-              <div style={{ marginBottom: '12px' }}>
-                <div style={S.label}>Download URL (auto-filled from upload)</div>
-                <input style={S.input} value={form.downloadUrl} onChange={e => setForm({ ...form, downloadUrl: e.target.value })} placeholder="Auto-filled when you upload audio, or paste a link" />
-              </div>
-
-              {/* Official Music Video */}
-              <div style={{ marginBottom: '16px' }}>
-                <div style={S.label}>Official Music Video (optional)</div>
-                
-                {form.videoUrl ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(29,190,115,0.08)', border: '1px solid rgba(29,190,115,0.15)', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '16px' }}>✅</span>
-                    <span style={{ fontSize: '11px', color: '#1DBE73', fontWeight: 600, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {form.videoUrl.includes('youtube') || form.videoUrl.includes('youtu.be') ? 'YouTube Video Linked' : 'Video uploaded'}
-                    </span>
-                    <button onClick={() => setForm({ ...form, videoUrl: '' })} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
-                  </div>
-                ) : uploadingVideo ? (
-                  <div style={{ padding: '14px 16px', borderRadius: '10px', border: '1px solid rgba(255,107,0,0.15)', background: 'rgba(255,107,0,0.03)', marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 600 }}>⏳ Uploading video...</span>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#FF6B00' }}>{videoProgress}%</span>
-                    </div>
-                    <div style={{ width: '100%', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-                      <div style={{ width: `${videoProgress}%`, height: '100%', background: 'linear-gradient(90deg, #FF6B00, #ff8533)', borderRadius: '2px', transition: 'width 0.3s' }} />
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr auto', gap: '8px', marginBottom: '8px' }}>
-                    <input style={S.input} value={form.videoUrl} onChange={e => setForm({ ...form, videoUrl: e.target.value })} placeholder="Paste YouTube link here..." />
-                    <div onClick={() => videoInputRef.current?.click()} style={{ padding: '10px 16px', borderRadius: '8px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.3)', color: '#FF6B00', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                      OR UPLOAD MP4/MPEG
-                    </div>
-                  </div>
-                )}
-                <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,.mpeg,video/mpeg" hidden onChange={handleVideoUpload} />
-              </div>
-
-              {/* Song Lyrics Field */}
-              <div style={{ marginBottom: '16px' }}>
-                <div style={S.label}>Song Lyrics (optional)</div>
-                <textarea 
-                  style={{ ...S.input, minHeight: '120px', resize: 'vertical', lineHeight: 1.6 }} 
-                  value={form.lyrics} 
-                  onChange={e => setForm({ ...form, lyrics: e.target.value })} 
-                  placeholder="Paste the song lyrics here... Line breaks will be preserved." 
-                />
-              </div>
-
-              {/* Description */}
-              <div style={{ marginBottom: '16px' }}>
-                <div style={S.label}>Description (optional)</div>
-                <textarea style={{ ...S.input, minHeight: '60px', resize: 'vertical' }} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="A short note about the track..." />
-              </div>
-
-              {/* Featured Toggle */}
-              <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div
-                  onClick={() => setForm({ ...form, featured: !form.featured })}
-                  style={{
-                    width: '40px', height: '22px', borderRadius: '11px', cursor: 'pointer',
-                    background: form.featured ? '#FF6B00' : 'rgba(255,255,255,0.1)',
-                    position: 'relative', transition: 'background 0.2s'
-                  }}
-                >
-                  <div style={{
-                    width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
-                    position: 'absolute', top: '2px', transition: 'left 0.2s',
-                    left: form.featured ? '20px' : '2px'
-                  }} />
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: form.featured ? '#FF6B00' : 'rgba(255,255,255,0.5)' }}>
-                    ⭐ Featured Song
-                  </div>
-                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Shows in the featured carousel on the music page</div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={S.label}>Description</div>
+                  <textarea style={{ ...S.input, minHeight: '70px', resize: 'vertical' }} value={albumForm.description} onChange={e => setAlbumForm({ ...albumForm, description: e.target.value })} placeholder="A short note about the album..." />
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                  <button onClick={() => setShowAlbumModal(false)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    Cancel
+                  </button>
+                  <button onClick={handleCreateAlbum} disabled={creatingAlbum} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: creatingAlbum ? 'rgba(255,107,0,0.3)' : 'linear-gradient(135deg, #FF6B00, #ff8533)', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: creatingAlbum ? 'default' : 'pointer' }}>
+                    {creatingAlbum ? 'Creating album...' : 'Create Album'}
+                  </button>
                 </div>
               </div>
-
-              {/* Submit */}
-              <button
-                onClick={handleSubmit}
-                disabled={saving}
-                style={{
-                  width: '100%', padding: '12px', borderRadius: '10px', border: 'none',
-                  background: saving ? 'rgba(255,107,0,0.3)' : 'linear-gradient(135deg, #FF6B00, #ff8533)',
-                  color: '#fff', fontSize: '13px', fontWeight: 700, cursor: saving ? 'default' : 'pointer',
-                  fontFamily: '"DM Sans", sans-serif'
-                }}
-              >
-                {saving ? 'Publishing...' : '🎶 Publish Song'}
-              </button>
             </div>
           )}
 
-          <div style={{ marginTop: '8px' }}>
-            <div style={{ ...S.card, marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>Albums ({albumsList.length})</div>
-                <button onClick={() => setShowAlbumModal(true)} style={{ background: 'rgba(255,107,0,0.1)', border: 'none', color: '#FF6B00', cursor: 'pointer', fontSize: '12px', padding: '6px 10px', borderRadius: '8px', fontWeight: 700 }}>
-                  + New Album
-                </button>
-              </div>
+          <div style={{ padding: isMobile ? '0 16px 32px' : '0 24px 40px', maxWidth: '900px', margin: '0 auto' }}>
+            {/* UPLOAD FORM */}
+            {showForm && (
+              <div style={S.card}>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {editingId ? <><Pencil size={16} style={{ color: '#FF6B00' }} /> Edit Song</> : <><Music size={16} style={{ color: '#FF6B00' }} /> Upload New Song</>}
+                </div>
 
-              {albumsList.length === 0 ? (
-                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>No albums created yet.</div>
-              ) : (
-                <div style={{ display: 'grid', gap: '10px' }}>
-                  {albumsList.map(album => (
-                    <div key={album._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{album.title}</div>
-                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }}>{album.artist} • {album.type} • {album.year}</div>
+                {/* Cover Image */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={S.label}>Cover Art</div>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div
+                      onClick={() => !uploadingCover && coverInputRef.current?.click()}
+                      style={{
+                        width: '100px', height: '100px', borderRadius: '12px', overflow: 'hidden', cursor: uploadingCover ? 'default' : 'pointer',
+                        background: form.coverUrl ? `url(${form.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.15), rgba(255,107,0,0.05))',
+                        border: '2px dashed rgba(255,107,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        position: 'relative'
+                      }}
+                    >
+                      {uploadingCover && (
+                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                          <div style={{ fontSize: '16px', fontWeight: 800, color: '#FF6B00' }}>{coverProgress}%</div>
+                          <div style={{ width: '60px', height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                            <div style={{ width: `${coverProgress}%`, height: '100%', background: '#FF6B00', borderRadius: '2px', transition: 'width 0.3s' }} />
+                          </div>
+                        </div>
+                      )}
+                      {!form.coverUrl && !uploadingCover && (
+                        <div style={{ textAlign: 'center', color: '#FF6B00', fontSize: '10px' }}>+ Cover</div>
+                      )}
+                    </div>
+                    <input ref={coverInputRef} type="file" accept="image/*" hidden onChange={handleCoverUpload} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+                        {uploadingCover ? `Uploading cover... ${coverProgress}%` : form.coverUrl ? '✅ Cover uploaded — click image to replace' : 'Click to upload cover art. JPG/PNG recommended.'}
                       </div>
-                      <button onClick={() => handleDeleteAlbum(album._id, album.title)} style={{ background: 'rgba(255,60,60,0.1)', border: '1px solid rgba(255,60,60,0.18)', color: '#ff6b6b', cursor: 'pointer', fontSize: '12px', padding: '6px 10px', borderRadius: '8px', fontWeight: 700 }}>
-                        Delete
+                    </div>
+                    {form.coverUrl && !uploadingCover && (
+                      <button onClick={() => setForm({ ...form, coverUrl: '' })} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '14px', padding: '12px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
+                  Upload a single track by default. If this song belongs to an album, choose it below or create a new album from the button above.
+                </div>
+
+                {/* Title & Artist */}
+                <div style={S.row}>
+                  <div>
+                    <div style={S.label}>Song Title *</div>
+                    <input style={S.input} value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Loaded Vibes" />
+                  </div>
+                  <div>
+                    <div style={S.label}>Artist *</div>
+                    <select style={S.select} value={form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || form.artist} onChange={e => {
+                      const newArtist = buildArtistString(e.target.value, collabs);
+                      setForm({ ...form, artist: newArtist });
+                    }}>
+                      <option value="" style={{ background: '#111' }}>Select Artist</option>
+                      {artistsList.map(a => <option key={a._id} value={a.name} style={{ background: '#111' }}>{a.name}</option>)}
+                    </select>
+
+                    {/* Collaboration rows */}
+                    <div style={{ marginTop: '8px' }}>
+                      {collabs.map((c, idx) => (
+                        <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
+                          <select
+                            style={{ ...S.select, width: '70px', flex: 'none' }}
+                            value={c.sep}
+                            onChange={e => {
+                              const updated = [...collabs];
+                              updated[idx] = { ...updated[idx], sep: e.target.value };
+                              setCollabs(updated);
+                              const primary = form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || '';
+                              setForm(f => ({ ...f, artist: buildArtistString(primary, updated) }));
+                            }}
+                          >
+                            <option value="ft." style={{ background: '#111' }}>ft.</option>
+                            <option value="feat." style={{ background: '#111' }}>feat.</option>
+                            <option value="&" style={{ background: '#111' }}>&</option>
+                            <option value="x" style={{ background: '#111' }}>x</option>
+                          </select>
+                          <select
+                            style={{ ...S.select, flex: 1 }}
+                            value={c.name}
+                            onChange={e => {
+                              const updated = [...collabs];
+                              updated[idx] = { ...updated[idx], name: e.target.value };
+                              setCollabs(updated);
+                              const primary = form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || '';
+                              setForm(f => ({ ...f, artist: buildArtistString(primary, updated) }));
+                            }}
+                          >
+                            <option value="" style={{ background: '#111' }}>Select Artist</option>
+                            {artistsList.map(a => <option key={a._id} value={a.name} style={{ background: '#111' }}>{a.name}</option>)}
+                          </select>
+                          <button
+                            onClick={() => {
+                              const updated = collabs.filter((_, i) => i !== idx);
+                              setCollabs(updated);
+                              const primary = form.artist.split(/\s+(?:ft\.?|feat\.?|[x&])\s+/i)[0] || '';
+                              setForm(f => ({ ...f, artist: buildArtistString(primary, updated) }));
+                            }}
+                            style={{ background: 'none', border: 'none', color: 'rgba(255,60,60,0.6)', cursor: 'pointer', fontSize: '16px', padding: '4px' }}
+                          >✕</button>
+                        </div>
+                      ))}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCollabs(prev => [...prev, { sep: 'ft.', name: '' }]);
+                        }}
+                        disabled={!form.artist}
+                        style={{
+                          background: 'rgba(255,107,0,0.06)', border: '1px dashed rgba(255,107,0,0.2)', borderRadius: '8px',
+                          padding: '6px 14px', fontSize: '11px', color: '#FF6B00', cursor: form.artist ? 'pointer' : 'not-allowed',
+                          fontWeight: 600, fontFamily: '"DM Sans", sans-serif', opacity: form.artist ? 1 : 0.4,
+                          display: 'flex', alignItems: 'center', gap: '6px'
+                        }}
+                      >
+                        + Add Collaboration
                       </button>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>All Songs ({songs.length})</div>
-            </div>
-
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>Loading songs...</div>
-            ) : songs.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>No songs uploaded yet. Click &quot;Upload Song&quot; to get started!</div>
-            ) : (
-              songs.map((song, i) => (
-                <div key={song._id} style={S.songRow}>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', fontWeight: 700, width: '24px', textAlign: 'center' }}>{String(i + 1).padStart(2, '0')}</div>
-                  <div style={{
-                    width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0,
-                    background: song.coverUrl ? `url(${song.coverUrl}) center/cover` : 'linear-gradient(135deg, #FF6B00, #c84b00)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}>
-                    {!song.coverUrl && <span style={{ fontSize: '16px' }}>🎵</span>}
+                    {form.artist && (
+                      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '6px', padding: '4px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
+                        Final: <span style={{ color: '#FF6B00', fontWeight: 600 }}>{form.artist}</span>
+                      </div>
+                    )}
+                    <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>Manage artists from the <a href="/admin/artists" style={{ color: '#FF6B00' }}>Artists page</a></div>
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
-                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>
-                      {song.artist} • {song.genre} {song.producer ? `• Prod. ${song.producer}` : ''} {song.album ? `• ${song.albumType || 'Album'}: ${song.album}` : ''}
+                </div>
+
+                {/* Producer & Album/EP */}
+                <div style={S.row}>
+                  <div>
+                    <div style={S.label}>Producer Name (optional)</div>
+                    <input style={S.input} value={form.producer} onChange={e => setForm({ ...form, producer: e.target.value })} placeholder="e.g. Produced by Masterkraft" />
+                  </div>
+                  <div>
+                    <div style={S.label}>Assign to Album</div>
+                    <select
+                      style={S.select}
+                      value={form.album}
+                      onChange={e => {
+                        const selectedAlbum = albumsList.find(album => album.title === e.target.value);
+                        setForm({
+                          ...form,
+                          album: e.target.value,
+                          albumType: selectedAlbum ? (selectedAlbum.type as any) : 'Single',
+                        });
+                      }}
+                    >
+                      <option value="" style={{ background: '#111' }}>No album / Single</option>
+                      {albumsList.map(album => (
+                        <option key={album._id} value={album.title} style={{ background: '#111' }}>
+                          {album.title} ({album.type})
+                        </option>
+                      ))}
+                    </select>
+                    <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>Pick an existing album from the list above, or create one first.</div>
+                  </div>
+                </div>
+
+                {/* Genre & Year */}
+                <div style={S.row}>
+                  <div>
+                    <div style={S.label}>Genre</div>
+                    <select style={S.select} value={form.genre} onChange={e => setForm({ ...form, genre: e.target.value })}>
+                      {genres.map(g => <option key={g} value={g} style={{ background: '#111' }}>{g}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <div style={S.label}>Year</div>
+                    <input style={S.input} type="number" value={form.year} onChange={e => setForm({ ...form, year: parseInt(e.target.value) || new Date().getFullYear() })} />
+                  </div>
+                </div>
+
+                {/* Audio Upload */}
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={S.label}>Audio File *</div>
+                  {form.mediaUrl ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(29,190,115,0.08)', border: '1px solid rgba(29,190,115,0.15)' }}>
+                      <span style={{ fontSize: '16px' }}>✅</span>
+                      <span style={{ fontSize: '11px', color: '#1DBE73', fontWeight: 600, flex: 1 }}>Audio uploaded successfully</span>
+                      <button onClick={() => setForm({ ...form, mediaUrl: '', downloadUrl: '' })} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                    </div>
+                  ) : uploadingAudio ? (
+                    <div style={{ padding: '14px 16px', borderRadius: '10px', border: '1px solid rgba(255,107,0,0.15)', background: 'rgba(255,107,0,0.03)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 600 }}>⏳ Uploading audio...</span>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#FF6B00' }}>{audioProgress}%</span>
+                      </div>
+                      <div style={{ width: '100%', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                        <div style={{ width: `${audioProgress}%`, height: '100%', background: 'linear-gradient(90deg, #FF6B00, #ff8533)', borderRadius: '2px', transition: 'width 0.3s' }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div onClick={() => audioInputRef.current?.click()} style={S.uploadBtn}>
+                      🎧 Click to upload audio file (MP3, WAV, OGG, MPEG)
+                    </div>
+                  )}
+                  <input ref={audioInputRef} type="file" accept="audio/*,.mpeg,video/mpeg" hidden onChange={handleAudioUpload} />
+                </div>
+
+                {/* Stream URL */}
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={S.label}>Stream URL (Spotify, Apple Music, etc.)</div>
+                  <input style={S.input} value={form.streamUrl} onChange={e => setForm({ ...form, streamUrl: e.target.value })} placeholder="https://open.spotify.com/track/..." />
+                </div>
+
+                {/* Download URL (auto-filled or manual) */}
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={S.label}>Download URL (auto-filled from upload)</div>
+                  <input style={S.input} value={form.downloadUrl} onChange={e => setForm({ ...form, downloadUrl: e.target.value })} placeholder="Auto-filled when you upload audio, or paste a link" />
+                </div>
+
+                {/* Official Music Video */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={S.label}>Official Music Video (optional)</div>
+
+                  {form.videoUrl ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(29,190,115,0.08)', border: '1px solid rgba(29,190,115,0.15)', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '16px' }}>✅</span>
+                      <span style={{ fontSize: '11px', color: '#1DBE73', fontWeight: 600, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {form.videoUrl.includes('youtube') || form.videoUrl.includes('youtu.be') ? 'YouTube Video Linked' : 'Video uploaded'}
+                      </span>
+                      <button onClick={() => setForm({ ...form, videoUrl: '' })} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                    </div>
+                  ) : uploadingVideo ? (
+                    <div style={{ padding: '14px 16px', borderRadius: '10px', border: '1px solid rgba(255,107,0,0.15)', background: 'rgba(255,107,0,0.03)', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '11px', color: '#FF6B00', fontWeight: 600 }}>⏳ Uploading video...</span>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#FF6B00' }}>{videoProgress}%</span>
+                      </div>
+                      <div style={{ width: '100%', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                        <div style={{ width: `${videoProgress}%`, height: '100%', background: 'linear-gradient(90deg, #FF6B00, #ff8533)', borderRadius: '2px', transition: 'width 0.3s' }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr auto', gap: '8px', marginBottom: '8px' }}>
+                      <input style={S.input} value={form.videoUrl} onChange={e => setForm({ ...form, videoUrl: e.target.value })} placeholder="Paste YouTube link here..." />
+                      <div onClick={() => videoInputRef.current?.click()} style={{ padding: '10px 16px', borderRadius: '8px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.3)', color: '#FF6B00', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                        OR UPLOAD MP4/MPEG
+                      </div>
+                    </div>
+                  )}
+                  <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,.mpeg,video/mpeg" hidden onChange={handleVideoUpload} />
+                </div>
+
+                {/* Song Lyrics Field */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={S.label}>Song Lyrics (optional)</div>
+                  <textarea
+                    style={{ ...S.input, minHeight: '120px', resize: 'vertical', lineHeight: 1.6 }}
+                    value={form.lyrics}
+                    onChange={e => setForm({ ...form, lyrics: e.target.value })}
+                    placeholder="Paste the song lyrics here... Line breaks will be preserved."
+                  />
+                </div>
+
+                {/* Description */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={S.label}>Description (optional)</div>
+                  <textarea style={{ ...S.input, minHeight: '60px', resize: 'vertical' }} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="A short note about the track..." />
+                </div>
+
+                {/* Featured Toggle */}
+                <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div
+                    onClick={() => setForm({ ...form, featured: !form.featured })}
+                    style={{
+                      width: '40px', height: '22px', borderRadius: '11px', cursor: 'pointer',
+                      background: form.featured ? '#FF6B00' : 'rgba(255,255,255,0.1)',
+                      position: 'relative', transition: 'background 0.2s'
+                    }}
+                  >
+                    <div style={{
+                      width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
+                      position: 'absolute', top: '2px', transition: 'left 0.2s',
+                      left: form.featured ? '20px' : '2px'
+                    }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: form.featured ? '#FF6B00' : 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Star size={12} fill={form.featured ? '#FF6B00' : 'none'} /> Featured Song
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Shows in the featured carousel on the music page</div>
+                  </div>
+                </div>
+
+                {/* Status Toggle */}
+                <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div
+                    onClick={() => setForm({ ...form, status: form.status === 'Published' ? 'Pending' : 'Published' })}
+                    style={{
+                      width: '40px', height: '22px', borderRadius: '11px', cursor: 'pointer',
+                      background: form.status === 'Published' ? '#1DBE73' : 'rgba(255,107,0,0.5)',
+                      position: 'relative', transition: 'background 0.2s'
+                    }}
+                  >
+                    <div style={{
+                      width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
+                      position: 'absolute', top: '2px', transition: 'left 0.2s',
+                      left: form.status === 'Published' ? '20px' : '2px'
+                    }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: form.status === 'Published' ? '#1DBE73' : '#FF6B00', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Circle size={6} fill={form.status === 'Published' ? '#1DBE73' : '#FF6B00'} /> {form.status === 'Published' ? 'Published (Visible to users)' : 'Pending (Draft / Hidden)'}
+                    </div>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>You can save as Pending and verify later before making it public.</div>
+                  </div>
+                </div>
+
+                {/* Submit */}
+                <button
+                  onClick={handleSubmit}
+                  disabled={saving}
+                  style={{
+                    width: '100%', padding: '12px', borderRadius: '10px', border: 'none',
+                    background: saving ? 'rgba(255,107,0,0.3)' : 'linear-gradient(135deg, #FF6B00, #ff8533)',
+                    color: '#fff', fontSize: '13px', fontWeight: 700, cursor: saving ? 'default' : 'pointer',
+                    fontFamily: '"DM Sans", sans-serif'
+                  }}
+                >
+                  {saving ? 'Saving...' : form.status === 'Published' ? '🎶 Publish Song' : '💾 Save as Draft'}
+                </button>
+              </div>
+            )}
+
+            <div style={{ marginTop: '8px' }}>
+              <div style={{ ...S.card, marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>Albums ({albumsList.length})</div>
+                  <button onClick={() => setShowAlbumModal(true)} style={{ background: 'rgba(255,107,0,0.1)', border: 'none', color: '#FF6B00', cursor: 'pointer', fontSize: '12px', padding: '6px 10px', borderRadius: '8px', fontWeight: 700 }}>
+                    + New Album
+                  </button>
+                </div>
+
+                {albumsList.length === 0 ? (
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>No albums created yet.</div>
+                ) : (
+                  <div style={{ display: 'grid', gap: '10px' }}>
+                    {albumsList.map(album => (
+                      <div key={album._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{album.title}</div>
+                          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }}>{album.artist} • {album.type} • {album.year}</div>
+                        </div>
+                        <button onClick={() => handleDeleteAlbum(album._id, album.title)} style={{ background: 'rgba(255,60,60,0.1)', border: '1px solid rgba(255,60,60,0.18)', color: '#ff6b6b', cursor: 'pointer', fontSize: '12px', padding: '6px 10px', borderRadius: '8px', fontWeight: 700 }}>
+                          Delete
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>All Songs ({songs.length})</div>
+              </div>
+
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>Loading songs...</div>
+              ) : songs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>No songs uploaded yet. Click &quot;Upload Song&quot; to get started!</div>
+              ) : (
+                songs.map((song, i) => (
+                  <div key={song._id} style={S.songRow}>
+                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', fontWeight: 700, width: '24px', textAlign: 'center' }}>{String(i + 1).padStart(2, '0')}</div>
+                    <div style={{
+                      width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0,
+                      background: song.coverUrl ? `url(${song.coverUrl}) center/cover` : 'linear-gradient(135deg, #FF6B00, #c84b00)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      {!song.coverUrl && <Music size={18} style={{ opacity: 0.5, color: '#fff' }} />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <div style={{
+                          fontSize: '9px', fontWeight: 800, padding: '3px 6px', borderRadius: '4px',
+                          background: song.status === 'Published' ? 'rgba(29,190,115,0.1)' : 'rgba(255,107,0,0.1)',
+                          color: song.status === 'Published' ? '#1DBE73' : '#FF6B00',
+                          border: `1px solid ${song.status === 'Published' ? 'rgba(29,190,115,0.3)' : 'rgba(255,107,0,0.3)'}`,
+                          display: 'flex', alignItems: 'center', gap: '3px'
+                        }}>
+                          <Circle size={6} fill={song.status === 'Published' ? '#1DBE73' : '#FF6B00'} /> {song.status === 'Published' ? 'PUBLISHED' : 'PENDING'}
+                        </div>
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>
+                          {song.artist} • {song.genre} {song.producer ? `• Prod. ${song.producer}` : ''} {song.album ? `• ${song.albumType || 'Album'}: ${song.album}` : ''}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}><Play size={10} fill="#6358FF" color="#6358FF" /> {song.plays || 0}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}><Download size={10} /> {song.downloads || 0}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <button
+                        onClick={() => handleToggleStatus(song._id, song.status || 'Pending')}
+                        style={{ padding: '6px 12px', borderRadius: '8px', border: `1px solid ${song.status === 'Published' ? 'rgba(255,107,0,0.3)' : 'rgba(29,190,115,0.3)'}`, background: song.status === 'Published' ? 'rgba(255,107,0,0.08)' : 'rgba(29,190,115,0.08)', color: song.status === 'Published' ? '#FF6B00' : '#1DBE73', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      >
+                        {song.status === 'Published' ? 'Withdraw' : 'Publish'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setForm({
+                            title: song.title,
+                            artist: song.artist,
+                            genre: song.genre as any,
+                            year: song.year,
+                            featured: song.featured || false,
+                            mediaUrl: song.mediaUrl,
+                            streamUrl: song.streamUrl || '',
+                            downloadUrl: song.downloadUrl || '',
+                            coverUrl: song.coverUrl || '',
+                            videoUrl: song.videoUrl || '',
+                            producer: song.producer || '',
+                            lyrics: song.lyrics || '',
+                            album: song.album || '',
+                            albumType: (song.albumType || 'Single') as any,
+                            description: song.description || '',
+                            status: song.status || 'Pending'
+                          });
+                          setEditingId(song._id);
+                          setShowForm(true);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+
+                        style={{ background: 'rgba(255,107,0,0.1)', border: 'none', color: '#FF6B00', cursor: 'pointer', fontSize: '14px', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}
+                        title="Edit song"
+                      ><Pencil size={13} /></button>
+                      <button
+                        onClick={() => handleDelete(song._id)}
+                        style={{ background: 'rgba(239,68,68,0.1)', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '14px', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}
+                        title="Delete song"
+                      ><Trash2 size={13} /></button>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
-                    <span>▶ {song.plays || 0}</span>
-                    <span>⬇ {song.downloads || 0}</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <button
-                      onClick={() => {
-                        setForm({
-                          title: song.title,
-                          artist: song.artist,
-                          genre: song.genre as any,
-                          year: song.year,
-                          featured: song.featured || false,
-                          mediaUrl: song.mediaUrl,
-                          streamUrl: song.streamUrl || '',
-                          downloadUrl: song.downloadUrl || '',
-                          coverUrl: song.coverUrl || '',
-                          videoUrl: song.videoUrl || '',
-                          producer: song.producer || '',
-                          lyrics: song.lyrics || '',
-                          album: song.album || '',
-                          albumType: (song.albumType || 'Single') as any,
-                          description: song.description || '',
-                        });
-                        setEditingId(song._id);
-                        setShowForm(true);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-
-                      style={{ background: 'rgba(255,107,0,0.1)', border: 'none', color: '#FF6B00', cursor: 'pointer', fontSize: '14px', padding: '4px', borderRadius: '4px' }}
-                      title="Edit song"
-                    >✏️</button>
-                    <button
-                      onClick={() => handleDelete(song._id)}
-                      style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: '14px', padding: '4px' }}
-                      title="Delete song"
-                    >🗑</button>
-                  </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

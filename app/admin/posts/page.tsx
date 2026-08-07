@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import AdminSidebar from '@/components/AdminSidebar';
@@ -9,10 +9,12 @@ import RichTextEditor from '@/components/RichTextEditor';
 import { useAdminSession } from '@/components/useAdminSession';
 import { IMediaItem } from '@/models/Post';
 import { formatNumber, timeAgo } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Newspaper, Eye, RefreshCw, Pencil, Trash2, Save, FileText, Camera, Settings, Star, Circle, Zap, Search, Heart, X, CheckCircle, Sparkles } from 'lucide-react';
 
 type PostStatusFilter = 'all' | 'published' | 'draft';
 type PostStatus = 'published' | 'draft';
-type PostAuthor = string;
 
 type AdminPost = {
   _id: string;
@@ -22,7 +24,7 @@ type AdminPost = {
   introduction?: string;
   mainContent?: string;
   conclusion?: string;
-  author: PostAuthor;
+  author: string;
   category: string;
   tags: string[];
   media: IMediaItem[];
@@ -40,7 +42,7 @@ type EditorState = {
   introduction: string;
   mainContent: string;
   conclusion: string;
-  author: PostAuthor;
+  author: string;
   category: string;
   status: PostStatus;
   allowComments: boolean;
@@ -49,8 +51,6 @@ type EditorState = {
 };
 
 const categories = ['General', 'Music', 'Sports', 'Lifestyle', 'Politics', 'Entertainment', 'Fashion', 'News', 'Opinion', 'Events', 'Business', 'Health and Wellbeing', 'Sciences', 'Technology'];
-
-
 
 function buildBody(editor: EditorState) {
   const parts = [];
@@ -84,32 +84,18 @@ function getLegacySections(post: Pick<AdminPost, 'body' | 'introduction' | 'main
   };
 }
 
-function createEditorState(post: AdminPost) {
-  const sections = getLegacySections(post);
-
-  return {
-    editor: {
-      title: post.title || '',
-      introduction: sections.introduction,
-      mainContent: sections.mainContent,
-      conclusion: sections.conclusion,
-      author: post.author || 'jalal',
-      category: post.category || 'General',
-      status: post.status || 'published',
-      allowComments: post.allowComments ?? true,
-      featured: Boolean(post.featured),
-      tagInput: '',
-    },
-    media: [...(post.media || [])].sort((a, b) => a.order - b.order),
-    tags: [...(post.tags || [])],
-  };
-}
-
 export default function AdminPostsPage() {
   const { session, loading: sessionLoading } = useAdminSession();
   const defaultAuthor = session?.role === 'admin' ? 'cyber' : (session?.displayName || session?.username || 'Admin');
 
-  const emptyEditor: EditorState = {
+  const [posts, setPosts] = useState<AdminPost[]>([]);
+  const [selectedPost, setSelectedPost] = useState<AdminPost | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'content' | 'media' | 'settings'>('content');
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Form Editor State
+  const [editor, setEditor] = useState<EditorState>({
     title: '',
     introduction: '',
     mainContent: '',
@@ -120,247 +106,220 @@ export default function AdminPostsPage() {
     allowComments: true,
     featured: false,
     tagInput: '',
-  };
-  const [posts, setPosts] = useState<AdminPost[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [editor, setEditor] = useState<EditorState>(emptyEditor);
+  });
   const [media, setMedia] = useState<IMediaItem[]>([]);
   const [tagPills, setTagPills] = useState<string[]>([]);
+
+  // Filtering & Search
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<PostStatusFilter>('all');
-  const [refreshToken, setRefreshToken] = useState(0);
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [selectedBulkIds, setSelectedBulkIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const selectedIdRef = useRef<string | null>(null);
-
-  const selectedPost = useMemo(
-    () => posts.find((post) => post._id === selectedId) || null,
-    [posts, selectedId]
-  );
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    selectedIdRef.current = selectedId;
-  }, [selectedId]);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  const hydrateFromPost = (post: AdminPost | null) => {
-    if (!post) {
-      setEditor(emptyEditor);
-      setMedia([]);
-      setTagPills([]);
-      return;
-    }
+  const loadPosts = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        status: statusFilter,
+        limit: '200',
+      });
+      if (query.trim()) params.set('q', query.trim());
 
-    const nextState = createEditorState(post);
-    setEditor(nextState.editor);
-    setMedia(nextState.media);
-    setTagPills(nextState.tags);
-  };
+      const res = await fetch(`/api/posts?${params.toString()}`);
+      const data = await res.json();
 
-  useEffect(() => {
-    const timeoutId = setTimeout(async () => {
-      setLoading(true);
-
-      try {
-        const params = new URLSearchParams({
-          status: statusFilter,
-          limit: '100',
-        });
-
-        if (query.trim()) {
-          params.set('q', query.trim());
-        }
-
-        const res = await fetch(`/api/posts?${params.toString()}`);
-        const data = await res.json();
-
-        if (!res.ok) {
-          toast.error(data.error || 'Failed to load posts');
-          setPosts([]);
-          setSelectedId(null);
-          hydrateFromPost(null);
-          return;
-        }
-
-        const fetchedPosts = (data.posts || []) as AdminPost[];
-        const preservedSelection =
-          (selectedIdRef.current && fetchedPosts.find((post) => post._id === selectedIdRef.current)) ||
-          fetchedPosts[0] ||
-          null;
-
-        setPosts(fetchedPosts);
-
-        if (preservedSelection) {
-          setSelectedId(preservedSelection._id);
-          hydrateFromPost(preservedSelection);
-        } else {
-          setSelectedId(null);
-          hydrateFromPost(null);
-        }
-      } catch {
-        toast.error('Unable to load posts right now');
-      } finally {
-        setLoading(false);
+      if (res.ok) {
+        setPosts(data.posts || []);
+      } else {
+        toast.error(data.error || 'Failed to load posts');
       }
-    }, 250);
-
-    return () => clearTimeout(timeoutId);
-  }, [query, refreshToken, statusFilter]);
-
-  const handleSelectPost = (post: AdminPost) => {
-    setSelectedId(post._id);
-    hydrateFromPost(post);
+    } catch {
+      toast.error('Unable to load posts');
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    const timeout = setTimeout(loadPosts, 200);
+    return () => clearTimeout(timeout);
+  }, [query, statusFilter]);
+
+  // Filter posts by category locally
+  const filteredPosts = useMemo(() => {
+    if (categoryFilter === 'all') return posts;
+    return posts.filter(p => p.category === categoryFilter);
+  }, [posts, categoryFilter]);
+
+  // Open Edit Modal
+  const handleOpenEdit = (post: AdminPost) => {
+    setSelectedPost(post);
+    const sections = getLegacySections(post);
+    setEditor({
+      title: post.title || '',
+      introduction: sections.introduction,
+      mainContent: sections.mainContent,
+      conclusion: sections.conclusion,
+      author: post.author || defaultAuthor,
+      category: post.category || 'General',
+      status: post.status || 'published',
+      allowComments: post.allowComments ?? true,
+      featured: Boolean(post.featured),
+      tagInput: '',
+    });
+    setMedia([...(post.media || [])].sort((a, b) => a.order - b.order));
+    setTagPills([...(post.tags || [])]);
+    setActiveTab('content');
+    setIsEditing(true);
+  };
+
+  // Close Edit Modal
+  const handleCloseEdit = () => {
+    setIsEditing(false);
+    setSelectedPost(null);
+  };
+
+  // Tag Handlers
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === ',' || e.key === 'Enter') {
       e.preventDefault();
       const value = editor.tagInput.trim().replace(/,$/, '');
-
       if (value && !tagPills.includes(value)) {
-        setTagPills((current) => [...current, value]);
+        setTagPills([...tagPills, value]);
       }
-
-      setEditor((current) => ({ ...current, tagInput: '' }));
+      setEditor({ ...editor, tagInput: '' });
     }
   };
 
   const removeTag = (tag: string) => {
-    setTagPills((current) => current.filter((item) => item !== tag));
+    setTagPills(tagPills.filter(t => t !== tag));
   };
 
-  const handleSave = async () => {
-    if (!selectedPost) {
-      return;
-    }
-
+  // Save Post Changes
+  const handleSave = async (overrideStatus?: PostStatus) => {
+    if (!selectedPost) return;
     if (!editor.title.trim()) {
       toast.error('Post title is required');
       return;
     }
-
     if (!editor.introduction.trim() && !editor.mainContent.trim()) {
       toast.error('Write at least an introduction or main content');
       return;
     }
 
     setSaving(true);
-
     try {
       let finalTags = [...tagPills];
       if (editor.tagInput.trim()) {
-        const leftoverTags = editor.tagInput.split(',').map(t => t.trim()).filter(Boolean);
-        finalTags = [...new Set([...finalTags, ...leftoverTags])];
+        const leftover = editor.tagInput.split(',').map(t => t.trim()).filter(Boolean);
+        finalTags = [...new Set([...finalTags, ...leftover])];
       }
+
+      const postStatus = overrideStatus || editor.status;
 
       const res = await fetch(`/api/posts/${selectedPost._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: editor.title.trim(),
+          title: editor.title,
           body: buildBody(editor),
           introduction: editor.introduction,
           mainContent: editor.mainContent,
           conclusion: editor.conclusion,
           author: editor.author,
           category: editor.category,
-          tags: finalTags,
-          media,
-          status: editor.status,
+          status: postStatus,
           allowComments: editor.allowComments,
           featured: editor.featured,
+          tags: finalTags,
+          media,
         }),
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update post');
 
-      if (!res.ok) {
-        toast.error(data.error || 'Failed to update post');
-        return;
-      }
-
-      const updatedPost = { ...selectedPost, ...data } as AdminPost;
-      setPosts((current) =>
-        current.map((post) => (post._id === updatedPost._id ? updatedPost : post))
-      );
-      hydrateFromPost(updatedPost);
-      setRefreshToken((current) => current + 1);
-      toast.success('Post updated');
-    } catch {
-      toast.error('Something went wrong while updating the post');
+      toast.success('Post updated successfully! ✨');
+      setPosts(posts.map(p => p._id === selectedPost._id ? data.post : p));
+      handleCloseEdit();
+    } catch (err: any) {
+      toast.error(err.message || 'Error saving post');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!selectedPost) {
-      return;
-    }
-
-    const confirmed = window.confirm(`Delete "${selectedPost.title}"? This cannot be undone.`);
-    if (!confirmed) {
-      return;
-    }
-
-    setDeleting(true);
-
+  // Quick Status Toggle on Table Row
+  const handleToggleStatus = async (post: AdminPost, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newStatus: PostStatus = post.status === 'published' ? 'draft' : 'published';
     try {
-      const res = await fetch(`/api/posts/${selectedPost._id}`, { method: 'DELETE' });
-      const data = await res.json();
+      const res = await fetch(`/api/posts/${post._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error('Failed to update status');
 
-      if (!res.ok) {
-        toast.error(data.error || 'Failed to delete post');
-        return;
-      }
-
-      const currentIndex = posts.findIndex((post) => post._id === selectedPost._id);
-      const nextPosts = posts.filter((post) => post._id !== selectedPost._id);
-      const nextSelection =
-        nextPosts[currentIndex] || nextPosts[currentIndex - 1] || nextPosts[0] || null;
-
-      setPosts(nextPosts);
-
-      if (nextSelection) {
-        setSelectedId(nextSelection._id);
-        hydrateFromPost(nextSelection);
-      } else {
-        setSelectedId(null);
-        hydrateFromPost(null);
-      }
-
-      toast.success('Post deleted');
+      toast.success(newStatus === 'published' ? 'Post published! 🟢' : 'Moved to drafts 🟡');
+      setPosts(posts.map(p => p._id === post._id ? { ...p, status: newStatus } : p));
     } catch {
-      toast.error('Something went wrong while deleting the post');
-    } finally {
-      setDeleting(false);
+      toast.error('Failed to change post status');
     }
   };
 
-  const [selectedBulkIds, setSelectedBulkIds] = useState<string[]>([]);
-  const [bulkProcessing, setBulkProcessing] = useState(false);
+  // Delete Single Post
+  const handleDeletePost = async (id: string, title: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm(`Delete "${title}"? This action cannot be undone.`)) return;
 
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete post');
+
+      toast.success('Post deleted');
+      setPosts(posts.filter(p => p._id !== id));
+      setSelectedBulkIds(selectedBulkIds.filter(item => item !== id));
+    } catch {
+      toast.error('Failed to delete post');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // Bulk Selection Handlers
   const toggleBulkSelect = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSelectedBulkIds(prev => 
+    setSelectedBulkIds(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
   };
 
   const toggleSelectAll = () => {
-    if (selectedBulkIds.length === posts.length) {
+    if (selectedBulkIds.length === filteredPosts.length) {
       setSelectedBulkIds([]);
     } else {
-      setSelectedBulkIds(posts.map(p => p._id));
+      setSelectedBulkIds(filteredPosts.map(p => p._id));
     }
   };
 
   const handleBulkAction = async (action: 'publish' | 'draft' | 'delete') => {
     if (selectedBulkIds.length === 0) return;
-    const actionLabel = action === 'publish' ? 'publish' : action === 'draft' ? 'set to draft' : 'delete';
-    if (!window.confirm(`Are you sure you want to ${actionLabel} ${selectedBulkIds.length} selected post(s)?`)) {
-      return;
-    }
+    const actionLabel = action === 'publish' ? 'publish' : action === 'draft' ? 'move to draft' : 'delete';
+    if (!window.confirm(`Are you sure you want to ${actionLabel} ${selectedBulkIds.length} selected post(s)?`)) return;
 
     setBulkProcessing(true);
     try {
@@ -373,387 +332,720 @@ export default function AdminPostsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Bulk operation failed');
 
-      toast.success(data.message || 'Bulk operation completed! 🚀');
+      toast.success(data.message || 'Bulk operation completed!');
       setSelectedBulkIds([]);
-      setRefreshToken(current => current + 1);
+      loadPosts();
     } catch (err: any) {
-      toast.error(err.message || 'Bulk operation failed');
+      toast.error(err.message || 'Bulk action failed');
     } finally {
       setBulkProcessing(false);
     }
   };
 
-  const publishedCount = posts.filter((post) => post.status === 'published').length;
-  const draftCount = posts.filter((post) => post.status === 'draft').length;
   const isSubAdmin = session?.role === 'sub-admin';
+  const publishedCount = posts.filter(p => p.status === 'published').length;
+  const draftCount = posts.filter(p => p.status === 'draft').length;
 
   return (
     <div className="jl">
       <AdminSidebar />
 
-      <div className="main">
-        <div className="topbar">
+      <div className="main" style={{ padding: isMobile ? '12px' : '24px' }}>
+        {/* Top bar */}
+        <div className="topbar" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: '12px',
+          marginBottom: '20px'
+        }}>
           <div>
-            <div className="page-title">{isSubAdmin ? 'My Posts' : 'All Posts'}</div>
-            <div className="admin-subtitle">
+            <div className="page-title" style={{ fontSize: isMobile ? '18px' : '22px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {isSubAdmin ? <><FileText size={20} /> My Articles</> : <><Newspaper size={20} /> Manage Articles</>}
+            </div>
+            <div className="admin-subtitle" style={{ fontSize: isMobile ? '11px' : '13px' }}>
               {isSubAdmin
-                ? 'Review, update, and remove only the stories you have posted.'
-                : 'Review drafts, update stories, and remove posts you no longer need.'}
+                ? 'Manage, update, and review your authored articles.'
+                : 'Search, filter, edit, publish, or bulk manage all articles.'}
             </div>
           </div>
 
-          <div className="topbar-actions">
-            <Link href="/admin" className="btn-draft" style={{ textDecoration: 'none' }}>
-              New Post
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: isMobile ? '100%' : 'auto', justifyContent: 'space-between' }}>
+            <button onClick={loadPosts} className="btn-draft" style={{ padding: '8px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <RefreshCw size={13} /> Refresh
+            </button>
+            <Link href="/admin" className="btn-publish" style={{ textDecoration: 'none', padding: '9px 18px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Pencil size={13} /> Create New Post
             </Link>
-            {selectedPost?.status === 'published' && (
-              <Link
-                href={`/blog/${selectedPost.slug}`}
-                target="_blank"
-                className="btn-draft"
-                style={{ textDecoration: 'none' }}
-              >
-                View Live
-              </Link>
-            )}
-            <button className="btn-draft" onClick={() => setRefreshToken((current) => current + 1)}>
-              Refresh
-            </button>
-            <button className="admin-delete-btn" onClick={handleDelete} disabled={!selectedPost || deleting}>
-              {deleting ? 'Deleting...' : 'Delete'}
-            </button>
-            <button className="btn-publish" onClick={handleSave} disabled={!selectedPost || saving}>
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
           </div>
         </div>
 
-        <div className="post-manager">
-          <div className="post-manager-grid">
-            <div className="post-list-card">
-              <div className="post-list-toolbar">
-                <input
-                  className="post-search"
-                  placeholder="Search title, slug, tags..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-
-                <select
-                  className="post-filter"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as PostStatusFilter)}
-                >
-                  <option value="all">All statuses</option>
-                  <option value="published">Published</option>
-                  <option value="draft">Drafts</option>
-                </select>
-              </div>
-
-              <div className="post-counts" style={{ alignItems: 'center' }}>
-                <div className="editor-metric">
-                  <span className="editor-metric-label">Loaded</span>
-                  <strong>{posts.length}</strong>
-                </div>
-                <div className="editor-metric">
-                  <span className="editor-metric-label">Published</span>
-                  <strong>{publishedCount}</strong>
-                </div>
-                <div className="editor-metric">
-                  <span className="editor-metric-label">Drafts</span>
-                  <strong>{draftCount}</strong>
-                </div>
-                {posts.length > 0 && (
-                  <button 
-                    type="button" 
-                    onClick={toggleSelectAll} 
-                    className="btn-draft"
-                    style={{ marginLeft: 'auto', fontSize: '11px', padding: '4px 8px' }}
-                  >
-                    {selectedBulkIds.length === posts.length ? 'Deselect All' : 'Select All'}
-                  </button>
-                )}
-              </div>
-
-              {/* Bulk Actions Floating Bar */}
-              {selectedBulkIds.length > 0 && (
-                <div style={{
-                  padding: '10px 14px',
-                  margin: '12px 0',
-                  background: 'linear-gradient(135deg, rgba(255, 107, 0, 0.15), rgba(255, 107, 0, 0.05))',
-                  border: '1px solid rgba(255, 107, 0, 0.4)',
+        {/* Filters Bar & Stats Row */}
+        <div style={{
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '14px',
+          padding: isMobile ? '12px' : '16px',
+          marginBottom: '20px'
+        }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: '12px',
+            alignItems: isMobile ? 'stretch' : 'center',
+            justifyContent: 'space-between'
+          }}>
+            {/* Search Input */}
+            <div style={{ flex: 1, minWidth: isMobile ? '100%' : '240px', position: 'relative' }}>
+              <input
+                type="text"
+                className="post-search"
+                placeholder="Search titles, tags, content..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
                   borderRadius: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px'
-                }}>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#FF6B00' }}>
-                    {selectedBulkIds.length} selected
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <button 
-                      type="button" 
-                      onClick={() => handleBulkAction('publish')} 
-                      disabled={bulkProcessing}
-                      style={{ background: '#4ade80', color: '#000', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
-                    >
-                      Publish
-                    </button>
-                    <button 
-                      type="button" 
-                      onClick={() => handleBulkAction('draft')} 
-                      disabled={bulkProcessing}
-                      style={{ background: '#fbbf24', color: '#000', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
-                    >
-                      Draft
-                    </button>
-                    <button 
-                      type="button" 
-                      onClick={() => handleBulkAction('delete')} 
-                      disabled={bulkProcessing}
-                      style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {loading ? (
-                <div className="post-empty-card">Loading posts...</div>
-              ) : posts.length === 0 ? (
-                <div className="post-empty-card">No posts matched this filter.</div>
-              ) : (
-                <div className="post-list">
-                  {posts.map((post) => (
-                    <button
-                      key={post._id}
-                      className={`post-row ${post._id === selectedId ? 'active' : ''}`}
-                      onClick={() => handleSelectPost(post)}
-                      style={{ position: 'relative' }}
-                    >
-                      <div className="post-row-head" style={{ gap: '8px' }}>
-                        <input
-                          type="checkbox"
-                          checked={selectedBulkIds.includes(post._id)}
-                          onClick={(e) => toggleBulkSelect(post._id, e)}
-                          onChange={() => {}}
-                          style={{ cursor: 'pointer', accentColor: '#FF6B00', width: '15px', height: '15px', flexShrink: 0 }}
-                        />
-                        <div className="post-row-title" style={{ flex: 1 }}>{post.title}</div>
-                        <div className={`post-badge ${post.status === 'draft' ? 'draft' : 'published'}`}>
-                          {post.status}
-                        </div>
-                      </div>
-
-
-                      <div className="post-row-meta">
-                        <span>{post.category}</span>
-                        <span>{post.author || 'Unknown author'}</span>
-                        <span>{timeAgo(post.updatedAt || post.createdAt)}</span>
-                      </div>
-
-                      <div className="post-row-footer">
-                        <span className="post-row-slug">/{post.slug}</span>
-                        <div className="post-row-stats">
-                          {post.featured && <span className="post-badge featured">Featured</span>}
-                          <span>{formatNumber(post.views || 0)} views</span>
-                          <span>{formatNumber(post.likes || 0)} likes</span>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+                  padding: '10px 14px 10px 36px',
+                  color: '#fff',
+                  fontSize: '13px',
+                  outline: 'none'
+                }}
+              />
+              <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.4)' }} />
             </div>
 
-            <div className="post-editor-stack">
-              {!selectedPost ? (
-                <div className="post-empty-card">Choose a post from the left to edit it.</div>
-              ) : (
-                <div className="post-editor-grid">
-                  <div>
-                    <div className="form-card">
-                      <div className="field-label">Post Title</div>
+            {/* Filters */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {/* Status Filter */}
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value as PostStatusFilter)}
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '10px',
+                  padding: '10px 14px',
+                  color: '#fff',
+                  fontSize: '12px',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="all">All Statuses ({posts.length})</option>
+                <option value="published">Published ({publishedCount})</option>
+                <option value="draft">Drafts ({draftCount})</option>
+              </select>
+
+              {/* Category Filter */}
+              <select
+                value={categoryFilter}
+                onChange={e => setCategoryFilter(e.target.value)}
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '10px',
+                  padding: '10px 14px',
+                  color: '#fff',
+                  fontSize: '12px',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="all">All Categories</option>
+                {categories.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Bulk Actions Floating Bar */}
+          {selectedBulkIds.length > 0 && (
+            <div style={{
+              padding: '10px 14px',
+              marginTop: '12px',
+              background: 'linear-gradient(135deg, rgba(255, 107, 0, 0.15), rgba(255, 107, 0, 0.05))',
+              border: '1px solid rgba(255, 107, 0, 0.4)',
+              borderRadius: '10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#FF6B00', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Zap size={14} /> {selectedBulkIds.length} article(s) selected
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => handleBulkAction('publish')}
+                  disabled={bulkProcessing}
+                  style={{ background: '#4ade80', color: '#000', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Publish Selected
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleBulkAction('draft')}
+                  disabled={bulkProcessing}
+                  style={{ background: '#fbbf24', color: '#000', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Move to Drafts
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleBulkAction('delete')}
+                  disabled={bulkProcessing}
+                  style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Delete Selected
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* POSTS LIST / TABLE */}
+        <div style={{
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '14px',
+          overflow: 'hidden'
+        }}>
+          {/* Table Header Bar */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            background: 'rgba(255,255,255,0.03)',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            fontSize: '11px',
+            fontWeight: 700,
+            color: 'rgba(255,255,255,0.5)',
+            textTransform: 'uppercase'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <input
+                type="checkbox"
+                checked={filteredPosts.length > 0 && selectedBulkIds.length === filteredPosts.length}
+                onChange={toggleSelectAll}
+                style={{ cursor: 'pointer', accentColor: '#FF6B00', width: '15px', height: '15px' }}
+              />
+              <span>Article Details ({filteredPosts.length})</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              {!isMobile && <span>Views & Activity</span>}
+              <span>Actions</span>
+            </div>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.3)', fontSize: '13px' }}>
+              Loading articles...
+            </div>
+          ) : filteredPosts.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.3)', fontSize: '13px' }}>
+              No articles found. Try adjusting your search query or filters.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {filteredPosts.map((post) => {
+                const coverPhoto = post.media?.find(m => m.type === 'photo')?.url;
+                const isSelected = selectedBulkIds.includes(post._id);
+
+                return (
+                  <div
+                    key={post._id}
+                    onClick={() => handleOpenEdit(post)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      padding: isMobile ? '12px' : '14px 16px',
+                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      background: isSelected ? 'rgba(255,107,0,0.05)' : 'transparent',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s ease'
+                    }}
+                  >
+                    {/* Checkbox & Thumbnail & Title Info */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
                       <input
-                        className="field-title"
-                        value={editor.title}
-                        onChange={(e) => setEditor((current) => ({ ...current, title: e.target.value }))}
-                        placeholder="Write your headline here..."
-                        maxLength={120}
+                        type="checkbox"
+                        checked={isSelected}
+                        onClick={(e) => toggleBulkSelect(post._id, e)}
+                        onChange={() => {}}
+                        style={{ cursor: 'pointer', accentColor: '#FF6B00', width: '15px', height: '15px', flexShrink: 0 }}
                       />
-                      <div className="char-count">{editor.title.length}/120</div>
+
+                      {/* Thumbnail */}
+                      <div style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        flexShrink: 0,
+                        background: coverPhoto ? `url(${coverPhoto}) center/cover` : 'linear-gradient(135deg, rgba(255,107,0,0.2), rgba(255,107,0,0.05))',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1px solid rgba(255,255,255,0.08)'
+                      }}>
+                        {!coverPhoto && <Newspaper size={18} style={{ opacity: 0.5, color: '#fff' }} />}
+                      </div>
+
+                      {/* Info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
+                          <span style={{
+                            fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px',
+                            background: 'rgba(255,107,0,0.12)', color: '#FF6B00', border: '1px solid rgba(255,107,0,0.25)',
+                            textTransform: 'uppercase'
+                          }}>
+                            {post.category || 'General'}
+                          </span>
+
+                          <button
+                            onClick={(e) => handleToggleStatus(post, e)}
+                            style={{
+                              fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', border: 'none', cursor: 'pointer',
+                              background: post.status === 'published' ? 'rgba(74,222,128,0.12)' : 'rgba(251,191,36,0.12)',
+                              color: post.status === 'published' ? '#4ade80' : '#fbbf24',
+                              display: 'flex', alignItems: 'center', gap: '3px'
+                            }}
+                          >
+                            <Circle size={6} fill={post.status === 'published' ? '#4ade80' : '#fbbf24'} /> {post.status === 'published' ? 'PUBLISHED' : 'DRAFT'}
+                          </button>
+
+                          {post.featured && (
+                            <span style={{ fontSize: '9px', color: '#FFD700', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                              <Star size={10} fill="#FFD700" color="#FFD700" /> Featured
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ fontSize: isMobile ? '12px' : '14px', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {post.title}
+                        </div>
+
+                        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+                          by {post.author || 'Admin'} • {timeAgo(post.updatedAt || post.createdAt)}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="section-gap"></div>
+                    {/* Stats & Actions */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px', flexShrink: 0 }}>
+                      {!isMobile && (
+                        <div style={{ textAlign: 'right', fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', justifyContent: 'flex-end' }}><Eye size={12} /> <strong style={{ color: '#fff' }}>{formatNumber(post.views || 0)}</strong> views</div>
+                          <div style={{ fontSize: '10px', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '3px', justifyContent: 'flex-end' }}><Heart size={10} /> {formatNumber(post.likes || 0)} likes</div>
+                        </div>
+                      )}
 
-                    {/* INTRODUCTION */}
-                    <RichTextEditor
-                      label="Introduction"
-                      description="Hook the reader before they dive in."
-                      value={editor.introduction}
-                      onChange={(val) => setEditor((current) => ({ ...current, introduction: val }))}
-                      placeholder="Start with something catchy..."
-                      minHeight="120px"
-                      sectionNum={1}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {/* Live Link */}
+                        {post.status === 'published' && (
+                          <Link
+                            href={`/blog/${post.slug}`}
+                            target="_blank"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              padding: '6px 10px',
+                              borderRadius: '8px',
+                              background: 'rgba(255,255,255,0.05)',
+                              color: 'rgba(255,255,255,0.8)',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              textDecoration: 'none',
+                              display: 'flex',
+                              alignItems: 'center'
+                            }}
+                            title="View live post"
+                          >
+                            <Eye size={13} />
+                          </Link>
+                        )}
+
+                        {/* Edit Button */}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleOpenEdit(post); }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            background: 'rgba(255,107,0,0.1)',
+                            color: '#FF6B00',
+                            border: '1px solid rgba(255,107,0,0.25)',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Pencil size={12} /> Edit
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={(e) => handleDeletePost(post._id, post.title, e)}
+                          disabled={deletingId === post._id}
+                          style={{
+                            padding: '6px 10px',
+                            borderRadius: '8px',
+                            background: 'rgba(239,68,68,0.1)',
+                            color: '#ef4444',
+                            border: '1px solid rgba(239,68,68,0.2)',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                          title="Delete post"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* FULL FEATURED EDIT MODAL OVERLAY */}
+      {isEditing && selectedPost && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999,
+          background: 'rgba(0,0,0,0.85)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: isMobile ? '10px' : '20px'
+        }} onClick={handleCloseEdit}>
+          <div style={{
+            width: '100%',
+            maxWidth: '1000px',
+            maxHeight: '90vh',
+            background: '#121212',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+          }} onClick={e => e.stopPropagation()}>
+            
+            {/* Modal Header */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '16px 20px',
+              background: 'rgba(255,255,255,0.03)',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              gap: '12px',
+              flexWrap: 'wrap'
+            }}>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: '#fff', fontFamily: '"Syne", sans-serif', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Pencil size={16} style={{ color: '#FF6B00' }} /> Edit Article: {selectedPost.title}
+                </div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+                  Slug: /{selectedPost.slug} • Last updated {timeAgo(selectedPost.updatedAt)}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                  onClick={() => setShowPreview(true)}
+                  style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <Eye size={12} /> Preview
+                </button>
+                <button
+                  onClick={() => handleSave()}
+                  disabled={saving}
+                  style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#FF6B00', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <Save size={13} /> {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  onClick={handleCloseEdit}
+                  style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Navigation Tabs */}
+            <div style={{
+              display: 'flex',
+              gap: '4px',
+              padding: '8px 20px',
+              background: 'rgba(0,0,0,0.3)',
+              borderBottom: '1px solid rgba(255,255,255,0.06)'
+            }}>
+              {[
+                { id: 'content', label: 'Article Content', icon: FileText },
+                { id: 'media', label: `Photos & Media (${media.length})`, icon: Camera },
+                { id: 'settings', label: 'Category & Settings', icon: Settings },
+              ].map(t => {
+                const IconComp = t.icon;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setActiveTab(t.id as any)}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: activeTab === t.id ? 'rgba(255,107,0,0.15)' : 'transparent',
+                      color: activeTab === t.id ? '#FF6B00' : 'rgba(255,255,255,0.5)',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <IconComp size={13} /> {t.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+              
+              {/* TAB 1: ARTICLE CONTENT */}
+              {activeTab === 'content' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Title Field */}
+                  <div className="form-card" style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="field-label" style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.7)', marginBottom: '6px' }}>Headline Title</div>
+                    <input
+                      className="field-title"
+                      value={editor.title}
+                      onChange={(e) => setEditor({ ...editor, title: e.target.value })}
+                      placeholder="Article headline..."
+                      maxLength={120}
+                      style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '15px', fontWeight: 700, outline: 'none' }}
                     />
-
-                    <div className="section-gap"></div>
-
-                    {/* MAIN CONTENT */}
-                    <RichTextEditor
-                      label="Main Content"
-                      description="Keep the core article content here. Use toolbar for bold, bulleting, H2/H3 headings, subheadings, etc."
-                      value={editor.mainContent}
-                      onChange={(val) => setEditor((current) => ({ ...current, mainContent: val }))}
-                      placeholder="Write the full body of your post here... Use the toolbar above to bold text, add bullet points, H2/H3 headings, sub-headings, quotes, and links."
-                      minHeight="240px"
-                      sectionNum={2}
-                    />
-
-                    <div className="section-gap"></div>
-
-                    {/* CONCLUSION */}
-                    <RichTextEditor
-                      label="Conclusion"
-                      description="Wrap up the story or add your closing take."
-                      value={editor.conclusion}
-                      onChange={(val) => setEditor((current) => ({ ...current, conclusion: val }))}
-                      placeholder="End with a bang — your take, a question, or what's next..."
-                      minHeight="100px"
-                      sectionNum={3}
-                    />
-
-                    <div className="section-gap"></div>
-
-                    <PostMediaUploader media={media} onChange={setMedia} />
+                    <div className="char-count" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '4px', textAlign: 'right' }}>{editor.title.length}/120</div>
                   </div>
 
-                  <div>
-                    <div className="side-card">
-                      <div className="side-title">Post Snapshot</div>
-                      <div className="editor-meta-grid">
-                        <div className="editor-metric">
-                          <span className="editor-metric-label">Created</span>
-                          <strong>{timeAgo(selectedPost.createdAt)}</strong>
-                        </div>
-                        <div className="editor-metric">
-                          <span className="editor-metric-label">Updated</span>
-                          <strong>{timeAgo(selectedPost.updatedAt)}</strong>
-                        </div>
-                        <div className="editor-metric">
-                          <span className="editor-metric-label">Views</span>
-                          <strong>{formatNumber(selectedPost.views || 0)}</strong>
-                        </div>
-                        <div className="editor-metric">
-                          <span className="editor-metric-label">Likes</span>
-                          <strong>{formatNumber(selectedPost.likes || 0)}</strong>
-                        </div>
-                      </div>
-                    </div>
+                  {/* Introduction */}
+                  <RichTextEditor
+                    label="Introduction (Hook)"
+                    description="Set the scene or give a short catchy summary before the main body"
+                    value={editor.introduction}
+                    onChange={(val) => setEditor({ ...editor, introduction: val })}
+                    placeholder="Write introduction..."
+                    minHeight="120px"
+                    sectionNum={1}
+                  />
 
-                    <div className="side-card">
-                      <div className="side-title">Publish Settings</div>
-                      <div className="status-row">
-                        <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Allow comments</span>
-                        <label className="toggle">
-                          <input
-                            type="checkbox"
-                            checked={editor.allowComments}
-                            onChange={(e) => setEditor((current) => ({ ...current, allowComments: e.target.checked }))}
-                          />
-                          <div className="toggle-track"></div>
-                          <div className="toggle-thumb"></div>
-                        </label>
-                      </div>
-                      <div className="status-row">
-                        <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Feature on homepage</span>
-                        <label className="toggle">
-                          <input
-                            type="checkbox"
-                            checked={editor.featured}
-                            onChange={(e) => setEditor((current) => ({ ...current, featured: e.target.checked }))}
-                          />
-                          <div className="toggle-track"></div>
-                          <div className="toggle-thumb"></div>
-                        </label>
-                      </div>
-                      <div className="field-label" style={{ marginTop: '16px' }}>Status</div>
-                      <select
-                        className="field-select"
-                        value={editor.status}
-                        onChange={(e) => setEditor((current) => ({ ...current, status: e.target.value as PostStatus }))}
-                      >
-                        <option value="published">Published</option>
-                        <option value="draft">Draft</option>
-                      </select>
-                    </div>
+                  {/* Main Content */}
+                  <RichTextEditor
+                    label="Main Story Content"
+                    description="The main article details, quotes, headings, and bullet points"
+                    value={editor.mainContent}
+                    onChange={(val) => setEditor({ ...editor, mainContent: val })}
+                    placeholder="Write the main story body..."
+                    minHeight="220px"
+                    sectionNum={2}
+                  />
 
-                    <div className="side-card">
-                      <div className="side-title">Category</div>
-                      <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>Pick the topic that fits this post.</div>
-                      <div className="cat-grid">
-                        {categories.map((category) => (
-                          <div
-                            key={category}
-                            className={`cat-chip ${editor.category === category ? 'sel' : ''}`}
-                            onClick={() => setEditor((current) => ({ ...current, category }))}
-                          >
-                            {category}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                  {/* Conclusion */}
+                  <RichTextEditor
+                    label="Conclusion & Takeaways"
+                    description="Final summary, thoughts, or opinion"
+                    value={editor.conclusion}
+                    onChange={(val) => setEditor({ ...editor, conclusion: val })}
+                    placeholder="Closing thoughts..."
+                    minHeight="100px"
+                    sectionNum={3}
+                  />
+                </div>
+              )}
 
-                    <div className="side-card">
-                      <div className="side-title">Tags</div>
+              {/* TAB 2: MEDIA UPLOADER */}
+              {activeTab === 'media' && (
+                <div>
+                  <PostMediaUploader media={media} onChange={setMedia} />
+                </div>
+              )}
+
+              {/* TAB 3: CATEGORY & SETTINGS */}
+              {activeTab === 'settings' && (
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
+                  {/* Category Card */}
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Category Topic</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {categories.map((c) => (
+                        <button
+                          type="button"
+                          key={c}
+                          onClick={() => setEditor({ ...editor, category: c })}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            border: editor.category === c ? '1px solid #FF6B00' : '1px solid rgba(255,255,255,0.08)',
+                            background: editor.category === c ? '#FF6B00' : 'rgba(255,255,255,0.04)',
+                            color: '#fff',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tags & Publishing Settings */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {/* Tags */}
+                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '8px' }}>Article Tags</div>
                       <input
-                        className="field-input"
-                        placeholder="Add tags, separated by commas"
-                        style={{ fontSize: '12px' }}
+                        type="text"
+                        placeholder="Add tags (press comma or enter)..."
                         value={editor.tagInput}
-                        onChange={(e) => setEditor((current) => ({ ...current, tagInput: e.target.value }))}
+                        onChange={(e) => setEditor({ ...editor, tagInput: e.target.value })}
                         onKeyDown={handleTagKeyDown}
+                        style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '12px', outline: 'none' }}
                       />
                       {tagPills.length > 0 && (
-                        <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                          {tagPills.map((tag) => (
-                            <span
-                              key={tag}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                padding: '3px 8px',
-                                borderRadius: '20px',
-                                background: 'rgba(255,107,0,0.12)',
-                                color: '#FF6B00',
-                                fontSize: '11px',
-                                border: '0.5px solid rgba(255,107,0,0.3)',
-                              }}
-                            >
+                        <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {tagPills.map(tag => (
+                            <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '20px', background: 'rgba(255,107,0,0.15)', color: '#FF6B00', fontSize: '11px', border: '1px solid rgba(255,107,0,0.3)' }}>
                               {tag}
-                              <button
-                                type="button"
-                                style={{ cursor: 'pointer', opacity: 0.7, background: 'none', border: 'none', color: 'inherit', padding: 0 }}
-                                onClick={() => removeTag(tag)}
-                              >
-                                x
-                              </button>
+                              <span style={{ cursor: 'pointer', opacity: 0.7 }} onClick={() => removeTag(tag)}>✕</span>
                             </span>
                           ))}
                         </div>
                       )}
-                      <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginTop: '6px' }}>Press comma or Enter to add</div>
+                    </div>
+
+                    {/* Options */}
+                    <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff', marginBottom: '12px' }}>Publish Options</div>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>Article Status</span>
+                        <select
+                          value={editor.status}
+                          onChange={(e) => setEditor({ ...editor, status: e.target.value as PostStatus })}
+                          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 12px', color: '#fff', fontSize: '12px', fontWeight: 700 }}
+                        >
+                          <option value="published">Published</option>
+                          <option value="draft">Draft</option>
+                        </select>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>Allow Reader Comments</span>
+                        <input
+                          type="checkbox"
+                          checked={editor.allowComments}
+                          onChange={e => setEditor({ ...editor, allowComments: e.target.checked })}
+                          style={{ cursor: 'pointer', accentColor: '#FF6B00', width: '16px', height: '16px' }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>Feature on Homepage</span>
+                        <input
+                          type="checkbox"
+                          checked={editor.featured}
+                          onChange={e => setEditor({ ...editor, featured: e.target.checked })}
+                          style={{ cursor: 'pointer', accentColor: '#FF6B00', width: '16px', height: '16px' }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
             </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '14px 20px',
+              background: 'rgba(255,255,255,0.02)',
+              borderTop: '1px solid rgba(255,255,255,0.08)'
+            }}>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+                Author: {editor.author || 'Admin'}
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={handleCloseEdit}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#fff', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleSave()}
+                  disabled={saving}
+                  style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', background: '#FF6B00', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <Save size={13} /> {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
-      </div>
+      )}
+
+      {/* POST PREVIEW MODAL */}
+      {showPreview && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.85)', overflow: 'auto' }} onClick={() => setShowPreview(false)}>
+          <div style={{ maxWidth: '700px', margin: '40px auto', background: '#121212', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,107,0,0.05)' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#FF6B00', display: 'flex', alignItems: 'center', gap: '4px' }}><Eye size={13} /> Article Preview</div>
+              <button onClick={() => setShowPreview(false)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: '#fff', fontSize: '12px', cursor: 'pointer' }}>Close Preview</button>
+            </div>
+
+            <div style={{ padding: '24px 20px' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ padding: '3px 10px', borderRadius: '4px', background: 'rgba(255,107,0,0.1)', color: '#FF6B00', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }}>{editor.category}</span>
+              </div>
+              <h1 style={{ fontFamily: '"Syne", sans-serif', fontSize: '24px', fontWeight: 800, color: '#fff', lineHeight: 1.3, marginBottom: '14px' }}>
+                {editor.title || 'Untitled Article'}
+              </h1>
+              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', lineHeight: '1.7' }}>
+                {editor.introduction && <ReactMarkdown remarkPlugins={[remarkGfm]}>{editor.introduction}</ReactMarkdown>}
+                {editor.mainContent && <ReactMarkdown remarkPlugins={[remarkGfm]}>{editor.mainContent}</ReactMarkdown>}
+                {editor.conclusion && <ReactMarkdown remarkPlugins={[remarkGfm]}>{editor.conclusion}</ReactMarkdown>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

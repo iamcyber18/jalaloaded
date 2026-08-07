@@ -21,7 +21,7 @@ async function getAlbumData(slug: string) {
 
   if (!album) return null;
 
-  const songs = await Song.find({ album: album.title }).sort({ createdAt: -1 }).lean();
+  const songs = await Song.find({ album: album.title, status: 'Published' }).sort({ createdAt: -1 }).lean();
 
   return {
     album: JSON.parse(JSON.stringify(album)),

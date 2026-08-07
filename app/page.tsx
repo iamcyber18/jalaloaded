@@ -80,7 +80,7 @@ async function getHomepageData() {
       .limit(6)
       .lean<HomePost[]>(),
     Post.find({ status: 'published' }).sort({ publishedAt: -1, createdAt: -1, _id: -1 }).limit(8).lean<HomePost[]>(),
-    Song.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeSong[]>(),
+    Song.find({ status: 'Published' }).sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeSong[]>(),
     Video.find().sort({ createdAt: -1, _id: -1 }).limit(6).lean<HomeVideo[]>(),
     Advert.find({ isActive: true }).lean<HomeAdvert[]>(),
     (await import('@/models/AdminUser')).default.find({}).select('displayName username profileImageUrl role').lean(),
@@ -115,7 +115,7 @@ async function getHomepageData() {
   const enrichedRecent = recentPosts.map(enrichPost);
 
   // Mix Song videos into Video feed for homepage
-  const songsWithVideos = await Song.find({ videoUrl: { $exists: true, $ne: '' } }).sort({ createdAt: -1 }).limit(6).lean();
+  const songsWithVideos = await Song.find({ videoUrl: { $exists: true, $ne: '' }, status: 'Published' }).sort({ createdAt: -1 }).limit(6).lean();
   const mappedSongs = songsWithVideos.map(song => ({
     _id: song._id,
     title: `${song.artist} - ${song.title} (Official Video)`,

@@ -74,7 +74,7 @@ export default function LaunchCountdown() {
           width={300} 
           height={96} 
           className="launch-logo"
-          style={{ objectFit: 'contain' }}
+          style={{ width: 'auto', height: '96px', objectFit: 'contain' }}
           priority 
         />
       </div>

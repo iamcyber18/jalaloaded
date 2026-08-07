@@ -32,6 +32,7 @@ export async function GET(request: Request) {
         .limit(5)
         .lean(),
       Song.find({
+        status: 'Published',
         $or: [{ title: regex }, { artist: regex }, { genre: regex }],
       })
         .select('title artist genre mediaUrl')

@@ -22,6 +22,7 @@ export interface ISong extends Document {
   downloads: number;
   likes: number;
   description?: string;
+  status: 'Pending' | 'Published';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,6 +54,7 @@ const SongSchema = new Schema<ISong>(
     downloads: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
     description: { type: String },
+    status: { type: String, enum: ['Pending', 'Published'], default: 'Pending' },
   },
   { timestamps: true }
 );

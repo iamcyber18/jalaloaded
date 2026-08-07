@@ -24,7 +24,7 @@ async function getVideos(page: number, category?: string) {
   // Fetch songs with videos if category matches
   let mappedSongs: any[] = [];
   if (!category || category === 'All' || category === 'Music Videos') {
-    const songsWithVideos = await Song.find({ videoUrl: { $exists: true, $ne: '' } }).lean();
+    const songsWithVideos = await Song.find({ videoUrl: { $exists: true, $ne: '' }, status: 'Published' }).lean();
     mappedSongs = songsWithVideos.map(song => ({
       _id: song._id,
       title: `${song.artist} - ${song.title} (Official Video)`,

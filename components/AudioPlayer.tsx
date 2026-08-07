@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { Music } from 'lucide-react';
 
 interface Props {
   src: string;
@@ -84,7 +85,7 @@ export default function AudioPlayer({ src, title, artist, coverUrl, autoPlay, so
           boxShadow: playing ? '0 0 20px rgba(255,107,0,0.2)' : 'none',
           transition: 'box-shadow 0.3s'
         }}>
-          {!coverUrl && <span style={{ fontSize: '20px' }}>🎵</span>}
+          {!coverUrl && <Music size={18} style={{ opacity: 0.5, color: '#fff' }} />}
         </div>
 
         {/* Track info */}

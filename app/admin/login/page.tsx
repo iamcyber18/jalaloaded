@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminLoginPage() {
@@ -8,7 +8,28 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const router = useRouter();
+
+  // Auto-check if already logged in
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/auth/session', { cache: 'no-store' })
+      .then((res) => {
+        if (res.ok) {
+          router.replace('/admin/dashboard');
+        } else if (isMounted) {
+          setCheckingSession(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setCheckingSession(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +57,20 @@ export default function AdminLoginPage() {
       setLoading(false);
     }
   };
+
+  if (checkingSession) {
+    return (
+      <div className="login-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="login-card" style={{ textAlign: 'center', padding: '40px 20px' }}>
+          <img src="/images/jalaloadedlogo.png" alt="Jalaloaded Logo" style={{ height: '70px', width: 'auto', margin: '0 auto 16px auto', display: 'block' }} />
+          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <span className="login-spinner" style={{ width: '16px', height: '16px' }}></span>
+            Checking admin session...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="login-page">

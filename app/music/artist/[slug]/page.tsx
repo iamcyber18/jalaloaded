@@ -53,7 +53,7 @@ export default async function ArtistPage({ params }: { params: Promise<{ slug: s
   // Find all songs where this artist appears (exact match OR as part of a collaboration)
   const escapedName = artist.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const artistRegex = new RegExp(escapedName, 'i');
-  const songs = await Song.find({ artist: artistRegex })
+  const songs = await Song.find({ artist: artistRegex, status: 'Published' })
     .sort({ createdAt: -1 })
     .lean();
 
