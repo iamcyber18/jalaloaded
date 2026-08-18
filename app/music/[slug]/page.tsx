@@ -27,10 +27,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title,
     description,
+    alternates: {
+      canonical: `/music/${slug}`,
+    },
     openGraph: {
       title,
       description,
       type: 'music.song',
+      url: `/music/${slug}`,
       ...(song.coverUrl ? { images: [{ url: song.coverUrl, width: 500, height: 500, alt: title }] } : {}),
     },
     twitter: {

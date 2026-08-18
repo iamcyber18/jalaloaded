@@ -14,8 +14,15 @@ import NewsletterForm from '@/components/NewsletterForm';
 import ShareButton from '@/components/ShareButton';
 import AdvertSlider from '@/components/AdvertSlider';
 import { ensurePublishedAtBackfill } from '@/lib/postPublishing';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+};
 
 type LeanId = {
   toString(): string;

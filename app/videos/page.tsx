@@ -3,9 +3,18 @@ import Video from '@/models/Video';
 import VideoCard from '@/components/VideoCard';
 import Link from 'next/link';
 
+import Song from '@/models/Song';
+import type { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
 
-import Song from '@/models/Song';
+export const metadata: Metadata = {
+  title: 'Videos — Watch Music Videos & Viral Clips | Jalaloaded',
+  description: 'Watch the latest official music videos, trending clips, live performances, and entertainment videos on Jalaloaded.',
+  alternates: {
+    canonical: '/videos',
+  },
+};
 
 async function getVideos(page: number, category?: string) {
   await dbConnect();

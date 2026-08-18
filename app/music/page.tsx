@@ -10,8 +10,17 @@ import UpcomingMusic from '@/models/UpcomingMusic';
 import Album from '@/models/Album';
 import CountdownTimer from '@/components/CountdownTimer';
 import TrackList from '@/components/TrackList';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Music — Stream & Download Latest Songs | Jalaloaded',
+  description: 'Download and stream the latest Afrobeats, Nigerian music, trending singles, and top albums on Jalaloaded.',
+  alternates: {
+    canonical: '/music',
+  },
+};
 
 async function getMusicData(genre?: string) {
   await dbConnect();

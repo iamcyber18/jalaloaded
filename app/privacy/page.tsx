@@ -4,6 +4,9 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Privacy Policy - Jalaloaded',
   description: 'Privacy Policy for Jalaloaded. Learn how we collect, use, and protect your data.',
+  alternates: {
+    canonical: '/privacy',
+  },
 };
 
 export default function PrivacyPage() {

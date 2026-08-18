@@ -1,10 +1,18 @@
 import dbConnect from '@/lib/mongodb';
 import Post from '@/models/Post';
 import PostCard from '@/components/PostCard';
-import Link from 'next/link';
 import { ensurePublishedAtBackfill } from '@/lib/postPublishing';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Blog — Latest Entertainment News & Updates | Jalaloaded',
+  description: 'Catch up on the latest entertainment news, trending topics, celebrity updates, and lifestyle stories on Jalaloaded.',
+  alternates: {
+    canonical: '/blog',
+  },
+};
 
 type BlogPost = {
   _id: { toString(): string };

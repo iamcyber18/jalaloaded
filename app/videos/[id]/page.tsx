@@ -45,10 +45,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     return {
       title: `${video.title} - Jalaloaded TV`,
       description: video.description || `Watch ${video.title} on Jalaloaded TV.`,
+      alternates: {
+        canonical: `/videos/${id}`,
+      },
       openGraph: {
         title: video.title,
         description: video.description || `Watch ${video.title} on Jalaloaded TV.`,
         type: 'video.other',
+        url: `/videos/${id}`,
         ...(video.thumbnailUrl ? { images: [{ url: video.thumbnailUrl }] } : {}),
       },
     };

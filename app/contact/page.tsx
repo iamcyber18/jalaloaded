@@ -4,6 +4,9 @@ import ContactForm from './ContactForm';
 export const metadata: Metadata = {
   title: 'Contact Us & About — Jalaloaded',
   description: 'Get in touch with Jalaloaded. Learn about our mission, music promotion, advertisements, sponsorships, or general inquiries. Reach us via email, phone, or WhatsApp.',
+  alternates: {
+    canonical: '/contact',
+  },
   openGraph: {
     title: 'Contact Us & About Jalaloaded',
     description: 'Get in touch with Jalaloaded for music submissions, adverts, and general inquiries.',

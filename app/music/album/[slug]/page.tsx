@@ -4,8 +4,36 @@ import Song from '@/models/Song';
 import Link from 'next/link';
 import { formatNumber } from '@/lib/utils';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  await dbConnect();
+  let album = await Album.findOne({ slug }).lean();
+  if (!album) {
+    try { album = await Album.findById(slug).lean(); } catch {}
+  }
+  if (!album) return { title: 'Album Not Found' };
+
+  const title = `${album.title} by ${album.artist} — Full Album Download`;
+  const description = album.description || `Listen to and download ${album.title} full album by ${album.artist} on Jalaloaded.`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/music/album/${slug}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/music/album/${slug}`,
+      ...(album.coverUrl ? { images: [{ url: album.coverUrl, width: 500, height: 500, alt: title }] } : {}),
+    },
+  };
+}
 
 async function getAlbumData(slug: string) {
   await dbConnect();

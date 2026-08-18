@@ -2,8 +2,17 @@ import dbConnect from '@/lib/mongodb';
 import UpcomingMusic from '@/models/UpcomingMusic';
 import Link from 'next/link';
 import CountdownTimer from '@/components/CountdownTimer';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Upcoming Drops — Song & Album Releases | Jalaloaded',
+  description: 'Track upcoming Afrobeats releases, album drop countdowns, and upcoming music premieres on Jalaloaded.',
+  alternates: {
+    canonical: '/upcoming',
+  },
+};
 
 export default async function UpcomingPage() {
   await dbConnect();

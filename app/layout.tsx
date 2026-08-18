@@ -25,9 +25,6 @@ export const metadata: Metadata = {
   authors: [{ name: 'Jalaloaded' }],
   creator: 'Jalaloaded',
   publisher: 'Jalaloaded',
-  alternates: {
-    canonical: 'https://jalaloaded.vercel.app',
-  },
   robots: {
     index: true,
     follow: true,

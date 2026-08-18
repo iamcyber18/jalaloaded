@@ -2,8 +2,17 @@ import dbConnect from '@/lib/mongodb';
 import LiveStream, { ILiveStream } from '@/models/LiveStream';
 import Link from 'next/link';
 import ShareButton from '@/components/ShareButton';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Live Scores & Streaming — Football & Events | Jalaloaded',
+  description: 'Watch live match broadcasts, follow real-time football scores, and stay updated with live sports commentary on Jalaloaded.',
+  alternates: {
+    canonical: '/live',
+  },
+};
 
 function getYoutubeId(url: string) {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;

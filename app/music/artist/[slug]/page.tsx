@@ -25,10 +25,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${artist.name} Songs & Biography`,
     description: artist.bio || `Listen to the latest songs by ${artist.name} on Jalaloaded.`,
+    alternates: {
+      canonical: `/music/artist/${slug}`,
+    },
     openGraph: {
       title: `${artist.name} on Jalaloaded`,
       description: artist.bio || `Listen to the latest songs by ${artist.name}.`,
       type: 'profile',
+      url: `/music/artist/${slug}`,
       ...(artist.image ? { images: [{ url: artist.image, width: 500, height: 500 }] } : {}),
     },
   };
