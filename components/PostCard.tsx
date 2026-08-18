@@ -36,7 +36,7 @@ export default function PostCard({ post }: { post: PostCardPost }) {
             alt={post.title}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: 'cover', objectPosition: 'center 20%' }}
           />
         ) : (
           <div style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: '50px', color: 'rgba(255,107,0,0.08)', letterSpacing: '2px' }}>

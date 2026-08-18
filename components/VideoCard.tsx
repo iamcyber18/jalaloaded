@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function VideoCard({ video }: { video: any }) {
   // Format duration if it exists (assuming it's in seconds)
@@ -34,10 +35,6 @@ export default function VideoCard({ video }: { video: any }) {
       }
     }
     
-    // For Facebook videos, we can't easily get thumbnails via URL
-    // For TikTok videos, thumbnails are also not easily accessible
-    // These would need custom thumbnail uploads or API integration
-    
     return null;
   };
 
@@ -46,7 +43,16 @@ export default function VideoCard({ video }: { video: any }) {
 
   return (
     <Link href={`/videos/${video.slug || video._id}`} className="video-card" style={{ display: 'block', textDecoration: 'none' }}>
-      <div className="vid-thumb" style={thumbnailUrl ? { backgroundImage: `url(${thumbnailUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' } : { position: 'relative' }}>
+      <div className="vid-thumb" style={{ position: 'relative', overflow: 'hidden' }}>
+        {thumbnailUrl ? (
+          <Image
+            src={thumbnailUrl}
+            alt={video.title || ''}
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+            style={{ objectFit: 'cover', objectPosition: 'center 20%' }}
+          />
+        ) : null}
         
         {/* Category / Official Video Badge */}
         <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 2 }}>
@@ -61,10 +67,10 @@ export default function VideoCard({ video }: { video: any }) {
           ) : null}
         </div>
 
-        <div className="vid-play">
+        <div className="vid-play" style={{ zIndex: 2 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         </div>
-        {video.duration ? <div className="vid-dur">{formatDuration(video.duration)}</div> : null}
+        {video.duration ? <div className="vid-dur" style={{ zIndex: 2 }}>{formatDuration(video.duration)}</div> : null}
       </div>
       <div className="vid-title" style={{ marginTop: '8px', fontSize: '13px', fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>{video.title}</div>
     </Link>
