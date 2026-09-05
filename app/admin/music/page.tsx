@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import toast from 'react-hot-toast';
 import AdminSidebar from '@/components/AdminSidebar';
 import { useAdminSession } from '@/components/useAdminSession';
 import Image from 'next/image';
-import { Music, Pencil, Trash2, Star, Circle, Play, Download } from 'lucide-react';
+import { Music, Pencil, Trash2, Star, Circle, Play, Download, Disc3, ListMusic, Plus, Search, Upload } from 'lucide-react';
 
 interface SongItem {
   _id: string;
@@ -61,6 +61,8 @@ export default function AdminMusicPage() {
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Published' | 'Pending'>('all');
   const coverInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -115,6 +117,23 @@ export default function AdminMusicPage() {
   };
 
   const genres = ['Afrobeats', 'Amapiano', 'Highlife', 'R&B', 'Gospel', 'Hip-hop', 'Other'];
+
+  const libraryMetrics = useMemo(() => ({
+    published: songs.filter((song) => song.status === 'Published').length,
+    pending: songs.filter((song) => song.status !== 'Published').length,
+    featured: songs.filter((song) => song.featured).length,
+    plays: songs.reduce((total, song) => total + (song.plays || 0), 0),
+  }), [songs]);
+
+  const filteredSongs = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return songs.filter((song) => {
+      const matchesStatus = statusFilter === 'all' || song.status === statusFilter;
+      const matchesQuery = !query || [song.title, song.artist, song.album, song.genre]
+        .some((value) => value?.toLowerCase().includes(query));
+      return matchesStatus && matchesQuery;
+    });
+  }, [songs, searchTerm, statusFilter]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -354,10 +373,15 @@ export default function AdminMusicPage() {
       <div className="jl">
         <AdminSidebar />
         <div className="main">
-          <div className="topbar">
-            <div className="page-title">Music</div>
-            <div className="topbar-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: isMobile ? 'flex-end' : 'flex-start' }}>
-              <button className="btn-publish" onClick={() => {
+          <div className="music-library-shell">
+          <div className="music-library-header">
+            <div>
+              <div className="music-library-eyebrow"><Disc3 size={14} /> Music management</div>
+              <h1 className="music-library-title">Music Library</h1>
+              <p className="music-library-subtitle">Manage releases, publishing status, and your catalogue in one place.</p>
+            </div>
+            <div className="music-library-actions">
+              <button className="music-primary-action" onClick={() => {
                 if (showForm) {
                   resetForm();
                   setShowForm(false);
@@ -368,11 +392,18 @@ export default function AdminMusicPage() {
               }}>
                 {showForm ? '✕ Close' : '+ Upload Song'}
               </button>
-              <button className="btn-publish" onClick={() => setShowAlbumModal(true)}>
-                + Create Album
+              <button className="music-secondary-action" onClick={() => setShowAlbumModal(true)}>
+                <Plus size={15} /> Create Album
               </button>
             </div>
           </div>
+
+          <section className="music-library-metrics" aria-label="Music library summary">
+            <div className="music-library-metric"><span className="music-metric-icon"><ListMusic size={17} /></span><div><strong>{songs.length}</strong><span>Total tracks</span></div></div>
+            <div className="music-library-metric"><span className="music-metric-icon published"><Circle size={15} fill="currentColor" /></span><div><strong>{libraryMetrics.published}</strong><span>Published</span></div></div>
+            <div className="music-library-metric"><span className="music-metric-icon featured"><Star size={16} fill="currentColor" /></span><div><strong>{libraryMetrics.featured}</strong><span>Featured</span></div></div>
+            <div className="music-library-metric"><span className="music-metric-icon plays"><Play size={16} fill="currentColor" /></span><div><strong>{libraryMetrics.plays.toLocaleString()}</strong><span>Total plays</span></div></div>
+          </section>
 
           {showAlbumModal && (
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.78)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200, padding: '20px' }}>
@@ -474,12 +505,15 @@ export default function AdminMusicPage() {
             </div>
           )}
 
-          <div style={{ padding: isMobile ? '0 16px 32px' : '0 24px 40px', maxWidth: '900px', margin: '0 auto' }}>
+          <div className="music-library-content">
             {/* UPLOAD FORM */}
             {showForm && (
-              <div style={S.card}>
-                <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {editingId ? <><Pencil size={16} style={{ color: '#FF6B00' }} /> Edit Song</> : <><Music size={16} style={{ color: '#FF6B00' }} /> Upload New Song</>}
+              <section className="music-upload-panel" style={S.card}>
+                <div className="music-upload-panel-heading">
+                  <div className="music-upload-panel-title">
+                    {editingId ? <><Pencil size={16} /> Edit release</> : <><Music size={16} /> Add a new release</>}
+                  </div>
+                  <p>{editingId ? 'Update the track details and publishing settings.' : 'Upload the audio first, then complete the release information below.'}</p>
                 </div>
 
                 {/* Cover Image */}
@@ -806,24 +840,24 @@ export default function AdminMusicPage() {
                 >
                   {saving ? 'Saving...' : form.status === 'Published' ? '🎶 Publish Song' : '💾 Save as Draft'}
                 </button>
-              </div>
+              </section>
             )}
 
-            <div style={{ marginTop: '8px' }}>
-              <div style={{ ...S.card, marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>Albums ({albumsList.length})</div>
-                  <button onClick={() => setShowAlbumModal(true)} style={{ background: 'rgba(255,107,0,0.1)', border: 'none', color: '#FF6B00', cursor: 'pointer', fontSize: '12px', padding: '6px 10px', borderRadius: '8px', fontWeight: 700 }}>
-                    + New Album
+            <div className="music-library-sections">
+              <section className="music-albums-panel" style={{ ...S.card, marginBottom: '24px' }}>
+                <div className="music-panel-heading" style={{ marginBottom: '12px' }}>
+                  <div><span className="music-panel-kicker">Collections</span><div className="music-panel-title">Albums <span>{albumsList.length}</span></div></div>
+                  <button className="music-text-action" onClick={() => setShowAlbumModal(true)}>
+                    <Plus size={14} /> New Album
                   </button>
                 </div>
 
                 {albumsList.length === 0 ? (
                   <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>No albums created yet.</div>
                 ) : (
-                  <div style={{ display: 'grid', gap: '10px' }}>
+                  <div className="music-album-list">
                     {albumsList.map(album => (
-                      <div key={album._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div key={album._id} className="music-album-item">
                         <div>
                           <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{album.title}</div>
                           <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }}>{album.artist} • {album.type} • {album.year}</div>
@@ -835,29 +869,45 @@ export default function AdminMusicPage() {
                     ))}
                   </div>
                 )}
-              </div>
+              </section>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>All Songs ({songs.length})</div>
-              </div>
+              <section className="music-tracks-panel">
+                <div className="music-panel-heading music-tracks-heading">
+                  <div><span className="music-panel-kicker">Catalogue</span><div className="music-panel-title">All tracks <span>{filteredSongs.length}</span></div></div>
+                  <div className="music-library-filters">
+                    <label className="music-search">
+                      <Search size={15} />
+                      <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search title, artist, album..." />
+                    </label>
+                    <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'all' | 'Published' | 'Pending')} aria-label="Filter tracks by status">
+                      <option value="all">All statuses</option>
+                      <option value="Published">Published</option>
+                      <option value="Pending">Drafts</option>
+                    </select>
+                  </div>
+                </div>
+
+                {!loading && songs.length > 0 && <div className="music-library-column-labels"><span>Track</span><span>Performance</span><span>Actions</span></div>}
 
               {loading ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>Loading songs...</div>
+                <div className="music-library-empty">Loading your music library...</div>
               ) : songs.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>No songs uploaded yet. Click &quot;Upload Song&quot; to get started!</div>
+                <div className="music-library-empty">No songs uploaded yet. Use <strong>Upload Song</strong> to add your first release.</div>
+              ) : filteredSongs.length === 0 ? (
+                <div className="music-library-empty">No tracks match this search or status filter.</div>
               ) : (
-                songs.map((song, i) => (
-                  <div key={song._id} style={S.songRow}>
-                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', fontWeight: 700, width: '24px', textAlign: 'center' }}>{String(i + 1).padStart(2, '0')}</div>
-                    <div style={{
+                filteredSongs.map((song, i) => (
+                  <article key={song._id} className="music-library-row">
+                    <div className="music-track-number">{String(i + 1).padStart(2, '0')}</div>
+                    <div className="music-track-cover" style={{
                       width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0,
                       background: song.coverUrl ? `url(${song.coverUrl}) center/cover` : 'linear-gradient(135deg, #FF6B00, #c84b00)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
                       {!song.coverUrl && <Music size={18} style={{ opacity: 0.5, color: '#fff' }} />}
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
+                    <div className="music-track-details" style={{ flex: 1, minWidth: 0 }}>
+                      <div className="music-track-title" style={{ fontSize: '13px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <div style={{
                           fontSize: '9px', fontWeight: 800, padding: '3px 6px', borderRadius: '4px',
@@ -873,11 +923,11 @@ export default function AdminMusicPage() {
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
+                    <div className="music-track-performance" style={{ display: 'flex', gap: '16px', alignItems: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}><Play size={10} fill="#6358FF" color="#6358FF" /> {song.plays || 0}</span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}><Download size={10} /> {song.downloads || 0}</span>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <div className="music-track-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <button
                         onClick={() => handleToggleStatus(song._id, song.status || 'Pending')}
                         style={{ padding: '6px 12px', borderRadius: '8px', border: `1px solid ${song.status === 'Published' ? 'rgba(255,107,0,0.3)' : 'rgba(29,190,115,0.3)'}`, background: song.status === 'Published' ? 'rgba(255,107,0,0.08)' : 'rgba(29,190,115,0.08)', color: song.status === 'Published' ? '#FF6B00' : '#1DBE73', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
@@ -918,10 +968,12 @@ export default function AdminMusicPage() {
                         title="Delete song"
                       ><Trash2 size={13} /></button>
                     </div>
-                  </div>
+                  </article>
                 ))
               )}
+              </section>
             </div>
+          </div>
           </div>
         </div>
       </div>

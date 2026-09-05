@@ -1,7 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
+import {
+  CalendarClock,
+  Circle,
+  ExternalLink,
+  MonitorPlay,
+  Pencil,
+  Plus,
+  Radio,
+  Save,
+  Trash2,
+  X,
+} from 'lucide-react';
 import AdminSidebar from '@/components/AdminSidebar';
 import { useAdminSession } from '@/components/useAdminSession';
 
@@ -12,6 +24,23 @@ interface ILiveStream {
   url: string;
   isActive: boolean;
   description?: string;
+  startTime?: string;
+  updatedAt?: string;
+}
+
+const emptyForm = {
+  title: '',
+  platform: 'youtube' as 'youtube' | 'facebook',
+  url: '',
+  isActive: false,
+  description: '',
+  startTime: '',
+};
+
+function toDateTimeInput(value?: string) {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 16);
 }
 
 export default function AdminLivePage() {
@@ -19,14 +48,13 @@ export default function AdminLivePage() {
   const [streams, setStreams] = useState<ILiveStream[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
-  const [form, setForm] = useState({
-    title: '',
-    platform: 'youtube' as 'youtube' | 'facebook',
-    url: '',
-    isActive: false,
-    description: ''
-  });
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyForm);
+
+  const liveCount = useMemo(() => streams.filter((stream) => stream.isActive).length, [streams]);
+  const scheduledCount = useMemo(() => streams.filter((stream) => !stream.isActive && stream.startTime).length, [streams]);
+  const activeStream = useMemo(() => streams.find((stream) => stream.isActive), [streams]);
 
   useEffect(() => {
     fetchStreams();
@@ -35,39 +63,67 @@ export default function AdminLivePage() {
   const fetchStreams = async () => {
     try {
       const res = await fetch('/api/live');
+      if (!res.ok) throw new Error('Failed');
       const data = await res.json();
-      setStreams(data);
+      setStreams(Array.isArray(data) ? data : []);
     } catch {
       toast.error('Failed to load streams');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.title || !form.url) {
-      toast.error('Please fill in required fields');
+  const closeForm = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  const startNewStream = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+    setShowForm(true);
+  };
+
+  const startEditing = (stream: ILiveStream) => {
+    setForm({
+      title: stream.title,
+      platform: stream.platform,
+      url: stream.url,
+      isActive: stream.isActive,
+      description: stream.description || '',
+      startTime: toDateTimeInput(stream.startTime),
+    });
+    setEditingId(stream._id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!form.title.trim() || !form.url.trim()) {
+      toast.error('Add a stream title and URL first');
       return;
     }
 
     setSaving(true);
     try {
+      const isEditing = Boolean(editingId);
       const res = await fetch('/api/live', {
-        method: 'POST',
+        method: isEditing ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify(isEditing ? { id: editingId, ...form } : form),
       });
-      if (res.ok) {
-        toast.success('Live stream added!');
-        setForm({ title: '', platform: 'youtube', url: '', isActive: false, description: '' });
-        fetchStreams();
-      } else {
-        toast.error('Failed to add stream');
-      }
+      if (!res.ok) throw new Error('Failed');
+
+      toast.success(isEditing ? 'Live stream updated' : 'Live stream created');
+      closeForm();
+      fetchStreams();
     } catch {
-      toast.error('An error occurred');
+      toast.error(editingId ? 'Could not update the stream' : 'Could not create the stream');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const toggleActive = async (id: string, currentStatus: boolean) => {
@@ -75,153 +131,149 @@ export default function AdminLivePage() {
       const res = await fetch('/api/live', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, isActive: !currentStatus })
+        body: JSON.stringify({ id, isActive: !currentStatus }),
       });
-      if (res.ok) {
-        toast.success(!currentStatus ? 'Stream is now LIVE!' : 'Stream turned off');
-        fetchStreams();
-      }
+      if (!res.ok) throw new Error('Failed');
+      toast.success(!currentStatus ? 'Stream is now live' : 'Stream taken offline');
+      fetchStreams();
     } catch {
-      toast.error('Failed to update status');
+      toast.error('Failed to update stream status');
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this stream?')) return;
+    if (!confirm('Delete this live stream? This cannot be undone.')) return;
     try {
       const res = await fetch(`/api/live/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        toast.success('Deleted');
-        fetchStreams();
-      }
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Live stream deleted');
+      if (editingId === id) closeForm();
+      fetchStreams();
     } catch {
-      toast.error('Delete failed');
+      toast.error('Could not delete this stream');
     }
   };
 
   if (sessionLoading) return null;
   if (session?.role !== 'admin') {
     return (
-      <div className="jl">
-        <AdminSidebar />
-        <div className="main">
-          <div style={{ padding: '40px', textAlign: 'center', color: '#fff' }}>Access Denied. Admins only.</div>
-        </div>
-      </div>
+      <div className="jl"><AdminSidebar /><main className="main"><div className="admin-access-denied">Access denied. Only administrators can manage live streams.</div></main></div>
     );
   }
 
   return (
     <div className="jl">
       <AdminSidebar />
-      <div className="main">
-        <div className="topbar">
-          <div className="page-title">Live Streaming</div>
-        </div>
+      <main className="main">
+        <div className="live-admin-shell">
+          <header className="live-admin-header">
+            <div>
+              <div className="live-admin-eyebrow"><Radio size={14} /> Broadcast centre</div>
+              <h1>Live streams</h1>
+              <p>Create, schedule, publish, and update every broadcast from one place.</p>
+            </div>
+            <button className="live-admin-primary" onClick={showForm ? closeForm : startNewStream}>
+              {showForm ? <><X size={16} /> Close editor</> : <><Plus size={16} /> New live stream</>}
+            </button>
+          </header>
 
-        <div style={{ padding: '0 24px 40px', maxWidth: '800px' }}>
-          {/* Create Form */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '24px', marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#fff', marginBottom: '20px', fontFamily: '"Syne", sans-serif' }}>Setup New Stream</h2>
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '20px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <section className="live-admin-spotlight">
+            <div className={`live-spotlight-signal ${activeStream ? 'is-live' : ''}`}><Radio size={28} /><span /></div>
+            <div className="live-spotlight-copy">
+              <span className="live-spotlight-label">Broadcast status</span>
+              <h2>{activeStream ? activeStream.title : 'Your studio is ready'}</h2>
+              <p>{activeStream ? `Currently streaming on ${activeStream.platform === 'youtube' ? 'YouTube' : 'Facebook'}. Use the library below to update or take it offline.` : 'Set up a stream, add the broadcast link, and publish when you are ready to go live.'}</p>
+            </div>
+            <div className="live-spotlight-action">
+              <span className={activeStream ? 'live-spotlight-state is-live' : 'live-spotlight-state'}><Circle size={7} fill="currentColor" /> {activeStream ? 'Live now' : 'No active stream'}</span>
+              {activeStream ? <button onClick={() => startEditing(activeStream)}><Pencil size={14} /> Edit broadcast</button> : <button onClick={startNewStream}><Plus size={14} /> Set up stream</button>}
+            </div>
+          </section>
+
+          <section className="live-admin-stats" aria-label="Live stream summary">
+            <div><span className="live-admin-stat-icon"><MonitorPlay size={17} /></span><strong>{streams.length}</strong><span>Total streams</span></div>
+            <div><span className="live-admin-stat-icon is-live"><Circle size={14} fill="currentColor" /></span><strong>{liveCount}</strong><span>Live now</span></div>
+            <div><span className="live-admin-stat-icon is-scheduled"><CalendarClock size={17} /></span><strong>{scheduledCount}</strong><span>Scheduled</span></div>
+          </section>
+
+          {showForm && (
+            <section className="live-stream-editor">
+              <div className="live-editor-heading">
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: '8px', textTransform: 'uppercase' }}>Stream Title</label>
-                  <input 
-                    className="ad-input" 
-                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)' }}
-                    value={form.title}
-                    onChange={e => setForm({...form, title: e.target.value})}
-                    placeholder="e.g. Sunday Morning Live"
-                  />
+                  <span>{editingId ? 'Edit stream' : 'New stream'}</span>
+                  <h2>{editingId ? 'Update broadcast details' : 'Set up your broadcast'}</h2>
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: '8px', textTransform: 'uppercase' }}>Platform</label>
-                  <select 
-                    className="ad-input" 
-                    style={{ width: '100%', background: 'rgba(0,0,0,0.2)' }}
-                    value={form.platform}
-                    onChange={e => setForm({...form, platform: e.target.value as any})}
-                  >
-                    <option value="youtube" style={{background:'#111'}}>YouTube</option>
-                    <option value="facebook" style={{background:'#111'}}>Facebook</option>
+                {editingId && <div className="live-editor-editing"><Pencil size={13} /> Editing existing stream</div>}
+              </div>
+
+              <form onSubmit={handleSubmit} className="live-editor-form">
+                <label className="live-field live-field-wide">
+                  <span>Stream title <b>*</b></span>
+                  <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="e.g. Sunday Morning Live" />
+                </label>
+                <label className="live-field">
+                  <span>Platform <b>*</b></span>
+                  <select value={form.platform} onChange={(event) => setForm({ ...form, platform: event.target.value as 'youtube' | 'facebook' })}>
+                    <option value="youtube">YouTube</option>
+                    <option value="facebook">Facebook</option>
                   </select>
+                </label>
+                <label className="live-field">
+                  <span>Start time</span>
+                  <input type="datetime-local" value={form.startTime} onChange={(event) => setForm({ ...form, startTime: event.target.value })} />
+                </label>
+                <label className="live-field live-field-wide">
+                  <span>Stream URL <b>*</b></span>
+                  <input type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
+                </label>
+                <label className="live-field live-field-wide">
+                  <span>Description</span>
+                  <textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Tell your audience what this stream is about..." />
+                </label>
+                <label className="live-publish-toggle">
+                  <input type="checkbox" checked={form.isActive} onChange={(event) => setForm({ ...form, isActive: event.target.checked })} />
+                  <span className="live-toggle-control" />
+                  <span><strong>Go live immediately</strong><small>Make this stream visible to visitors as soon as you save.</small></span>
+                </label>
+                <div className="live-editor-actions">
+                  <button type="button" className="live-cancel-action" onClick={closeForm}>Cancel</button>
+                  <button type="submit" className="live-admin-primary" disabled={saving}><Save size={15} /> {saving ? 'Saving...' : editingId ? 'Save changes' : 'Create stream'}</button>
                 </div>
-              </div>
+              </form>
+            </section>
+          )}
 
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: '8px', textTransform: 'uppercase' }}>Stream URL (Full Link)</label>
-                <input 
-                  className="ad-input" 
-                  style={{ width: '100%', background: 'rgba(0,0,0,0.2)' }}
-                  value={form.url}
-                  onChange={e => setForm({...form, url: e.target.value})}
-                  placeholder="e.g. https://www.youtube.com/watch?v=..."
-                />
-              </div>
+          <section className="live-streams-panel">
+            <div className="live-panel-heading">
+              <div><span>Broadcast library</span><h2>Your streams <em>{streams.length}</em></h2></div>
+              <p>{liveCount ? `${liveCount} stream${liveCount > 1 ? 's are' : ' is'} live right now.` : 'Choose a stream below to edit or take it live.'}</p>
+            </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: '8px', textTransform: 'uppercase' }}>Description (Optional)</label>
-                <textarea 
-                  className="ad-input" 
-                  style={{ width: '100%', background: 'rgba(0,0,0,0.2)', height: '80px', paddingTop: '10px' }}
-                  value={form.description}
-                  onChange={e => setForm({...form, description: e.target.value})}
-                  placeholder="Tell your audience what this stream is about..."
-                />
+            {loading ? <div className="live-empty-state">Loading live streams...</div> : streams.length === 0 ? (
+              <div className="live-empty-state"><Radio size={22} /><strong>No live streams yet</strong><span>Create your first broadcast to get started.</span><button onClick={startNewStream}>Create live stream</button></div>
+            ) : (
+              <div className="live-stream-list">
+                {streams.map((stream) => (
+                  <article key={stream._id} className={`live-stream-card ${stream.isActive ? 'is-active' : ''}`}>
+                    <div className={`live-platform-mark ${stream.platform}`}><MonitorPlay size={19} /></div>
+                    <div className="live-stream-info">
+                      <div className="live-stream-title-row"><h3>{stream.title}</h3>{stream.isActive && <span className="live-now-badge"><Circle size={6} fill="currentColor" /> Live now</span>}</div>
+                      <p>{stream.description || `${stream.platform === 'youtube' ? 'YouTube' : 'Facebook'} broadcast`}</p>
+                      <div className="live-stream-meta"><span>{stream.platform === 'youtube' ? 'YouTube' : 'Facebook'}</span>{stream.startTime && <span><CalendarClock size={12} /> {new Date(stream.startTime).toLocaleString()}</span>}</div>
+                    </div>
+                    <div className="live-stream-actions">
+                      <button className={`live-status-action ${stream.isActive ? 'is-live' : ''}`} onClick={() => toggleActive(stream._id, stream.isActive)}>{stream.isActive ? 'Take offline' : 'Go live'}</button>
+                      <button className="live-icon-action" onClick={() => startEditing(stream)} title="Edit stream" aria-label={`Edit ${stream.title}`}><Pencil size={15} /></button>
+                      <a className="live-icon-action" href={stream.url} target="_blank" rel="noreferrer" title="Open stream" aria-label={`Open ${stream.title}`}><ExternalLink size={15} /></a>
+                      <button className="live-icon-action danger" onClick={() => handleDelete(stream._id)} title="Delete stream" aria-label={`Delete ${stream.title}`}><Trash2 size={15} /></button>
+                    </div>
+                  </article>
+                ))}
               </div>
-
-              <button 
-                type="submit" 
-                disabled={saving}
-                style={{ 
-                  background: '#FF6B00', color: '#fff', border: 'none', padding: '12px', 
-                  borderRadius: '10px', fontWeight: 700, cursor: 'pointer', transition: '0.2s'
-                }}
-              >
-                {saving ? 'Saving...' : 'Add Stream'}
-              </button>
-            </form>
-          </div>
-
-          {/* List */}
-          <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', marginBottom: '16px', fontFamily: '"Syne", sans-serif' }}>Past & Scheduled Streams</h2>
-          <div style={{ display: 'grid', gap: '12px' }}>
-            {streams.map(s => (
-              <div key={s._id} style={{ 
-                background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', 
-                borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '16px'
-              }}>
-                <div style={{ 
-                  width: '40px', height: '40px', borderRadius: '8px', background: s.platform === 'youtube' ? '#ff000022' : '#0066ff22',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.platform === 'youtube' ? '#ff4444' : '#4488ff', fontSize: '20px'
-                }}>
-                  {s.platform === 'youtube' ? '📺' : '👥'}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{s.title}</div>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{s.platform} • {s.url}</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button 
-                    onClick={() => toggleActive(s._id, s.isActive)}
-                    style={{ 
-                      background: s.isActive ? '#1DBE73' : 'rgba(255,255,255,0.05)',
-                      color: s.isActive ? '#fff' : 'rgba(255,255,255,0.4)',
-                      border: 'none', padding: '6px 14px', borderRadius: '20px', fontSize: '10px', fontWeight: 800, cursor: 'pointer'
-                    }}
-                  >
-                    {s.isActive ? '🔴 LIVE NOW' : 'GO LIVE'}
-                  </button>
-                </div>
-              </div>
-            ))}
-            {streams.length === 0 && !loading && (
-              <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255,255,255,0.2)', fontSize: '13px' }}>No streams added yet.</div>
             )}
-          </div>
+          </section>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

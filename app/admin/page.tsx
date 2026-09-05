@@ -9,6 +9,7 @@ import PostMediaUploader from '@/components/PostMediaUploader';
 import RichTextEditor from '@/components/RichTextEditor';
 import { useAdminSession } from '@/components/useAdminSession';
 import { IMediaItem } from '@/models/Post';
+import { FilePenLine, ImagePlus, MessageSquare, Save, Tags } from 'lucide-react';
 
 export default function AdminPage() {
   const [form, setForm] = useState({
@@ -120,6 +121,8 @@ export default function AdminPage() {
   };
 
   const categories = ['General', 'Music', 'Sports', 'Lifestyle', 'Politics', 'Entertainment', 'Fashion', 'News', 'Opinion', 'Events', 'Business', 'Health and Wellbeing', 'Sciences', 'Technology'];
+  const completedSections = [form.introduction, form.mainContent, form.conclusion].filter(Boolean).length;
+  const wordCount = buildBody().trim() ? buildBody().trim().split(/\s+/).length : 0;
 
   return (
     <div className="jl">
@@ -127,22 +130,34 @@ export default function AdminPage() {
 
       {/* MAIN */}
       <div className="main">
-        <div className="topbar">
-          <div className="page-title">Create New Post</div>
-          <div className="topbar-actions">
+        <div className="post-editor-shell">
+        <div className="topbar post-editor-header">
+          <div>
+            <div className="post-editor-eyebrow"><FilePenLine size={14} /> Editorial workspace</div>
+            <h1>Create a new post</h1>
+            <p>Build your story, organise its settings, then publish when it is ready.</p>
+          </div>
+          <div className="topbar-actions post-editor-actions">
             <button className="btn-draft" onClick={() => setShowPreview(true)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}>👁️ Preview</button>
-            <button className="btn-draft" onClick={() => handleSubmit('draft')}>Save Draft</button>
-            <button className="btn-publish" onClick={() => handleSubmit('published')} disabled={isSubmitting}>
+            <button className="btn-draft post-editor-secondary-action" onClick={() => handleSubmit('draft')}><Save size={15} /> Save draft</button>
+            <button className="btn-publish post-editor-primary-action" onClick={() => handleSubmit('published')} disabled={isSubmitting}>
               {isSubmitting ? 'Publishing...' : 'Publish Post'}
             </button>
           </div>
         </div>
 
-        <div className="editor-area">
+        <section className="post-editor-overview" aria-label="Post progress">
+          <div><span className="post-editor-overview-icon"><FilePenLine size={16} /></span><strong>{completedSections}/3</strong><span>Sections written</span></div>
+          <div><span className="post-editor-overview-icon media"><ImagePlus size={16} /></span><strong>{media.length}</strong><span>Media items</span></div>
+          <div><span className="post-editor-overview-icon tags"><Tags size={16} /></span><strong>{tagPills.length}</strong><span>Tags added</span></div>
+          <div><span className="post-editor-overview-icon words"><MessageSquare size={16} /></span><strong>{wordCount.toLocaleString()}</strong><span>Words written</span></div>
+        </section>
+
+        <div className="editor-area post-editor-layout">
           {/* LEFT: EDITOR */}
-          <div>
+          <div className="post-editor-canvas">
             {/* TITLE */}
-            <div className="form-card">
+            <div className="form-card post-title-card">
               <div className="field-label">Post Title</div>
               <input
                 className="field-title"
@@ -156,7 +171,7 @@ export default function AdminPage() {
 
             <div className="section-gap"></div>
 
-            <PostMediaUploader media={media} onChange={setMedia} />
+            <section className="post-media-section"><PostMediaUploader media={media} onChange={setMedia} /></section>
 
             <div className="section-gap"></div>
 
@@ -199,10 +214,11 @@ export default function AdminPage() {
           </div>
 
           {/* RIGHT: SIDEBAR PANELS */}
-          <div>
+          <aside className="post-editor-settings">
             {/* Publish Settings */}
-            <div className="side-card">
-              <div className="side-title">Publish Settings</div>
+            <div className="side-card post-settings-card">
+              <div className="post-settings-kicker">Publishing</div>
+              <div className="side-title">Visibility & discussion</div>
               <div className="status-row">
                 <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Allow comments</span>
                 <label className="toggle">
@@ -230,7 +246,8 @@ export default function AdminPage() {
             </div>
 
             {/* Category */}
-            <div className="side-card">
+            <div className="side-card post-settings-card">
+              <div className="post-settings-kicker">Organisation</div>
               <div className="side-title">Category</div>
               <div style={{ fontSize: '10px', color: 'var(--color-text-tertiary)', marginBottom: '10px' }}>Pick the topic that fits your post</div>
               <div className="cat-grid">
@@ -247,7 +264,8 @@ export default function AdminPage() {
             </div>
 
             {/* Tags */}
-            <div className="side-card">
+            <div className="side-card post-settings-card">
+              <div className="post-settings-kicker">Discoverability</div>
               <div className="side-title">Tags</div>
               <input
                 className="field-input"
@@ -279,8 +297,9 @@ export default function AdminPage() {
             </div>
 
             {/* PREVIEW STRIP */}
-            <div className="side-card">
-              <div className="side-title">Post Preview</div>
+            <div className="side-card post-preview-card">
+              <div className="post-settings-kicker">At a glance</div>
+              <div className="side-title">Post preview</div>
               <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', lineHeight: '1.6' }}>
                 <div style={{ fontWeight: 600, color: 'var(--color-text-primary)', fontSize: '13px', marginBottom: '4px' }}>
                   {form.title || 'Untitled Post'}
@@ -301,7 +320,8 @@ export default function AdminPage() {
                 )}
               </div>
             </div>
-          </div>
+          </aside>
+        </div>
         </div>
       </div>
       {/* POST PREVIEW MODAL */}

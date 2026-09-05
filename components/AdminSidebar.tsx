@@ -3,14 +3,45 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import {
+  CalendarClock,
+  FilePlus2,
+  FileText,
+  LayoutDashboard,
+  Mail,
+  Megaphone,
+  Music2,
+  Radio,
+  Settings,
+  UsersRound,
+  Video,
+  type LucideIcon,
+} from 'lucide-react';
 import { useAdminSession } from '@/components/useAdminSession';
 
-function NavLink({ href, label, active, onClick }: { href: string; label: string; active: boolean; onClick?: () => void }) {
+type NavItemProps = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  onClick?: () => void;
+};
+
+function NavItem({ href, label, icon: Icon, active, onClick }: NavItemProps) {
   return (
     <Link href={href} className={`nav-item ${active ? 'active' : ''}`} onClick={onClick}>
-      <div className="nav-dot"></div>
-      {label}
+      <Icon className="nav-icon" size={16} strokeWidth={1.8} aria-hidden="true" />
+      <span>{label}</span>
     </Link>
+  );
+}
+
+function NavGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="nav-group" aria-label={title}>
+      <div className="nav-section">{title}</div>
+      <div className="nav-group-items">{children}</div>
+    </section>
   );
 }
 
@@ -22,8 +53,8 @@ export default function AdminSidebar() {
 
   const profileName = session?.displayName || 'Admin';
   const profileInitials = profileName.slice(0, 2).toUpperCase();
-  const isSubAdmin = session?.role === 'sub-admin';
-  const postsLabel = loading ? 'Posts' : isSubAdmin ? 'My Posts' : 'All Posts';
+  const isAdmin = session?.role === 'admin';
+  const postsLabel = loading ? 'Posts' : isAdmin ? 'All Posts' : 'My Posts';
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -34,73 +65,70 @@ export default function AdminSidebar() {
   const closeMenu = () => setIsOpen(false);
 
   return (
-    <div className="admin-sidebar">
-      <div className="logo-area" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <img src="/images/jalaloadedlogo.png" alt="Jalaloaded Logo" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
-          <div className="logo-sub" style={{ marginTop: '4px' }}>Admin Panel</div>
+    <aside className="admin-sidebar">
+      <div className="logo-area">
+        <div className="admin-brand">
+          <img src="/images/jalaloadedlogo.png" alt="Jalaloaded" className="admin-logo" />
+          <div className="logo-sub">Admin workspace</div>
         </div>
-        <button 
+        <button
           className="mobile-menu-toggle"
-          onClick={() => setIsOpen(!isOpen)}
-          style={{ background: 'none', border: 'none', color: '#fff', padding: '8px', cursor: 'pointer' }}
+          onClick={() => setIsOpen((open) => !open)}
+          aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+          aria-expanded={isOpen}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            {isOpen ? (
-              <>
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </>
-            ) : (
-              <>
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </>
-            )}
-          </svg>
+          {isOpen ? '×' : '☰'}
         </button>
       </div>
 
       <div className={`nav-links-container ${isOpen ? 'open' : ''}`}>
-        <div className="nav-section">Content</div>
-        <NavLink href="/admin/dashboard" label="Dashboard" active={pathname === '/admin/dashboard'} onClick={closeMenu} />
-        <NavLink href="/admin" label="New Post" active={pathname === '/admin'} onClick={closeMenu} />
-        <NavLink href="/admin/posts" label={postsLabel} active={pathname === '/admin/posts'} onClick={closeMenu} />
-        {session?.role === 'admin' && <NavLink href="/admin/live" label="Live Stream" active={pathname === '/admin/live'} onClick={closeMenu} />}
-        {session?.role === 'admin' && <NavLink href="/admin/music" label="Music" active={pathname === '/admin/music'} onClick={closeMenu} />}
-        {session?.role === 'admin' && <NavLink href="/admin/upcoming" label="Upcoming Music" active={pathname === '/admin/upcoming'} onClick={closeMenu} />}
-        {session?.role === 'admin' && <NavLink href="/admin/videos" label="Videos" active={pathname === '/admin/videos'} onClick={closeMenu} />}
-        {session?.role === 'admin' && <NavLink href="/admin/artists" label="Artists" active={pathname === '/admin/artists'} onClick={closeMenu} />}
+        <nav className="admin-navigation" aria-label="Admin navigation">
+          <NavGroup title="Overview">
+            <NavItem href="/admin/dashboard" label="Dashboard" icon={LayoutDashboard} active={pathname === '/admin/dashboard'} onClick={closeMenu} />
+          </NavGroup>
 
-        <div className="nav-section">Manage</div>
-        {session?.role === 'admin' && <NavLink href="/admin/newsletter" label="Newsletter" active={pathname === '/admin/newsletter'} onClick={closeMenu} />}
-        {session?.role === 'admin' && <NavLink href="/admin/users" label="Team" active={pathname === '/admin/users'} onClick={closeMenu} />}
-        {session?.role === 'admin' && <NavLink href="/admin/adverts" label="Adverts" active={pathname === '/admin/adverts'} onClick={closeMenu} />}
-        <NavLink href="/admin/account" label="Account Settings" active={pathname === '/admin/account'} onClick={closeMenu} />
+          <NavGroup title="Publishing">
+            <NavItem href="/admin" label="Create Post" icon={FilePlus2} active={pathname === '/admin'} onClick={closeMenu} />
+            <NavItem href="/admin/posts" label={postsLabel} icon={FileText} active={pathname === '/admin/posts'} onClick={closeMenu} />
+            {isAdmin && <NavItem href="/admin/live" label="Live Stream" icon={Radio} active={pathname === '/admin/live'} onClick={closeMenu} />}
+            {isAdmin && <NavItem href="/admin/videos" label="Videos" icon={Video} active={pathname === '/admin/videos'} onClick={closeMenu} />}
+          </NavGroup>
+
+          {isAdmin && (
+            <NavGroup title="Music">
+              <NavItem href="/admin/music" label="Music Library" icon={Music2} active={pathname === '/admin/music'} onClick={closeMenu} />
+              <NavItem href="/admin/artists" label="Artists" icon={UsersRound} active={pathname === '/admin/artists'} onClick={closeMenu} />
+              <NavItem href="/admin/upcoming" label="Upcoming Releases" icon={CalendarClock} active={pathname === '/admin/upcoming'} onClick={closeMenu} />
+            </NavGroup>
+          )}
+
+          <NavGroup title="Administration">
+            {isAdmin && <NavItem href="/admin/adverts" label="Adverts" icon={Megaphone} active={pathname === '/admin/adverts'} onClick={closeMenu} />}
+            {isAdmin && <NavItem href="/admin/newsletter" label="Newsletter" icon={Mail} active={pathname === '/admin/newsletter'} onClick={closeMenu} />}
+            {isAdmin && <NavItem href="/admin/users" label="Team" icon={UsersRound} active={pathname === '/admin/users'} onClick={closeMenu} />}
+            <NavItem href="/admin/account" label="Account Settings" icon={Settings} active={pathname === '/admin/account'} onClick={closeMenu} />
+          </NavGroup>
+        </nav>
 
         <div className="author-area">
           <div className="author-row">
-            <div 
-              className="av" 
-              style={{ 
+            <div
+              className="av"
+              style={{
                 background: (session as any)?.profileImageUrl ? `url(${(session as any).profileImageUrl}) center/cover` : 'var(--orange)',
-                color: (session as any)?.profileImageUrl ? 'transparent' : '#fff'
+                color: (session as any)?.profileImageUrl ? 'transparent' : '#fff',
               }}
             >
               {!(session as any)?.profileImageUrl && profileInitials}
             </div>
-            <div>
+            <div className="admin-profile-copy">
               <div className="av-name">{profileName}</div>
-              <div className="av-role">{session?.role === 'admin' ? 'Administrator' : 'Sub-admin'}</div>
+              <div className="av-role">{isAdmin ? 'Administrator' : 'Sub-admin'}</div>
             </div>
           </div>
-          <button className="logout-btn" onClick={handleLogout}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-            Sign Out
-          </button>
+          <button className="logout-btn" onClick={handleLogout}>Sign Out</button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

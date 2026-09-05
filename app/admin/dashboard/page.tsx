@@ -173,9 +173,9 @@ export default function AdminDashboardPage() {
     <div className="jl">
       <AdminSidebar />
 
-      <div className="main" style={{ padding: isMobile ? '12px' : '24px' }}>
+      <div className="main admin-dashboard-page" style={{ padding: isMobile ? '12px' : '24px' }}>
         {/* Top Header */}
-        <div className="topbar" style={{
+        <div className="topbar admin-dashboard-header" style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: isMobile ? 'flex-start' : 'center',
@@ -203,12 +203,13 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: isMobile ? '100%' : 'auto', justifyContent: 'space-between' }}>
+          <div className="dashboard-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '8px', width: isMobile ? '100%' : 'auto', justifyContent: 'space-between' }}>
             {/* Time Filter Buttons */}
-            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '3px', border: '1px solid rgba(255,255,255,0.08)', flex: isMobile ? 1 : 'none', justifyContent: 'space-around' }}>
+            <div className="dashboard-time-filter" style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '3px', border: '1px solid rgba(255,255,255,0.08)', flex: isMobile ? 1 : 'none', justifyContent: 'space-around' }}>
               {(['all', '30d', '7d'] as const).map(tf => (
                 <button
                   key={tf}
+                  className={`dashboard-time-option ${timeFilter === tf ? 'active' : ''}`}
                   onClick={() => setTimeFilter(tf)}
                   style={{
                     padding: isMobile ? '5px 8px' : '6px 14px',
@@ -230,6 +231,7 @@ export default function AdminDashboardPage() {
 
             {/* Refresh Data Button */}
             <button
+              className="dashboard-refresh"
               onClick={loadDashboardData}
               disabled={loading}
               style={{
@@ -252,17 +254,17 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="post-manager" style={{ marginTop: '12px' }}>
+        <div className="post-manager dashboard-workspace" style={{ marginTop: '12px' }}>
           
           {/* KPI METRICS OVERVIEW (2 COLS ON MOBILE, 4 COLS ON DESKTOP) */}
-          <div style={{
+          <div className="dashboard-kpi-grid" style={{
             display: 'grid',
             gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(220px, 1fr))',
             gap: isMobile ? '10px' : '16px',
             marginBottom: isMobile ? '16px' : '24px'
           }}>
             {/* KPI 1: Articles */}
-            <div style={{
+            <div className="dashboard-kpi-card articles" style={{
               background: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
               border: '1px solid rgba(255,255,255,0.08)',
               borderRadius: '12px',
@@ -283,7 +285,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* KPI 2: Total Views */}
-            <div style={{
+            <div className="dashboard-kpi-card traffic" style={{
               background: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
               border: '1px solid rgba(255,255,255,0.08)',
               borderRadius: '12px',
@@ -303,7 +305,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* KPI 3: Music Analytics */}
-            <div style={{
+            <div className="dashboard-kpi-card music" style={{
               background: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
               border: '1px solid rgba(255,255,255,0.08)',
               borderRadius: '12px',
@@ -324,7 +326,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* KPI 4: Reach & Subscribers */}
-            <div style={{
+            <div className="dashboard-kpi-card audience" style={{
               background: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
               border: '1px solid rgba(255,255,255,0.08)',
               borderRadius: '12px',
@@ -346,14 +348,14 @@ export default function AdminDashboardPage() {
 
 
           {/* ROW 1: CONTENT STATUS HEALTH & CATEGORY DISTRIBUTION */}
-          <div style={{
+          <div className="dashboard-insights-grid" style={{
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(min(100%, 450px), 1fr))',
             gap: isMobile ? '12px' : '20px',
             marginBottom: isMobile ? '16px' : '24px'
           }}>
             {/* Card 1: System Content Status & Health */}
-            <div style={{
+            <div className="dashboard-panel dashboard-health-panel" style={{
               background: 'rgba(255,255,255,0.02)',
               border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: '14px',
@@ -417,7 +419,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Card 2: Article Category Distribution & Engagement */}
-            <div style={{
+            <div className="dashboard-panel dashboard-category-panel" style={{
               background: 'rgba(255,255,255,0.02)',
               border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: '14px',
@@ -456,14 +458,14 @@ export default function AdminDashboardPage() {
 
 
           {/* ROW 2: MUSIC & AUDIO ANALYTICS */}
-          <div style={{
+          <div className="dashboard-insights-grid dashboard-music-grid" style={{
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(min(100%, 450px), 1fr))',
             gap: isMobile ? '12px' : '20px',
             marginBottom: isMobile ? '16px' : '24px'
           }}>
             {/* Music Genre Breakdown */}
-            <div style={{
+            <div className="dashboard-panel dashboard-genre-panel" style={{
               background: 'rgba(255,255,255,0.02)',
               border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: '14px',
@@ -498,7 +500,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Top 5 Songs Leaderboard */}
-            <div style={{
+            <div className="dashboard-panel dashboard-top-songs-panel" style={{
               background: 'rgba(255,255,255,0.02)',
               border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: '14px',
@@ -515,7 +517,7 @@ export default function AdminDashboardPage() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {analytics.topSongs.map((song, idx) => (
-                    <div key={song._id} style={{
+                    <div key={song._id} className="dashboard-song-row" style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
@@ -563,13 +565,13 @@ export default function AdminDashboardPage() {
 
 
           {/* FULL WIDTH: MOST VIEWED ARTICLES LEADERBOARD TABLE */}
-          <div style={{
+          <div className="dashboard-panel dashboard-leaderboard" style={{
             background: 'rgba(255,255,255,0.02)',
             border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: '14px',
             padding: isMobile ? '14px' : '20px'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div className="dashboard-panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <div style={{ fontSize: isMobile ? '14px' : '16px', fontWeight: 800, color: '#fff', fontFamily: '"Syne", sans-serif', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Trophy size={18} style={{ color: '#FFD700' }} /> Top Articles Leaderboard
               </div>
@@ -595,6 +597,7 @@ export default function AdminDashboardPage() {
                   return (
                     <div
                       key={post._id}
+                      className="dashboard-leader-row"
                       style={{
                         display: 'flex',
                         alignItems: 'center',

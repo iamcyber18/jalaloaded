@@ -11,7 +11,7 @@ import { IMediaItem } from '@/models/Post';
 import { formatNumber, timeAgo } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Newspaper, Eye, RefreshCw, Pencil, Trash2, Save, FileText, Camera, Settings, Star, Circle, Zap, Search, Heart, X, CheckCircle, Sparkles } from 'lucide-react';
+import { Newspaper, Eye, RefreshCw, Pencil, Trash2, Save, FileText, Camera, Settings, Star, Circle, Zap, Search, Heart, X, CheckCircle, Sparkles, ArrowUpRight, Clock3, LayoutTemplate } from 'lucide-react';
 
 type PostStatusFilter = 'all' | 'published' | 'draft';
 type PostStatus = 'published' | 'draft';
@@ -89,6 +89,7 @@ export default function AdminPostsPage() {
   const defaultAuthor = session?.role === 'admin' ? 'cyber' : (session?.displayName || session?.username || 'Admin');
 
   const [posts, setPosts] = useState<AdminPost[]>([]);
+  const [archiveLead, setArchiveLead] = useState<AdminPost | null>(null);
   const [selectedPost, setSelectedPost] = useState<AdminPost | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'content' | 'media' | 'settings'>('content');
@@ -137,13 +138,19 @@ export default function AdminPostsPage() {
       });
       if (query.trim()) params.set('q', query.trim());
 
-      const res = await fetch(`/api/posts?${params.toString()}`);
-      const data = await res.json();
+      const [res, leadRes] = await Promise.all([
+        fetch(`/api/posts?${params.toString()}`),
+        fetch('/api/posts?status=published&limit=1'),
+      ]);
+      const [data, leadData] = await Promise.all([res.json(), leadRes.json()]);
 
       if (res.ok) {
         setPosts(data.posts || []);
       } else {
         toast.error(data.error || 'Failed to load posts');
+      }
+      if (leadRes.ok) {
+        setArchiveLead(leadData.posts?.[0] || null);
       }
     } catch {
       toast.error('Unable to load posts');
@@ -252,7 +259,8 @@ export default function AdminPostsPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to update post');
 
       toast.success('Post updated successfully! ✨');
-      setPosts(posts.map(p => p._id === selectedPost._id ? data.post : p));
+      setPosts(posts.map(p => p._id === selectedPost._id ? data : p));
+      loadPosts();
       handleCloseEdit();
     } catch (err: any) {
       toast.error(err.message || 'Error saving post');
@@ -275,6 +283,7 @@ export default function AdminPostsPage() {
 
       toast.success(newStatus === 'published' ? 'Post published! 🟢' : 'Moved to drafts 🟡');
       setPosts(posts.map(p => p._id === post._id ? { ...p, status: newStatus } : p));
+      loadPosts();
     } catch {
       toast.error('Failed to change post status');
     }
@@ -293,6 +302,7 @@ export default function AdminPostsPage() {
       toast.success('Post deleted');
       setPosts(posts.filter(p => p._id !== id));
       setSelectedBulkIds(selectedBulkIds.filter(item => item !== id));
+      loadPosts();
     } catch {
       toast.error('Failed to delete post');
     } finally {
@@ -345,14 +355,16 @@ export default function AdminPostsPage() {
   const isSubAdmin = session?.role === 'sub-admin';
   const publishedCount = posts.filter(p => p.status === 'published').length;
   const draftCount = posts.filter(p => p.status === 'draft').length;
+  const homepageFeaturedCount = posts.filter(p => p.featured && p.status === 'published').length;
+  const totalViews = posts.reduce((sum, post) => sum + (post.views || 0), 0);
 
   return (
     <div className="jl">
       <AdminSidebar />
 
-      <div className="main" style={{ padding: isMobile ? '12px' : '24px' }}>
+      <div className="main admin-posts-page" style={{ padding: isMobile ? '12px' : '24px' }}>
         {/* Top bar */}
-        <div className="topbar" style={{
+        <div className="topbar admin-posts-header" style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: isMobile ? 'flex-start' : 'center',
@@ -381,8 +393,38 @@ export default function AdminPostsPage() {
           </div>
         </div>
 
+        <section className="admin-posts-command-center" aria-label="Article publishing overview">
+          <div className="admin-posts-metrics">
+            <div className="admin-posts-metric"><FileText size={17} /><div><strong>{posts.length}</strong><span>Loaded articles</span></div></div>
+            <div className="admin-posts-metric published"><CheckCircle size={17} /><div><strong>{publishedCount}</strong><span>Published</span></div></div>
+            <div className="admin-posts-metric drafts"><Clock3 size={17} /><div><strong>{draftCount}</strong><span>Drafts</span></div></div>
+            <div className="admin-posts-metric views"><Eye size={17} /><div><strong>{formatNumber(totalViews)}</strong><span>Total views</span></div></div>
+          </div>
+
+          <div className="admin-blog-lead-card">
+            <div className="admin-blog-lead-icon"><LayoutTemplate size={21} /></div>
+            <div className="admin-blog-lead-copy">
+              <span>Blog archive lead</span>
+              {archiveLead ? (
+                <>
+                  <strong>{archiveLead.title}</strong>
+                  <p>This is the newest published article, so it is currently the large featured story at the top of <code>/blog</code>.</p>
+                </>
+              ) : <p>Publish an article to create the lead story for the public blog archive.</p>}
+            </div>
+            {archiveLead && (
+              <div className="admin-blog-lead-actions">
+                <Link href={`/blog/${archiveLead.slug}`} target="_blank" className="admin-blog-lead-link">View live <ArrowUpRight size={14} /></Link>
+                <button type="button" onClick={() => handleOpenEdit(archiveLead)} className="admin-blog-lead-edit"><Pencil size={13} /> Edit</button>
+              </div>
+            )}
+          </div>
+
+          <p className="admin-posts-rule"><Star size={12} /> Homepage carousel: {homepageFeaturedCount} published {homepageFeaturedCount === 1 ? 'post is' : 'posts are'} manually featured. This setting is separate from the automatic <code>/blog</code> lead story.</p>
+        </section>
+
         {/* Filters Bar & Stats Row */}
-        <div style={{
+        <div className="admin-posts-filter-card" style={{
           background: 'rgba(255,255,255,0.02)',
           border: '1px solid rgba(255,255,255,0.06)',
           borderRadius: '14px',
@@ -511,14 +553,14 @@ export default function AdminPostsPage() {
         </div>
 
         {/* POSTS LIST / TABLE */}
-        <div style={{
+        <div className="admin-posts-list" style={{
           background: 'rgba(255,255,255,0.02)',
           border: '1px solid rgba(255,255,255,0.06)',
           borderRadius: '14px',
           overflow: 'hidden'
         }}>
           {/* Table Header Bar */}
-          <div style={{
+          <div className="admin-posts-list-header" style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -554,7 +596,7 @@ export default function AdminPostsPage() {
               No articles found. Try adjusting your search query or filters.
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div className="admin-posts-list-body" style={{ display: 'flex', flexDirection: 'column' }}>
               {filteredPosts.map((post) => {
                 const coverPhoto = post.media?.find(m => m.type === 'photo')?.url;
                 const isSelected = selectedBulkIds.includes(post._id);
@@ -563,6 +605,7 @@ export default function AdminPostsPage() {
                   <div
                     key={post._id}
                     onClick={() => handleOpenEdit(post)}
+                    className={`admin-post-row ${isSelected ? 'is-selected' : ''}`}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -576,7 +619,7 @@ export default function AdminPostsPage() {
                     }}
                   >
                     {/* Checkbox & Thumbnail & Title Info */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                    <div className="admin-post-row-main" style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -586,7 +629,7 @@ export default function AdminPostsPage() {
                       />
 
                       {/* Thumbnail */}
-                      <div style={{
+                      <div className="admin-post-thumb" style={{
                         width: '44px',
                         height: '44px',
                         borderRadius: '8px',
@@ -602,7 +645,7 @@ export default function AdminPostsPage() {
                       </div>
 
                       {/* Info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="admin-post-info" style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
                           <span style={{
                             fontSize: '9px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px',
@@ -626,7 +669,7 @@ export default function AdminPostsPage() {
 
                           {post.featured && (
                             <span style={{ fontSize: '9px', color: '#FFD700', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '2px' }}>
-                              <Star size={10} fill="#FFD700" color="#FFD700" /> Featured
+                              <Star size={10} fill="#FFD700" color="#FFD700" /> Homepage
                             </span>
                           )}
                         </div>
@@ -642,7 +685,7 @@ export default function AdminPostsPage() {
                     </div>
 
                     {/* Stats & Actions */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px', flexShrink: 0 }}>
+                    <div className="admin-post-stats" style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px', flexShrink: 0 }}>
                       {!isMobile && (
                         <div style={{ textAlign: 'right', fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '3px', justifyContent: 'flex-end' }}><Eye size={12} /> <strong style={{ color: '#fff' }}>{formatNumber(post.views || 0)}</strong> views</div>
@@ -650,7 +693,7 @@ export default function AdminPostsPage() {
                         </div>
                       )}
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div className="admin-post-actions" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {/* Live Link */}
                         {post.status === 'published' && (
                           <Link
@@ -974,7 +1017,7 @@ export default function AdminPostsPage() {
                       </div>
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>Feature on Homepage</span>
+                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }} title="Controls the homepage carousel only; the /blog lead is selected automatically from the newest published post.">Feature in homepage carousel</span>
                         <input
                           type="checkbox"
                           checked={editor.featured}

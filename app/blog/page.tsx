@@ -80,6 +80,7 @@ async function getPosts(page: number, category?: string, tag?: string) {
 
   return {
     posts: JSON.parse(JSON.stringify(enrichedPosts)),
+    total,
     totalPages: Math.ceil(total / limit),
     currentPage: page,
   };
@@ -91,16 +92,31 @@ export default async function BlogPage({
   searchParams: Promise<{ page?: string; category?: string; tag?: string }>;
 }) {
   const resolvedParams = await searchParams;
-  const page = typeof resolvedParams.page === 'string' ? parseInt(resolvedParams.page) : 1;
+  const requestedPage = typeof resolvedParams.page === 'string' ? Number.parseInt(resolvedParams.page, 10) : 1;
+  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const category = resolvedParams.category || 'All';
   const tag = resolvedParams.tag || '';
 
-  const { posts, totalPages, currentPage } = await getPosts(page, category, tag);
+  const { posts, total, totalPages, currentPage } = await getPosts(page, category, tag);
 
   const categories = ['All', 'Music', 'Sports', 'Fashion', 'Lifestyle', 'News', 'Opinion', 'Events', 'Business', 'Health and Wellbeing', 'Sciences', 'Technology'];
+  const showFeatured = currentPage === 1 && posts.length > 0;
+  const featuredPost = showFeatured ? posts[0] : null;
+  const gridPosts = showFeatured ? posts.slice(1) : posts;
+  const pageHref = (targetPage: number, targetCategory = category) => {
+    const params = new URLSearchParams();
+    if (targetPage > 1) params.set('page', String(targetPage));
+    if (targetCategory !== 'All') params.set('category', targetCategory);
+    if (tag) params.set('tag', tag);
+    const query = params.toString();
+    return query ? `/blog?${query}` : '/blog';
+  };
+  const paginationPages = Array.from(
+    new Set([1, currentPage - 1, currentPage, currentPage + 1, totalPages].filter((item) => item >= 1 && item <= totalPages)),
+  ).sort((a, b) => a - b);
 
   return (
-    <div className="jlh min-h-screen" style={{ position: 'relative', overflow: 'hidden', paddingBottom: '60px' }}>
+    <div className="jlh blog-archive" style={{ position: 'relative', overflow: 'hidden', paddingBottom: '72px' }}>
 
       
       {/* AMBIENT BACKGROUND ORBS */}
@@ -115,54 +131,54 @@ export default async function BlogPage({
         borderRadius: '50%', filter: 'blur(60px)', zIndex: 0, animationDelay: '3s'
       }} />
 
-      <div className="page" style={{ gridTemplateColumns: '1fr', maxWidth: '1240px', margin: '0 auto', padding: '36px 20px', position: 'relative', zIndex: 1 }}>
+      <main className="blog-archive-inner" style={{ position: 'relative', zIndex: 1 }}>
         
         {/* HEADER HERO BANNER */}
-        <div style={{ textAlign: 'center', marginBottom: '36px', maxWidth: '640px', margin: '0 auto 36px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 14px', borderRadius: '20px', background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.25)', color: '#FF6B00', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '14px' }}>
-            <div className="live-dot" style={{ width: '6px', height: '6px', background: '#FF6B00' }} />
-            LIVE FEED & STORIES
+        <header className="blog-archive-hero">
+          <div className="blog-archive-kicker"><span className="blog-live-indicator" aria-hidden="true" />The Jalaloaded edit</div>
+          <div className="blog-archive-heading">
+            <div>
+              <p className="blog-archive-overline">Stories worth your scroll</p>
+              <h1>{tag ? `Posts tagged “${tag}”` : category !== 'All' ? `${category} stories` : 'The gist & stories'}</h1>
+            </div>
+            <p>{tag ? `The latest articles filed under ${tag}.` : category !== 'All' ? `Fresh ${category.toLowerCase()} from the people, moments, and culture shaping the conversation.` : 'Fresh entertainment, street culture, breaking news, and the conversations everyone is having.'}</p>
           </div>
-
-          <h1 style={{
-            fontFamily: '"Bebas Neue", sans-serif', fontSize: '52px', letterSpacing: '2.5px',
-            color: '#fff', textTransform: 'uppercase', margin: 0, lineHeight: 1,
-            textShadow: '0 0 24px rgba(255,107,0,0.3)'
-          }}>
-            {tag ? `POSTS TAGGED "${tag}"` : 'THE GIST & STORIES'}
-          </h1>
-          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', marginTop: '12px', lineHeight: '1.6', fontFamily: '"Syne", sans-serif' }}>
-            {tag 
-              ? `Browsing all articles under the tag ${tag}.` 
-              : 'Dive into the latest happenings, street trends, viral culture, and breaking news.'}
-          </p>
-        </div>
+        </header>
 
         {/* CATEGORY FILTER PILLS */}
-        <div className="blog-category-container" style={{ justifyContent: 'center' }}>
-          {categories.map((cat: string) => {
-            const isActive = category === cat;
-            return (
-              <Link
-                key={cat}
-                href={cat !== 'All' ? `/blog?category=${cat}` : '/blog'}
-                className={`blog-cat-chip ${isActive ? 'active' : ''}`}
-              >
-                {cat}
-              </Link>
-            );
-          })}
-        </div>
+        {!tag && (
+          <nav className="blog-filter-panel" aria-label="Browse posts by category">
+            <span className="blog-filter-label">Browse by topic</span>
+            <div className="blog-category-container">
+              {categories.map((cat: string) => {
+                const isActive = category === cat;
+                return <Link key={cat} href={pageHref(1, cat)} className={`blog-cat-chip ${isActive ? 'active' : ''}`} aria-current={isActive ? 'page' : undefined}>{cat}</Link>;
+              })}
+            </div>
+          </nav>
+        )}
 
         {/* POSTS GRID */}
         {posts.length > 0 ? (
-          <div className="posts-grid">
-            {posts.map((post: any, index: number) => (
-              <div key={post._id.toString()} className="blog-post-item" style={{ animationDelay: `${Math.min(index * 0.05, 0.8)}s` }}>
-                <PostCard post={post} />
+          <>
+            {featuredPost && <section className="blog-feature" aria-label="Featured latest story"><PostCard post={featuredPost} /></section>}
+            <div className="blog-results-heading">
+              <div>
+                <span>{showFeatured ? 'More from the feed' : 'Latest posts'}</span>
+                <h2>{showFeatured ? 'Keep reading' : category === 'All' ? 'All stories' : `${category} stories`}</h2>
               </div>
-            ))}
-          </div>
+              <p>{total} published {total === 1 ? 'story' : 'stories'}</p>
+            </div>
+            {gridPosts.length > 0 && (
+              <div className="posts-grid blog-posts-grid">
+                {gridPosts.map((post: any, index: number) => (
+                  <div key={post._id.toString()} className="blog-post-item" style={{ animationDelay: `${Math.min(index * 0.05, 0.8)}s` }}>
+                    <PostCard post={post} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         ) : (
           <div style={{ textAlign: 'center', padding: '80px 20px', background: 'linear-gradient(180deg, #181818 0%, #111111 100%)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px', filter: 'drop-shadow(0 0 12px rgba(255,107,0,0.4))' }}>📰</div>
@@ -173,23 +189,20 @@ export default async function BlogPage({
 
         {/* PAGINATION CONTROLS */}
         {totalPages > 1 && (
-          <div style={{ marginTop: '48px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-            {Array.from({ length: totalPages }).map((_: any, i: number) => {
-              const isCurrent = currentPage === i + 1;
-              return (
-                <Link
-                  key={i}
-                  href={`/blog?page=${i + 1}${category !== 'All' ? '&category=' + category : ''}`}
-                  className={`blog-pagination-btn ${isCurrent ? 'active' : ''}`}
-                >
-                  {i + 1}
-                </Link>
-              );
-            })}
-          </div>
+          <nav className="blog-pagination" aria-label="Pagination">
+            {currentPage > 1 && <Link href={pageHref(currentPage - 1)} className="blog-pagination-btn blog-pagination-arrow" aria-label="Previous page">← <span>Previous</span></Link>}
+            <div className="blog-pagination-pages">
+              {paginationPages.map((item, index) => (
+                <span key={item} className="blog-pagination-group">
+                  {index > 0 && item - paginationPages[index - 1] > 1 && <span className="blog-pagination-ellipsis">…</span>}
+                  <Link href={pageHref(item)} className={`blog-pagination-btn ${currentPage === item ? 'active' : ''}`} aria-current={currentPage === item ? 'page' : undefined}>{item}</Link>
+                </span>
+              ))}
+            </div>
+            {currentPage < totalPages && <Link href={pageHref(currentPage + 1)} className="blog-pagination-btn blog-pagination-arrow" aria-label="Next page"><span>Next</span> →</Link>}
+          </nav>
         )}
-      </div>
+      </main>
     </div>
   );
 }
-
