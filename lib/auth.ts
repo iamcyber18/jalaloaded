@@ -29,7 +29,7 @@ export async function createToken(session: AdminSession) {
   return new SignJWT(session)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('365d')
+    .setExpirationTime('1h')
     .sign(JWT_SECRET);
 }
 

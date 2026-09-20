@@ -4,6 +4,8 @@ import React, { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+import { preprocessMarkdown } from '@/lib/utils';
+
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -26,7 +28,7 @@ export default function RichTextEditor({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
 
-  // Insert or wrap text at cursor position in textarea
+  // Insert or wrap text at cursor position in textarea with smart whitespace handling and toggle support
   const insertFormatting = (prefix: string, suffix: string = '', defaultText: string = '') => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -34,28 +36,74 @@ export default function RichTextEditor({
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const currentText = textarea.value;
-    const selectedText = currentText.substring(start, end);
 
-    let replacement = '';
-    let newCursorStart = start;
-    let newCursorEnd = end;
+    let targetStart = start;
+    let targetEnd = end;
 
-    if (selectedText.length > 0) {
-      // User highlighted text
-      replacement = `${prefix}${selectedText}${suffix}`;
-      newCursorStart = start + prefix.length;
-      newCursorEnd = start + prefix.length + selectedText.length;
-    } else {
-      // No text highlighted, insert default placeholder
-      replacement = `${prefix}${defaultText}${suffix}`;
-      newCursorStart = start + prefix.length;
-      newCursorEnd = start + prefix.length + defaultText.length;
+    // If cursor is placed without selection, detect word boundaries under cursor
+    if (start === end) {
+      let wordStart = start;
+      let wordEnd = end;
+      while (wordStart > 0 && /\w/.test(currentText[wordStart - 1])) {
+        wordStart--;
+      }
+      while (wordEnd < currentText.length && /\w/.test(currentText[wordEnd])) {
+        wordEnd++;
+      }
+      if (wordEnd > wordStart) {
+        targetStart = wordStart;
+        targetEnd = wordEnd;
+      }
     }
 
-    const updatedText = currentText.substring(0, start) + replacement + currentText.substring(end);
+    const selectedText = currentText.substring(targetStart, targetEnd);
+
+    let replacement = '';
+    let newCursorStart = targetStart;
+    let newCursorEnd = targetEnd;
+
+    if (selectedText.length > 0) {
+      const leadingWhitespace = selectedText.match(/^\s*/)?.[0] || '';
+      const trailingWhitespace = selectedText.match(/\s*$/)?.[0] || '';
+      const coreText = selectedText.substring(
+        leadingWhitespace.length,
+        selectedText.length - trailingWhitespace.length
+      );
+
+      // Check if already formatted with this exact prefix & suffix (toggle off)
+      if (
+        coreText &&
+        prefix &&
+        suffix &&
+        coreText.startsWith(prefix) &&
+        coreText.endsWith(suffix) &&
+        coreText.length >= prefix.length + suffix.length
+      ) {
+        const unwrapped = coreText.substring(prefix.length, coreText.length - suffix.length);
+        replacement = `${leadingWhitespace}${unwrapped}${trailingWhitespace}`;
+        newCursorStart = targetStart + leadingWhitespace.length;
+        newCursorEnd = newCursorStart + unwrapped.length;
+      } else if (coreText.length > 0) {
+        // Place delimiters snugly around text without whitespace inside delimiters
+        replacement = `${leadingWhitespace}${prefix}${coreText}${suffix}${trailingWhitespace}`;
+        newCursorStart = targetStart + leadingWhitespace.length + prefix.length;
+        newCursorEnd = newCursorStart + coreText.length;
+      } else {
+        replacement = `${leadingWhitespace}${prefix}${defaultText}${suffix}${trailingWhitespace}`;
+        newCursorStart = targetStart + leadingWhitespace.length + prefix.length;
+        newCursorEnd = newCursorStart + defaultText.length;
+      }
+    } else {
+      // No text at all, insert default placeholder and highlight it
+      replacement = `${prefix}${defaultText}${suffix}`;
+      newCursorStart = targetStart + prefix.length;
+      newCursorEnd = targetStart + prefix.length + defaultText.length;
+    }
+
+    const updatedText = currentText.substring(0, targetStart) + replacement + currentText.substring(targetEnd);
     onChange(updatedText);
 
-    // Restore focus and selection
+    // Restore focus and selection range
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(newCursorStart, newCursorEnd);
@@ -314,9 +362,11 @@ export default function RichTextEditor({
                 remarkPlugins={[remarkGfm]}
                 components={{
                   blockquote: ({ children }: any) => <div className="pull-quote"><p>{children}</p></div>,
+                  em: ({ children }: any) => <em style={{ fontStyle: 'italic' }}>{children}</em>,
+                  i: ({ children }: any) => <i style={{ fontStyle: 'italic' }}>{children}</i>,
                 }}
               >
-                {value}
+                {preprocessMarkdown(value)}
               </ReactMarkdown>
             ) : (
               <div className="rich-preview-empty">Nothing to preview yet. Start typing in the Write tab!</div>

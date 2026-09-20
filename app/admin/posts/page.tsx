@@ -8,7 +8,7 @@ import PostMediaUploader from '@/components/PostMediaUploader';
 import RichTextEditor from '@/components/RichTextEditor';
 import { useAdminSession } from '@/components/useAdminSession';
 import { IMediaItem } from '@/models/Post';
-import { formatNumber, timeAgo } from '@/lib/utils';
+import { formatNumber, timeAgo, preprocessMarkdown } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Newspaper, Eye, RefreshCw, Pencil, Trash2, Save, FileText, Camera, Settings, Star, Circle, Zap, Search, Heart, X, CheckCircle, Sparkles, ArrowUpRight, Clock3, LayoutTemplate } from 'lucide-react';
@@ -1080,10 +1080,10 @@ export default function AdminPostsPage() {
               <h1 style={{ fontFamily: '"Syne", sans-serif', fontSize: '24px', fontWeight: 800, color: '#fff', lineHeight: 1.3, marginBottom: '14px' }}>
                 {editor.title || 'Untitled Article'}
               </h1>
-              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', lineHeight: '1.7' }}>
-                {editor.introduction && <ReactMarkdown remarkPlugins={[remarkGfm]}>{editor.introduction}</ReactMarkdown>}
-                {editor.mainContent && <ReactMarkdown remarkPlugins={[remarkGfm]}>{editor.mainContent}</ReactMarkdown>}
-                {editor.conclusion && <ReactMarkdown remarkPlugins={[remarkGfm]}>{editor.conclusion}</ReactMarkdown>}
+              <div className="article-body" style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', lineHeight: '1.7' }}>
+                {editor.introduction && <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ em: ({children}: any) => <em style={{ fontStyle: 'italic' }}>{children}</em>, i: ({children}: any) => <i style={{ fontStyle: 'italic' }}>{children}</i> }}>{preprocessMarkdown(editor.introduction)}</ReactMarkdown>}
+                {editor.mainContent && <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ em: ({children}: any) => <em style={{ fontStyle: 'italic' }}>{children}</em>, i: ({children}: any) => <i style={{ fontStyle: 'italic' }}>{children}</i> }}>{preprocessMarkdown(editor.mainContent)}</ReactMarkdown>}
+                {editor.conclusion && <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ em: ({children}: any) => <em style={{ fontStyle: 'italic' }}>{children}</em>, i: ({children}: any) => <i style={{ fontStyle: 'italic' }}>{children}</i> }}>{preprocessMarkdown(editor.conclusion)}</ReactMarkdown>}
               </div>
             </div>
           </div>

@@ -10,6 +10,7 @@ import RichTextEditor from '@/components/RichTextEditor';
 import { useAdminSession } from '@/components/useAdminSession';
 import { IMediaItem } from '@/models/Post';
 import { FilePenLine, ImagePlus, MessageSquare, Save, Tags } from 'lucide-react';
+import { preprocessMarkdown } from '@/lib/utils';
 
 export default function AdminPage() {
   const [form, setForm] = useState({
@@ -380,7 +381,9 @@ export default function AdminPage() {
               {/* Body */}
               <div className="article-body">
                 {form.introduction && (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.introduction}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ em: ({children}: any) => <em style={{ fontStyle: 'italic' }}>{children}</em>, i: ({children}: any) => <i style={{ fontStyle: 'italic' }}>{children}</i> }}>
+                    {preprocessMarkdown(form.introduction)}
+                  </ReactMarkdown>
                 )}
 
                 {/* After-intro images */}
@@ -391,7 +394,9 @@ export default function AdminPage() {
                 ))}
 
                 {form.mainContent && (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.mainContent}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ em: ({children}: any) => <em style={{ fontStyle: 'italic' }}>{children}</em>, i: ({children}: any) => <i style={{ fontStyle: 'italic' }}>{children}</i> }}>
+                    {preprocessMarkdown(form.mainContent)}
+                  </ReactMarkdown>
                 )}
 
                 {/* After-main images */}
@@ -404,7 +409,9 @@ export default function AdminPage() {
                 {form.conclusion && (
                   <>
                     <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.06)', margin: '20px 0' }} />
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.conclusion}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ em: ({children}: any) => <em style={{ fontStyle: 'italic' }}>{children}</em>, i: ({children}: any) => <i style={{ fontStyle: 'italic' }}>{children}</i> }}>
+                      {preprocessMarkdown(form.conclusion)}
+                    </ReactMarkdown>
                   </>
                 )}
 

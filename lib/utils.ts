@@ -51,3 +51,44 @@ export function formatDuration(seconds: number | undefined): string {
     const s = Math.floor(seconds % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
 }
+
+/**
+ * Preprocesses markdown text before feeding to ReactMarkdown:
+ * 1. Converts HTML <i> and <em> tags to markdown *...*
+ * 2. Converts HTML <b> and <strong> tags to markdown **...**
+ */
+export function preprocessMarkdown(text: string | undefined | null): string {
+  if (!text) return '';
+  return text
+    // 1. Convert HTML italic tags: <i>...</i> and <em>...</em> -> *...*
+    .replace(/<i\b[^>]*>([\s\S]*?)<\/i>/gi, (_match, p1) => {
+      const trimmed = p1.trim();
+      if (!trimmed) return p1;
+      const leading = p1.match(/^\s*/)?.[0] || '';
+      const trailing = p1.match(/\s*$/)?.[0] || '';
+      return `${leading}*${trimmed}*${trailing}`;
+    })
+    .replace(/<em\b[^>]*>([\s\S]*?)<\/em>/gi, (_match, p1) => {
+      const trimmed = p1.trim();
+      if (!trimmed) return p1;
+      const leading = p1.match(/^\s*/)?.[0] || '';
+      const trailing = p1.match(/\s*$/)?.[0] || '';
+      return `${leading}*${trimmed}*${trailing}`;
+    })
+    // 2. Convert HTML bold tags: <b>...</b> and <strong>...</strong> -> **...**
+    .replace(/<b\b[^>]*>([\s\S]*?)<\/b>/gi, (_match, p1) => {
+      const trimmed = p1.trim();
+      if (!trimmed) return p1;
+      const leading = p1.match(/^\s*/)?.[0] || '';
+      const trailing = p1.match(/\s*$/)?.[0] || '';
+      return `${leading}**${trimmed}**${trailing}`;
+    })
+    .replace(/<strong\b[^>]*>([\s\S]*?)<\/strong>/gi, (_match, p1) => {
+      const trimmed = p1.trim();
+      if (!trimmed) return p1;
+      const leading = p1.match(/^\s*/)?.[0] || '';
+      const trailing = p1.match(/\s*$/)?.[0] || '';
+      return `${leading}**${trimmed}**${trailing}`;
+    });
+}
+

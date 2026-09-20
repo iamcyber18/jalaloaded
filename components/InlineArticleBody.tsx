@@ -3,6 +3,7 @@
 import { IMediaItem } from '@/models/Post';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { preprocessMarkdown } from '@/lib/utils';
 
 interface Props {
   content: string;
@@ -22,6 +23,8 @@ export default function InlineArticleBody({ content, mediaItems }: Props) {
   const mdComponents = {
     blockquote: ({ children }: any) => <div className="pull-quote"><p>{children}</p></div>,
     p: ({ children }: any) => <p>{children}</p>,
+    em: ({ children }: any) => <em style={{ fontStyle: 'italic' }}>{children}</em>,
+    i: ({ children }: any) => <i style={{ fontStyle: 'italic' }}>{children}</i>,
   };
 
   return (
@@ -54,7 +57,7 @@ export default function InlineArticleBody({ content, mediaItems }: Props) {
         if (part.trim()) {
           return (
             <ReactMarkdown key={idx} remarkPlugins={[remarkGfm]} components={mdComponents}>
-              {part}
+              {preprocessMarkdown(part)}
             </ReactMarkdown>
           );
         }

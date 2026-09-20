@@ -10,7 +10,7 @@ import NewsletterForm from '@/components/NewsletterForm';
 import FollowWriterButton from '@/components/FollowWriterButton';
 import Link from 'next/link';
 import { getAuthorDisplay } from '@/lib/authors';
-import { timeAgo, calculateReadTime, formatNumber } from '@/lib/utils';
+import { timeAgo, calculateReadTime, formatNumber, preprocessMarkdown } from '@/lib/utils';
 import { ensurePublishedAtBackfill } from '@/lib/postPublishing';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
@@ -229,7 +229,15 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                 const afterMain = allPhotos.filter((p: any) => p.position === 'after-main');
                 const afterConclusion = allPhotos.filter((p: any) => p.position === 'after-conclusion');
                 
-                const mdProps = { remarkPlugins: [remarkGfm], components: { blockquote: ({children}: any) => <div className="pull-quote"><p>{children}</p></div>, p: ({children}: any) => <p>{children}</p> } };
+                const mdProps = {
+                  remarkPlugins: [remarkGfm],
+                  components: {
+                    blockquote: ({children}: any) => <div className="pull-quote"><p>{children}</p></div>,
+                    p: ({children}: any) => <p>{children}</p>,
+                    em: ({children}: any) => <em style={{ fontStyle: 'italic' }}>{children}</em>,
+                    i: ({children}: any) => <i style={{ fontStyle: 'italic' }}>{children}</i>,
+                  }
+                };
                 const renderPhotos = (photos: any[]) => {
                   if (!photos || photos.length === 0) return null;
                   return (
@@ -311,15 +319,15 @@ export default async function SinglePostPage({ params }: { params: Promise<{ slu
                 return (
                   <>
                     {introText && (
-                      <ReactMarkdown {...mdProps}>{introText}</ReactMarkdown>
+                      <ReactMarkdown {...mdProps}>{preprocessMarkdown(introText)}</ReactMarkdown>
                     )}
                     {renderPhotos(afterIntro)}
                     {mainText && (
-                      <ReactMarkdown {...mdProps}>{mainText}</ReactMarkdown>
+                      <ReactMarkdown {...mdProps}>{preprocessMarkdown(mainText)}</ReactMarkdown>
                     )}
                     {renderPhotos(afterMain)}
                     {conclusionText && (
-                      <ReactMarkdown {...mdProps}>{conclusionText}</ReactMarkdown>
+                      <ReactMarkdown {...mdProps}>{preprocessMarkdown(conclusionText)}</ReactMarkdown>
                     )}
                     {renderPhotos(afterConclusion)}
                   </>
