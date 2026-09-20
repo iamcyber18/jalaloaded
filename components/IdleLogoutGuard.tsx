@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const IDLE_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
 const WARNING_BEFORE_MS = 30 * 1000; // Show warning 30 seconds before logout
 
 export default function IdleLogoutGuard() {

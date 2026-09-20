@@ -100,6 +100,80 @@ export default function AdminSidebar() {
         aria-hidden="true"
       />
 
+      {/* Mobile Slide-in Drawer (must be outside aside to avoid stacking context trap) */}
+      <div
+        className={`nav-links-container ${isOpen ? 'open' : ''}`}
+        role="dialog"
+        aria-modal={isOpen ? 'true' : undefined}
+        aria-label="Admin Navigation"
+      >
+        {/* Mobile Drawer Header */}
+        <div className="mobile-sidebar-header">
+          <div className="admin-brand">
+            <img src="/images/jalaloadedlogo.png" alt="Jalaloaded" className="admin-logo" />
+            <div className="logo-sub">Admin workspace</div>
+          </div>
+          <button
+            type="button"
+            className="mobile-sidebar-close-btn"
+            onClick={closeMenu}
+            aria-label="Close navigation sidebar"
+          >
+            <X size={18} strokeWidth={2.2} />
+          </button>
+        </div>
+
+        <nav className="admin-navigation" aria-label="Admin navigation">
+          <NavGroup title="Overview">
+            <NavItem href="/admin/dashboard" label="Dashboard" icon={LayoutDashboard} active={pathname === '/admin/dashboard'} onClick={closeMenu} />
+          </NavGroup>
+
+          <NavGroup title="Publishing">
+            <NavItem href="/admin" label="Create Post" icon={FilePlus2} active={pathname === '/admin'} onClick={closeMenu} />
+            <NavItem href="/admin/posts" label={postsLabel} icon={FileText} active={pathname === '/admin/posts'} onClick={closeMenu} />
+            {isAdmin && <NavItem href="/admin/live" label="Live Stream" icon={Radio} active={pathname === '/admin/live'} onClick={closeMenu} />}
+            {isAdmin && <NavItem href="/admin/videos" label="Videos" icon={Video} active={pathname === '/admin/videos'} onClick={closeMenu} />}
+          </NavGroup>
+
+          {isAdmin && (
+            <NavGroup title="Music">
+              <NavItem href="/admin/music" label="Music Library" icon={Music2} active={pathname === '/admin/music'} onClick={closeMenu} />
+              <NavItem href="/admin/artists" label="Artists" icon={UsersRound} active={pathname === '/admin/artists'} onClick={closeMenu} />
+              <NavItem href="/admin/upcoming" label="Upcoming Releases" icon={CalendarClock} active={pathname === '/admin/upcoming'} onClick={closeMenu} />
+            </NavGroup>
+          )}
+
+          <NavGroup title="Administration">
+            {isAdmin && <NavItem href="/admin/adverts" label="Adverts" icon={Megaphone} active={pathname === '/admin/adverts'} onClick={closeMenu} />}
+            {isAdmin && <NavItem href="/admin/newsletter" label="Newsletter" icon={Mail} active={pathname === '/admin/newsletter'} onClick={closeMenu} />}
+            {isAdmin && <NavItem href="/admin/users" label="Team" icon={UsersRound} active={pathname === '/admin/users'} onClick={closeMenu} />}
+            <NavItem href="/admin/account" label="Account Settings" icon={Settings} active={pathname === '/admin/account'} onClick={closeMenu} />
+          </NavGroup>
+        </nav>
+
+        <div className="author-area">
+          <div className="author-row">
+            <div
+              className="av"
+              style={{
+                background: (session as any)?.profileImageUrl ? `url(${(session as any).profileImageUrl}) center/cover` : 'var(--orange)',
+                color: (session as any)?.profileImageUrl ? 'transparent' : '#fff',
+              }}
+            >
+              {!(session as any)?.profileImageUrl && profileInitials}
+            </div>
+            <div className="admin-profile-copy">
+              <div className="av-name">{profileName}</div>
+              <div className="av-role">{isAdmin ? 'Administrator' : 'Sub-admin'}</div>
+            </div>
+          </div>
+          <button className="logout-btn" onClick={handleLogout}>
+            <LogOut size={13} strokeWidth={2} aria-hidden="true" />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+
       <aside className="admin-sidebar">
         {/* Desktop Top Brand / Mobile Header Bar */}
         <div className="logo-area">
@@ -118,54 +192,33 @@ export default function AdminSidebar() {
           </button>
         </div>
 
-        {/* Sidebar Navigation (Desktop Fixed / Mobile Slide-in Drawer) */}
-        <div
-          className={`nav-links-container ${isOpen ? 'open' : ''}`}
-          role="dialog"
-          aria-modal={isOpen ? 'true' : undefined}
-          aria-label="Admin Navigation"
-        >
-          {/* Mobile Drawer Header */}
-          <div className="mobile-sidebar-header">
-            <div className="admin-brand">
-              <img src="/images/jalaloadedlogo.png" alt="Jalaloaded" className="admin-logo" />
-              <div className="logo-sub">Admin workspace</div>
-            </div>
-            <button
-              type="button"
-              className="mobile-sidebar-close-btn"
-              onClick={closeMenu}
-              aria-label="Close navigation sidebar"
-            >
-              <X size={18} strokeWidth={2.2} />
-            </button>
-          </div>
-
+        {/* Desktop-only: navigation rendered inside aside (hidden on mobile via CSS) */}
+        <div className="nav-links-desktop">
           <nav className="admin-navigation" aria-label="Admin navigation">
             <NavGroup title="Overview">
-              <NavItem href="/admin/dashboard" label="Dashboard" icon={LayoutDashboard} active={pathname === '/admin/dashboard'} onClick={closeMenu} />
+              <NavItem href="/admin/dashboard" label="Dashboard" icon={LayoutDashboard} active={pathname === '/admin/dashboard'} />
             </NavGroup>
 
             <NavGroup title="Publishing">
-              <NavItem href="/admin" label="Create Post" icon={FilePlus2} active={pathname === '/admin'} onClick={closeMenu} />
-              <NavItem href="/admin/posts" label={postsLabel} icon={FileText} active={pathname === '/admin/posts'} onClick={closeMenu} />
-              {isAdmin && <NavItem href="/admin/live" label="Live Stream" icon={Radio} active={pathname === '/admin/live'} onClick={closeMenu} />}
-              {isAdmin && <NavItem href="/admin/videos" label="Videos" icon={Video} active={pathname === '/admin/videos'} onClick={closeMenu} />}
+              <NavItem href="/admin" label="Create Post" icon={FilePlus2} active={pathname === '/admin'} />
+              <NavItem href="/admin/posts" label={postsLabel} icon={FileText} active={pathname === '/admin/posts'} />
+              {isAdmin && <NavItem href="/admin/live" label="Live Stream" icon={Radio} active={pathname === '/admin/live'} />}
+              {isAdmin && <NavItem href="/admin/videos" label="Videos" icon={Video} active={pathname === '/admin/videos'} />}
             </NavGroup>
 
             {isAdmin && (
               <NavGroup title="Music">
-                <NavItem href="/admin/music" label="Music Library" icon={Music2} active={pathname === '/admin/music'} onClick={closeMenu} />
-                <NavItem href="/admin/artists" label="Artists" icon={UsersRound} active={pathname === '/admin/artists'} onClick={closeMenu} />
-                <NavItem href="/admin/upcoming" label="Upcoming Releases" icon={CalendarClock} active={pathname === '/admin/upcoming'} onClick={closeMenu} />
+                <NavItem href="/admin/music" label="Music Library" icon={Music2} active={pathname === '/admin/music'} />
+                <NavItem href="/admin/artists" label="Artists" icon={UsersRound} active={pathname === '/admin/artists'} />
+                <NavItem href="/admin/upcoming" label="Upcoming Releases" icon={CalendarClock} active={pathname === '/admin/upcoming'} />
               </NavGroup>
             )}
 
             <NavGroup title="Administration">
-              {isAdmin && <NavItem href="/admin/adverts" label="Adverts" icon={Megaphone} active={pathname === '/admin/adverts'} onClick={closeMenu} />}
-              {isAdmin && <NavItem href="/admin/newsletter" label="Newsletter" icon={Mail} active={pathname === '/admin/newsletter'} onClick={closeMenu} />}
-              {isAdmin && <NavItem href="/admin/users" label="Team" icon={UsersRound} active={pathname === '/admin/users'} onClick={closeMenu} />}
-              <NavItem href="/admin/account" label="Account Settings" icon={Settings} active={pathname === '/admin/account'} onClick={closeMenu} />
+              {isAdmin && <NavItem href="/admin/adverts" label="Adverts" icon={Megaphone} active={pathname === '/admin/adverts'} />}
+              {isAdmin && <NavItem href="/admin/newsletter" label="Newsletter" icon={Mail} active={pathname === '/admin/newsletter'} />}
+              {isAdmin && <NavItem href="/admin/users" label="Team" icon={UsersRound} active={pathname === '/admin/users'} />}
+              <NavItem href="/admin/account" label="Account Settings" icon={Settings} active={pathname === '/admin/account'} />
             </NavGroup>
           </nav>
 
